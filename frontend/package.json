@@ -1,7 +1,7 @@
 {
-  "name": "homecloud-frontend",
+  "name": "nightcloud-frontend",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -9,6 +9,11 @@
     "lint": "eslint .",
     "preview": "vite preview"
   },
+  "authors": [
+    "Ángel González <angelgonzalez280304@gmail.com> GitHub: xNeuNoRo",
+    "Lorelvis Santos <santoslorelvis@gmail.com> GitHub: lorelvis-santos"
+  ],
+  "license": "MIT",
   "dependencies": {
     "@tailwindcss/vite": "^4.1.18",
     "react": "^19.2.0",

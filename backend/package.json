@@ -1,5 +1,5 @@
 {
-  "name": "homecloud-backend",
+  "name": "nightcloud-backend",
   "version": "1.0.0",
   "description": "Local cloud storage platform",
   "main": "src/server.ts",

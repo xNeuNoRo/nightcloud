@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "homecloud-frontend",
+      "name": "nightcloud-frontend",
       "dependencies": {
         "@tailwindcss/vite": "^4.1.18",
         "react": "^19.2.0",
