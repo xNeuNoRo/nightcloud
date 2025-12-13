@@ -1,0 +1,37 @@
+{
+  "compilerOptions": {
+    // Para compilar a versiones mas recientes
+    "target": "esnext",
+    "module": "nodenext",
+    "moduleResolution": "NodeNext",
+    // Para que jest quiera funcionar
+    "isolatedModules": true,
+    // Otros parametros
+    "declaration": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,
+    "strictNullChecks": true,
+    "noImplicitAny": true,
+    "skipLibCheck": true,
+    "skipDefaultLibCheck": false,
+    "incremental": true,
+    "tsBuildInfoFile": ".tsbuildinfo",
+    "sourceMap": true,
+    "outDir": "dist",
+    "rootDir": "src",
+    "resolveJsonModule": true,
+    // Para los decoradores de los modelos, [SEQUELIZE u otro ORM con decoradores]
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    // Para usar JSX/TSX en caso de usar react-email
+    "jsx": "react-jsx",
+    // Para simplificar los imports utilizando @ en vez de todos los "../../" de las rutas
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": ["src/**/*.ts", "src/emails/**/*.tsx"], // En caso de usar react-email incluir la carpeta /emails 
+  "exclude": ["node_modules", "dist", "src/**/*.test.ts"] // Excluir los tests y node_modules de la compilacion
+}
