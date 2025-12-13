@@ -2,10 +2,10 @@
   "name": "homecloud-backend",
   "version": "1.0.0",
   "description": "Local cloud storage platform",
-  "main": "src/index.ts",
+  "main": "src/server.ts",
   "scripts": {
-    "start": "bun src/index.ts",
-    "dev": "bun --watch src/index.ts",
+    "start": "bun src/server.ts",
+    "dev": "bun --watch src/server.ts",
     "prepare-husky": "git init && bunx husky-init && bun install && bunx husky add .husky/pre-commit \"bun lint-staged\"",
     "check": "bun build.mjs",
     "lint": "eslint . --ext .ts,.js",
@@ -16,7 +16,7 @@
     "build": "tsc --noEmit false",
     "build:watch": "tsc --watch",
     "build:clean": "rm -rf dist",
-    "build:start": "node dist/index.js",
+    "build:start": "node dist/server.js",
     "test": "jest --detectOpenHandles",
     "test:coverage": "bun run pretest && jest --detectOpenHandles --coverage && bun run posttest",
     "pretest": "echo Iniciando pruebas",
@@ -47,6 +47,9 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",
+    "@types/cookie-parser": "^1.4.10",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
     "@types/jest": "^30.0.0",
     "@types/supertest": "^6.0.3",
     "@typescript-eslint/eslint-plugin": "^8.39.1",
@@ -70,6 +73,11 @@
   },
   "dependencies": {
     "colors": "^1.4.0",
-    "dotenv": "^17.2.1"
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1",
+    "express-validator": "^7.3.1",
+    "prisma": "^7.1.0"
   }
 }
