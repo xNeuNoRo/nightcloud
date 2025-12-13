@@ -1,11 +1,11 @@
 import "dotenv/config";
 import { createApp } from "@/app";
-import { connectDB } from "@/config/db";
+import { DB } from "@/config/db";
 
 async function initApp() {
   try {
     // Connect to the database
-    await connectDB();
+    await DB.getClient().$connect();
 
     // Create the Express application
     const app = createApp();
