@@ -1,0 +1,135 @@
+@startuml nightcloud-uc-v2
+' Configuracion del diagrama
+title NightCloud V2 Roadmap
+skinparam backgroundColor #e0e0e0ff
+skinparam actorStyle awesome
+
+' Estilo de los actores
+skinparam actorBackgroundColor #81D4FA
+skinparam actorBorderColor #0288D1
+skinparam actorFontSize 12
+skinparam actorFontName Helvetica
+
+' Estilo de los paquetes
+skinparam packageBackgroundColor #E0F7FA
+skinparam packageBorderColor #00796B
+skinparam packageFontSize 12
+skinparam packageFontName Verdana
+skinparam packageShadowing true
+
+' Estilo de los casos de uso
+skinparam usecaseBackgroundColor #A5D6A7
+skinparam usecaseBorderColor #388E3C
+skinparam usecaseFontSize 14
+skinparam usecaseFontName Helvetica
+
+' Estilo de las flechas de relacion
+skinparam usecaseArrowColor #0288D1
+skinparam usecaseArrowThickness 1.5
+skinparam usecaseArrowFontSize 12
+
+' Direccion del diagrama
+left to right direction
+
+' Actores
+actor "Usuario" as user
+actor "Administrador de la nube" as admin
+
+' =======================================
+' ROADMAP NIGHTCLOUD V2
+' =======================================
+package "NightCloud 2.0.0 (Usuarios y autenticacion)" as v1 {
+    usecase "Registro de usuarios" as UC1
+    usecase "Inicio de sesion" as UC2
+    usecase "Recuperacion de contraseña" as UC3
+    usecase "Gestion de perfil" as UC4
+    usecase "Gestion de usuarios" as UC4b
+    usecase "Roles y permisos" as UC5
+    usecase "Configuracion del espacio de \nalmacenamiento por usuario" as UC5b
+    usecase "Autenticacion de dos factores (2FA)\n(opcional)" as UC6 #line.dashed
+    usecase "Autenticacion con servicios externos (Google, etc)\n(opcional)" as UC7 #line.dashed
+}
+
+UC1 --> user : "Se registra"
+UC2 --> user : "Inicia sesion"
+UC3 --> user : "Recupera contraseña"
+UC4 --> user : "Gestiona perfil"
+UC4b --> admin : "Gestiona perfiles"
+UC5 --> admin : "Define roles y permisos"
+UC5b --> admin : "Configura espacio de almacenamiento"
+UC6 --> user : "Configura 2FA"
+UC7 --> user : "Usa autenticacion externa"
+
+package "NightCloud 2.1.0 (Comparticion y colaboracion)" as v2 {
+    usecase "Compartir archivos y carpetas" as UC8
+    usecase "Permisos de comparticion" as UC9
+    usecase "Enlaces publicos con expiracion" as UC10
+}
+
+UC8 --> user : "Comparte archivos/carpetas"
+UC9 --> user : "Gestiona permisos"
+UC10 --> user : "Crea enlaces publicos"
+
+package "NightCloud 2.2.0 (Manejo de Archivos Grandes)" as v3 {
+    usecase "Compresion de archivos grandes\n(SUBIDA)" as UC11
+    usecase "Division por Chunks\n(SUBIDA Y DESCARGA)" as UC12
+    usecase "Deteccion de Archivos Duplicados\n(SUBIDA)" as UC13
+    usecase "Subida Inteligente de Chunks Modificados\n(SUBIDA)\n(opcional)" as UC14 #line.dashed
+
+    note bottom of UC13
+        **Deteccion de Archivos Duplicados:**
+        1. Calcular un hash (e.g., SHA-256) del archivo al subirlo.
+        2. Comparar este hash con los hashes de archivos ya almacenados.
+        3. Si el hash ya existe, no almacenar el archivo nuevamente,
+        sino crear una referencia al archivo existente.
+        Esto ahorra espacio de almacenamiento y mejora la eficiencia.
+    end note
+
+    note top of UC14
+        **Subida Inteligente de Chunks Modificados:**
+        1. Dividir el archivo en chunks y calcular un hash para cada chunk.
+        2. Comparar los hashes de los chunks con los ya almacenados.
+        3. Subir solo los chunks que han cambiado.
+        Esto reduce el tiempo y el ancho de banda necesario para subir archivos grandes.
+    end note
+}
+
+package "NightCloud 2.3.0 (Control de Colaboracion y Acceso)" as v4 {
+    usecase "Vista de archivos/carpetas compartidas" as UC17
+    usecase "Modificar permisos de archivos/carpetas compartidos" as UC18
+    usecase "Revocar comparticion/enlaces publicos" as UC19
+    usecase "Notificaciones de acceso a archivos compartidos\n(opcional)" as UC20 #line.dashed
+}
+
+UC17 --> user : "Ve archivos/carpetas compartidas"
+UC18 --> user : "Modifica permisos"
+UC19 --> user : "Revoca comparticion/enlaces"
+UC20 --> user : "Recibe notificaciones"
+
+package "NightCloud 2.4.0 (Cifrado y Seguridad)" as v5 {
+    usecase "Opcion para activar o \ndesactivar el cifrado de la nube" as UC21
+    usecase "Sistema de Cifrado por capas" as UC22
+    usecase "Verificación de Integridad de Archivos" as UC23
+
+    note top of UC22
+        **Cifrado por Capas (Envelope Encryption):**
+        1. El archivo se cifra con la **DEK** (clave por archivo, aleatoria).
+        2. La **DEK** se cifra con la **KEK** (clave maestra, global y secreta).
+        3. Se almacena el archivo cifrado + la DEK cifrada.
+        Esto protege la KEK al no usarla directamente para los datos.
+    end note
+
+    note bottom of UC23
+        **Verificación de Integridad:**
+        Calcular un hash criptográfico (e.g., SHA-256)
+        durante la subida. Comparar este hash durante
+        la descarga para garantizar que el archivo no
+        ha sido corrompido ni alterado en el almacenamiento
+        o durante la transmisión.
+    end note
+}
+UC21 --> user : "Activa/Desactiva cifrado"
+UC22 --> user : "Si activa el cifrado, usa cifrado por capas"
+UC23 --> user : "Verifica integridad de archivos"
+
+@enduml

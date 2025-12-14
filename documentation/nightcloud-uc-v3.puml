@@ -1,0 +1,95 @@
+@startuml nightcloud-uc-v3
+' Configuracion del diagrama
+title NightCloud V3 Roadmap
+skinparam backgroundColor #e0e0e0ff
+skinparam actorStyle awesome
+
+' Estilo de los actores
+skinparam actorBackgroundColor #81D4FA
+skinparam actorBorderColor #0288D1
+skinparam actorFontSize 12
+skinparam actorFontName Helvetica
+
+' Estilo de los paquetes
+skinparam packageBackgroundColor #E0F7FA
+skinparam packageBorderColor #00796B
+skinparam packageFontSize 12
+skinparam packageFontName Verdana
+skinparam packageShadowing true
+
+' Estilo de los casos de uso
+skinparam usecaseBackgroundColor #A5D6A7
+skinparam usecaseBorderColor #388E3C
+skinparam usecaseFontSize 14
+skinparam usecaseFontName Helvetica
+
+' Estilo de las flechas de relacion
+skinparam usecaseArrowColor #0288D1
+skinparam usecaseArrowThickness 1.5
+skinparam usecaseArrowFontSize 12
+
+' Direccion del diagrama
+left to right direction
+
+' Actores
+actor "Usuario" as user
+
+' =======================================
+' ROADMAP NIGHTCLOUD V3
+' =======================================
+package "NightCloud 3.0.0 (Sincronizacion y Backup)" as v1 {
+    usecase "Sincronizacion de archivos entre dispositivos" as UC1
+    usecase "Backup automatico de archivos" as UC2
+    usecase "Backup manual de archivos" as UC3
+
+    note bottom of UC1
+        Implica un cliente de escritorio o móvil dedicado.
+    end note
+}
+
+UC1 --> user : "Sincroniza archivos"
+UC2 --> user : "Configura backup automatico"
+UC3 --> user : "Realiza backup manual"
+
+package "NightCloud 3.1.0 (Versionado de Archivos - A decision del usuario)" as v2 {
+    usecase "Versionado automatico de archivos" as UC4
+    usecase "Guardar (manual) versiones anteriores de archivos" as UC4b
+    usecase "Restaurar versiones anteriores de archivos" as UC5
+    usecase "Gestion de espacio para versiones" as UC6
+}
+
+UC4 --> user : "Configura versionado"
+UC4b --> user : "Guarda versiones manuales"
+UC5 --> user : "Restaura versiones anteriores"
+UC6 --> user : "Gestiona espacio de versiones"
+
+package "NightCloud 3.2.0 (Acceso y Eficiencia de Sincronización)" as v3 {
+    usecase "Acceso sin conexión (Offline)" as UC7
+    usecase "Sincronización selectiva" as UC8
+    usecase "Gestión de ancho de banda" as UC9
+
+    note bottom of UC7
+        Permitir a los usuarios marcar archivos o carpetas
+        específicos para que el cliente de escritorio/móvil
+        los mantenga actualizados localmente.
+        Necesario para la edición cuando no hay red.
+    end note
+
+    note bottom of UC8
+        Permitir que el usuario elija qué carpetas remotas
+        se descargarán al dispositivo local,
+        conservando espacio en disco.
+    end note
+
+    note bottom of UC9
+        Ofrecer opciones en la configuración del cliente
+        para limitar las tasas de subida y descarga,
+        en la sincronizacion en segundo plano.
+    end note
+}
+
+UC7 --> user : "Marca archivos para acceso offline"
+UC8 --> user : "Selecciona carpetas para sincronizar"
+UC9 --> user : "Configura ancho de banda maximo"
+
+@enduml

@@ -1,0 +1,76 @@
+@startuml nightcloud-uc-v1
+' Configuracion del diagrama
+title NightCloud V1 Roadmap
+skinparam backgroundColor #e0e0e0ff
+skinparam actorStyle awesome
+
+' Estilo de los actores
+skinparam actorBackgroundColor #81D4FA
+skinparam actorBorderColor #0288D1
+skinparam actorFontSize 12
+skinparam actorFontName Helvetica
+
+' Estilo de los paquetes
+skinparam packageBackgroundColor #E0F7FA
+skinparam packageBorderColor #00796B
+skinparam packageFontSize 12
+skinparam packageFontName Verdana
+skinparam packageShadowing true
+
+' Estilo de los casos de uso
+skinparam usecaseBackgroundColor #A5D6A7
+skinparam usecaseBorderColor #388E3C
+skinparam usecaseFontSize 14
+skinparam usecaseFontName Helvetica
+
+' Estilo de las flechas de relacion
+skinparam usecaseArrowColor #0288D1
+skinparam usecaseArrowThickness 1.5
+skinparam usecaseArrowFontSize 12
+
+' =======================================
+' ROADMAP NIGHTCLOUD V1
+' =======================================
+package "NightCloud 1.0.0 (CRUD de archivos)" as v1 {
+    usecase "Subida de archivos" as UC1
+    usecase "Descarga de archivos" as UC2
+    usecase "Leer ruta de archivos" as UC3
+    usecase "Borrar archivos" as UC4
+}
+
+package "NightCloud 1.1.0 (Modificacion de archivos)" as v2 {
+    usecase "Renombrar/editar archivos" as UC5
+    usecase "Mover archivos" as UC6
+    usecase "Copiar archivos" as UC7
+    usecase "Eliminar archivos" as UC8
+}
+
+package "NightCloud 1.2.0 (CRUD de carpetas)\nDebe integrarse con los archivos" as v3 {
+    usecase "Crear carpetas" as UC9
+    usecase "Subir carpetas" as UC10
+    usecase "Descargar carpetas" as UC11
+    usecase "Leer ruta de carpetas" as UC12
+    usecase "Renombrar/editar carpetas" as UC13
+    usecase "Borrar carpetas" as UC14
+}
+
+package "NightCloud 1.3.0 (Mejora en los archivos)" as v4 {
+    usecase "Busqueda de archivos" as UC15
+    usecase "Implementacion de trash bin" as UC16
+    usecase "Implementacion de metadatos (opcional)" as UC17 #line.dashed
+    usecase "Filtrado de archivos (opcional)" as UC18 #line.dashed
+}
+
+package "NightCloud 1.4.0 (QoL en archivos y carpetas)" as v5 {
+    usecase "Vista previa de archivos" as UC19
+    usecase "Tags en archivos y carpetas" as UC20
+    usecase "Favoritos en archivos y carpetas" as UC21
+}
+
+' Relaciones entre versiones
+v1 ---> v2 : "Añade Mutabilidad"
+v2 ---> v3 : "Mejora la gestión de rutas"
+v3 ---> v4 : "Permite Navegación Avanzada"
+v4 ---> v5 : "Mejoras QoL"
+
+@enduml
