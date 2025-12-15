@@ -17,7 +17,32 @@ const storage = multer.diskStorage({
       ? path.resolve(process.cwd(), process.env.CLOUD_TMP)
       : path.join(process.cwd(), ".tmp");
     // Ensure tmp directory exists
-    if (!fs.existsSync(tmpDir)) fs.mkdirSync(tmpDir, { recursive: true });
+    if (!fs.existsSync(tmpDir)) {
+      try {
+        fs.access(tmpDir, fs.constants.F_OK, (err) => {
+          if (err) {
+            fs.mkdir(tmpDir, { recursive: true }, (mkdirErr) => {
+              if (mkdirErr)
+                return cb(
+                  new AppError(
+                    "INTERNAL",
+                    "No se pudo crear el directorio temporal",
+                  ),
+                  tmpDir,
+                );
+              return cb(null, tmpDir);
+            });
+          } else {
+            return cb(null, tmpDir);
+          }
+        });
+      } catch (err) {
+        return cb(
+          new AppError("INTERNAL", "No se pudo crear el directorio temporal"),
+          tmpDir,
+        );
+      }
+    }
     // Callback with tmp directory
     cb(null, tmpDir);
   },
