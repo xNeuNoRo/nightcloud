@@ -8,16 +8,18 @@ import {
 import { Router } from "express";
 import { NodeValidators } from "@/validators";
 
-// Files Router
+/**
+ * Rutas para la gestión de nodos (archivos/carpetas)
+ */
 const router = Router();
 
-// Upload files
+// Endpoint para subir nodos (archivos/carpetas)
 router.post("/upload", nodeUpload, nodeProcess, NodeController.uploadNodes);
 
-// Get all files from root ('/cloud')
+// Obtener nodos desde la raíz de la nube (/cloud)
 router.get("/", NodeController.getNodesFromRoot);
 
-// Download file by ID
+// Descargar nodo por ID
 router.get(
   "/download/:nodeId",
   NodeValidators.nodeIdValidator, // Validation chain
@@ -26,7 +28,7 @@ router.get(
   NodeController.downloadNode,
 );
 
-// Delete file by ID
+// Borrar nodo por ID
 router.delete(
   "/:nodeId",
   NodeValidators.nodeIdValidator, // Validation chain
@@ -35,7 +37,7 @@ router.delete(
   NodeController.deleteNode,
 );
 
-// Rename file by ID
+// Renombrar nodo por ID
 router.patch(
   "/:nodeId/rename",
   NodeValidators.nodeIdValidator,
