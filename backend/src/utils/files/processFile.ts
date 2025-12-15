@@ -43,7 +43,7 @@ export default async function processFile(
         hash: fileHash,
         size: file.size,
         mime: file.mimetype,
-        IsDir: false,
+        isDir: false,
       },
     });
 
