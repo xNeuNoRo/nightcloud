@@ -4,19 +4,31 @@ import { AppError } from "@/utils/errors/handler";
 import { DB } from "@/config/db";
 import { genNodeHash } from "./genNodeHash";
 
+/**
+ *
+ * @param path ruta a verificar
+ * @returns boolean indica si la ruta existe o no
+ */
 const pathExists = async (path: string) =>
   await fs
     .access(path)
     .then(() => true)
     .catch(() => false);
 
-export default async function processFile(
+/**
+ *
+ * @param file Archivo subido via Multer
+ * @param parentId ID del nodo padre donde se almacenara el archivo
+ * @returns Node creado en la base de datos
+ */
+
+export default async function processNode(
   file: Express.Multer.File,
   parentId: string | null,
 ) {
   try {
     // Generar el hash del archivo
-    const fileHash = await genNodeHash(file.path, file.originalname);
+    const nodeHash = await genNodeHash(file.path, file.originalname);
 
     // Definir la ruta final del archivo en la nube
     const cloudPath = path.resolve(process.cwd(), `${process.env.CLOUD_ROOT}`);
@@ -26,7 +38,7 @@ export default async function processFile(
     if (!rootExists) fs.mkdir(cloudPath, { recursive: true });
 
     // Ruta completa del archivo final
-    const finalPath = path.resolve(cloudPath, fileHash);
+    const finalPath = path.resolve(cloudPath, nodeHash);
     const nodeExists = await pathExists(finalPath);
 
     if (nodeExists) {
@@ -44,14 +56,14 @@ export default async function processFile(
       data: {
         parentId,
         name: file.originalname,
-        hash: fileHash,
+        hash: nodeHash,
         size: file.size,
         mime: file.mimetype,
         isDir: false,
       },
     });
 
-    console.log(`File processed: ${file.originalname} as ${fileHash}`);
+    console.log(`Node processed: ${file.originalname} as ${nodeHash}`);
 
     return createdNode;
   } catch (err) {

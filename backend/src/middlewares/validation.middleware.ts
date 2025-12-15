@@ -1,6 +1,13 @@
 import type { Request, Response, NextFunction } from "express";
 import { validationResult } from "express-validator";
 
+/**
+ * Middleware para validar las solicitudes entrantes
+ * @param req Request
+ * @param res Response
+ * @param next NextFunction
+ * @returns Respuesta de error si la validación falla, de lo contrario continúa al siguiente middleware
+ */
 export const validateRequest = (
   req: Request,
   res: Response,

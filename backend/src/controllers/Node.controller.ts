@@ -1,12 +1,12 @@
 import { DB } from "@/config/db";
-import { AppError, FileUtils } from "@/utils";
+import { AppError, NodeUtils } from "@/utils";
 import { Request, Response } from "express";
 import path from "path";
 
 const prisma = DB.getClient();
 
-export class FileController {
-  static uploadFiles = async (req: Request, res: Response) => {
+export class NodeController {
+  static uploadNodes = async (req: Request, res: Response) => {
     const nodes = req.nodes;
     res.success(
       nodes?.map((n) => {
@@ -23,18 +23,18 @@ export class FileController {
     );
   };
 
-  static getFilesFromRoot = async (req: Request, res: Response) => {
+  static getNodesFromRoot = async (req: Request, res: Response) => {
     try {
-      const files = await FileUtils.getAllFiles(null);
+      const nodes = await NodeUtils.getAllNodes(null);
       res.success(
-        files.map((f) => {
+        nodes.map((n) => {
           return {
-            id: f.id,
-            parentId: f.parentId,
-            name: f.name,
-            size: f.size,
-            mime: f.mime,
-            isDir: f.isDir,
+            id: n.id,
+            parentId: n.parentId,
+            name: n.name,
+            size: n.size,
+            mime: n.mime,
+            isDir: n.isDir,
           };
         }),
       );
@@ -43,19 +43,19 @@ export class FileController {
     }
   };
 
-  static deleteFile = async (req: Request, res: Response) => {
-    const file = req.node!;
+  static deleteNode = async (req: Request, res: Response) => {
+    const node = req.node!;
 
     try {
       // Obtener la ruta del archivo
-      const filePath = await FileUtils.getFilePath(file);
+      const nodePath = await NodeUtils.getNodePath(node);
 
       // Eliminar el archivo del sistema de archivos
-      await FileUtils.deleteFiles([filePath]);
+      await NodeUtils.deleteNodes([nodePath]);
 
       // Eliminar el registro del archivo en la base de datos
       await prisma.node.delete({
-        where: { id: file.id },
+        where: { id: node.id },
       });
 
       res.success(undefined, 204);
@@ -65,24 +65,24 @@ export class FileController {
     }
   };
 
-  static downloadFile = async (req: Request, res: Response) => {
-    const file = req.node!;
+  static downloadNode = async (req: Request, res: Response) => {
+    const node = req.node!;
 
     try {
-      // Get the file path
-      const filePath = await FileUtils.getFilePath(file);
+      // Get the node path
+      const nodePath = await NodeUtils.getNodePath(node);
 
-      // Send the file as a download
-      console.log(`Downloading file: ${file.name} from path: ${filePath}`);
+      // Send the node as a download
+      console.log(`Downloading node: ${node.name} from path: ${nodePath}`);
 
       // Use a promise to handle the download completion
       await new Promise<void>((resolve, reject) => {
-        res.download(filePath, file.name, (err: Error & { code?: string }) => {
+        res.download(nodePath, node.name, (err: Error & { code?: string }) => {
           if (err) {
             // If headers are already sent, sadly we cannot send an error response
             if (res.headersSent) resolve();
 
-            // Handle file not found error
+            // Handle node not found error
             if (err.code === "ENOENT") {
               return reject(new AppError("FILE_NOT_FOUND"));
             }
@@ -103,43 +103,46 @@ export class FileController {
     }
   };
 
-  static renameFile = async (
+  static renameNode = async (
     req: Request<{}, {}, { newName: string }>,
     res: Response,
   ) => {
     let { newName } = req.body;
-    const file = req.node!;
+    const node = req.node!;
 
     // Asegurarse de que la extension del archivo se mantenga igual
-    const fileExt = path.extname(newName);
+    const nodeExt = path.extname(newName);
     if (
-      !fileExt ||
-      fileExt.length === 0 ||
-      fileExt !== path.extname(file.name)
+      !nodeExt ||
+      nodeExt.length === 0 ||
+      nodeExt !== path.extname(node.name)
     ) {
-      newName += path.extname(file.name);
+      newName += path.extname(node.name);
     }
 
     // Verificar si el nuevo nombre ya existe en el mismo directorio
-    const conflict = await FileUtils.nameConflicts.detectConflict(
-      file,
+    const conflict = await NodeUtils.nameConflicts.detectConflict(
+      node,
       newName,
     );
 
     // Si hay conflicto, obtener un nombre unico
     if (conflict) {
-      const uniqueName = await FileUtils.nameConflicts.getNextName(file, newName);
+      const uniqueName = await NodeUtils.nameConflicts.getNextName(
+        node,
+        newName,
+      );
       console.log("Resolved name conflict, new unique name:", uniqueName);
       newName = uniqueName;
     }
 
     try {
-      const { hash, ...updatedFile } = await prisma.node.update({
-        where: { id: file.id },
+      const { hash, ...updatedNode } = await prisma.node.update({
+        where: { id: node.id },
         data: { name: newName },
       });
 
-      res.success(updatedFile);
+      res.success(updatedNode);
     } catch (err) {
       throw new AppError("INTERNAL", "Error al renombrar el archivo");
     }

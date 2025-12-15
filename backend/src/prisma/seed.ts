@@ -1,17 +1,15 @@
 import { DB } from "@/config/db";
 import { categories } from "./data/categories";
 
-// Get Prisma client instance
+// Obtener el cliente de Prisma
 const prisma = DB.getClient();
 
 async function main() {
   try {
-    // Seed Test Categories - Example Seeder
-    // ONLY FOR DEMONSTRATION PURPOSES
-    // DELETE SOON AFTERWARDS
-    await prisma.category.createMany({
-      data: categories
-    });
+    // Ejemplo de seed para cualquier modelo
+    // await prisma.category.createMany({
+    //   data: categories
+    // });
   } catch (err) {
     console.log(err);
   }
