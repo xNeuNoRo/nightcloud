@@ -18,11 +18,12 @@ export default async function processFile(
     await pipeline(input, hash);
     // Obtener el hash en formato hexadecimal y agregarle la extension original
     const fileHash = hash.digest("hex") + path.extname(file.originalname);
-    const finalPath = path.resolve(
-      process.cwd(),
-      `${process.env.CLOUD_ROOT}`,
-      fileHash,
-    );
+    // Definir la ruta final del archivo en la nube
+    const cloudPath = path.resolve(process.cwd(), `${process.env.CLOUD_ROOT}`);
+    // Asegurarse de que la carpeta de la nube existe
+    if (!fs.existsSync(cloudPath)) fs.mkdirSync(cloudPath, { recursive: true });
+    // Ruta completa del archivo final
+    const finalPath = path.resolve(cloudPath, fileHash);
 
     if (fs.existsSync(finalPath)) {
       // Si el archivo ya existe, eliminamos el temporal
