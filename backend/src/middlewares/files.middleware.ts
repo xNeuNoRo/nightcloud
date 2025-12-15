@@ -81,3 +81,14 @@ export const fileProcess = (
 
   next();
 };
+
+export const folderExists = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  // Revisar que exista una ruta en bd, si no, retornar 404
+  // Si existe en la bd, confirmar que exista local
+  // Si no existe local, borrar de la bd
+  // To do...
+}
