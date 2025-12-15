@@ -106,19 +106,23 @@ export const fileExists = async (
   _res: Response,
   next: NextFunction,
 ) => {
-  // Obtener el fileId de los parametros
-  const { fileId } = req.params;
+  try {
+    // Obtener el fileId de los parametros
+    const { fileId } = req.params;
 
-  // Buscar el nodo en la base de datos
-  const node = await prisma.node.findUnique({
-    where: { id: fileId },
-  });
+    // Buscar el nodo en la base de datos
+    const node = await prisma.node.findUnique({
+      where: { id: fileId },
+    });
 
-  if (!node || node.isDir) throw new AppError("FILE_NOT_FOUND");
+    if (!node || node.isDir) throw new AppError("FILE_NOT_FOUND");
 
-  req.node = node;
+    req.node = node;
 
-  next();
+    next();
+  } catch (err) {
+    next(toAppError(err));
+  }
 };
 
 export const folderExists = (

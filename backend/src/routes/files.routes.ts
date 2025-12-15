@@ -1,5 +1,4 @@
 import { FileController } from "@/controllers/File.controller";
-import { FileUtils } from "@/utils";
 import { fileProcess, fileUpload } from "@/middlewares";
 import { Router } from "express";
 import { fileExists } from "@/middlewares/files.middleware";
