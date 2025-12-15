@@ -1,6 +1,6 @@
 import { FileController } from "@/controllers/File.controller";
 import { FileUtils } from "@/utils";
-import { fileProcess, fileUpload } from "@/middlewares/files.middleware";
+import { fileProcess, fileUpload } from "@/middlewares";
 import { Router } from "express";
 
 // Files Router
