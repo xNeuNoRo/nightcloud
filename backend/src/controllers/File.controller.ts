@@ -27,7 +27,18 @@ export class FileController {
   static getFilesFromRoot = async (req: Request, res: Response) => {
     try {
       const files = await FileUtils.getAllFiles(null);
-      res.success(files);
+      res.success(
+        files.map((f) => {
+          return {
+            id: f.id,
+            parentId: f.parentId,
+            name: f.name,
+            size: f.size,
+            mime: f.mime,
+            isDir: f.isDir,
+          };
+        }),
+      );
     } catch (err) {
       throw new AppError("INTERNAL", "Error al obtener los archivos");
     }
