@@ -5,7 +5,26 @@ import { DB } from "@/config/db";
 // Prisma client
 const prisma = DB.getClient();
 
-export async function resolveConflicts(node: Node) {
+// Detectar si hay conflictos de nombres en el mismo directorio
+export async function detectConflict(node: Node) {
+  const conflict = await prisma.node.findFirst({
+    where: {
+      parentId: node.parentId,
+      name: {
+        equals: node.name,
+        mode: "insensitive",
+      },
+      NOT: {
+        id: node.id,
+      },
+    },
+  });
+
+  return conflict !== null;
+}
+
+// Obtener un nombre unico para el archivo en caso de conflictos
+export async function getNextName(node: Node) {
   // Obtener la extension y el nombre base del archivo
   const fileExt = path.extname(node.name);
   const fileBase = path.basename(node.name, fileExt);
