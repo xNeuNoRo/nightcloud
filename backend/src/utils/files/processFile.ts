@@ -36,7 +36,7 @@ export default async function processFile(
     // Guardar la información del archivo en la base de datos
     const prisma = DB.getClient();
 
-    await prisma.node.create({
+    const createdNode = await prisma.node.create({
       data: {
         parentId,
         name: file.originalname,
@@ -48,6 +48,8 @@ export default async function processFile(
     });
 
     console.log(`File processed: ${file.originalname} as ${fileHash}`);
+
+    return createdNode;
   } catch (err) {
     console.log(err);
 

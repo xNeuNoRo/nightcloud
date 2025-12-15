@@ -5,8 +5,20 @@ import { Request, Response } from "express";
 export class FileController {
   static uploadFiles = async (req: Request, res: Response) => {
     try {
-      const files = req.files;
-      res.success({ files }, 201);
+      const nodes = req.nodes;
+      res.success(
+        nodes?.map((n) => {
+          return {
+            id: n.id,
+            parentId: n.parentId,
+            name: n.name,
+            size: n.size,
+            mime: n.mime,
+            isDir: n.isDir,
+          };
+        }),
+        201,
+      );
     } catch (err) {
       throw new AppError("FILE_UPLOAD");
     }
