@@ -16,7 +16,7 @@ model Node {
     hash     String
     size     Int
     mime     String
-    IsDir    Boolean @default(false)
+    isDir    Boolean @default(false)
     parent   Node?   @relation("ParentNode", fields: [parentId], references: [id])
     children Node[]  @relation("ParentNode")
 }

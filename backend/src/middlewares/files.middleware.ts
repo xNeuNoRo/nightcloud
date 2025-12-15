@@ -5,7 +5,13 @@ import fs from "fs";
 
 import { AppError, toAppError } from "@/utils";
 import processFile from "@/utils/files/processFile";
+import { DB } from "@/config/db";
+import { Node } from "@/prisma/generated/client";
 
+// Prisma client
+const prisma = DB.getClient();
+
+// Multer storage configuration
 const storage = multer.diskStorage({
   destination: (
     _req: Request,
@@ -45,10 +51,12 @@ const storage = multer.diskStorage({
   },
 });
 
+// Multer upload instance
 const upload = multer({
   storage,
 });
 
+// Middleware to handle file upload
 export const fileUpload = (req: Request, res: Response, next: NextFunction) => {
   const file = upload.array("file", 10); // Max 10 files
   file(req, res, (err: unknown) => {
@@ -65,9 +73,10 @@ export const fileUpload = (req: Request, res: Response, next: NextFunction) => {
   });
 };
 
+// Middleware to process uploaded files
 export const fileProcess = (
   req: Request,
-  res: Response,
+  _res: Response,
   next: NextFunction,
 ) => {
   if (!req.files || (req.files as Express.Multer.File[]).length === 0)
@@ -82,6 +91,36 @@ export const fileProcess = (
   next();
 };
 
+// Extend Express Request to include node property
+declare global {
+  namespace Express {
+    interface Request {
+      node?: Node;
+    }
+  }
+}
+
+// Middleware to check if a file exists by ID
+export const fileExists = async (
+  req: Request<{ fileId: string }>, // Se espera un parametro fileId (validar despues con express-validator)
+  _res: Response,
+  next: NextFunction,
+) => {
+  // Obtener el fileId de los parametros
+  const { fileId } = req.params;
+
+  // Buscar el nodo en la base de datos
+  const node = await prisma.node.findUnique({
+    where: { id: fileId },
+  });
+
+  if (!node || node.isDir) throw new AppError("FILE_NOT_FOUND");
+
+  req.node = node;
+
+  next();
+};
+
 export const folderExists = (
   req: Request,
   res: Response,
@@ -91,4 +130,4 @@ export const folderExists = (
   // Si existe en la bd, confirmar que exista local
   // Si no existe local, borrar de la bd
   // To do...
-}
+};
