@@ -40,9 +40,7 @@ package "NightCloud 1.0.0 (CRUD de archivos)" as v1 {
 
 package "NightCloud 1.1.0 (Modificacion de archivos)" as v2 {
     usecase "Renombrar/editar archivos" as UC5
-    usecase "Mover archivos" as UC6
     usecase "Copiar archivos" as UC7
-    usecase "Eliminar archivos" as UC8
 }
 
 package "NightCloud 1.2.0 (CRUD de carpetas)\nDebe integrarse con los archivos" as v3 {
@@ -52,6 +50,7 @@ package "NightCloud 1.2.0 (CRUD de carpetas)\nDebe integrarse con los archivos" 
     usecase "Leer ruta de carpetas" as UC12
     usecase "Renombrar/editar carpetas" as UC13
     usecase "Borrar carpetas" as UC14
+    usecase "Mover archivos" as UC6
 }
 
 package "NightCloud 1.3.0 (Mejora en los archivos)" as v4 {
