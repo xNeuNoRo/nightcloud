@@ -1,3 +1,4 @@
+import { DB } from "@/config/db";
 import { AppError, FileUtils } from "@/utils";
 import { Request, Response } from "express";
 
@@ -17,6 +18,29 @@ export class FileController {
       res.success(files);
     } catch (err) {
       throw new AppError("INTERNAL", "Error al obtener los archivos");
+    }
+  };
+
+  static deleteFile = async (req: Request, res: Response) => {
+    const file = req.node!;
+    const prisma = DB.getClient();
+
+    try {
+      // Obtener la ruta del archivo
+      const filePath = await FileUtils.getFilePath(file);
+
+      // Eliminar el archivo del sistema de archivos
+      await FileUtils.deleteFiles([filePath]);
+
+      // Eliminar el registro del archivo en la base de datos
+      await prisma.node.delete({
+        where: { id: file.id },
+      });
+
+      res.success(undefined, 204);
+    } catch (err) {
+      if (err instanceof AppError) throw err;
+      else throw new AppError("INTERNAL", "Error al eliminar el archivo");
     }
   };
 
