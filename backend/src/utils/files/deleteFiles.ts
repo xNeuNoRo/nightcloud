@@ -10,14 +10,11 @@ export default async function deleteFiles(filePaths: string[]) {
   // Execute all delete operations in parallel and collect results
   const results = await Promise.allSettled(deletePromises);
 
-  const failedDeletions = results
-    .map((res, idx) => {
-      if (res.status === "rejected") {
-        return { filePath: filePaths[idx], reason: res.reason };
-      }
-      return null;
-    })
-    .filter(Boolean);
+  const failedDeletions = results.flatMap((res, idx) =>
+    res.status === "rejected"
+      ? [{ filePath: filePaths[idx], reason: res.reason }]
+      : [],
+  );
 
   if (failedDeletions.length > 0) {
     const errorMessages = failedDeletions

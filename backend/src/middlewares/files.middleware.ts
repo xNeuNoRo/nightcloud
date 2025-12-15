@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import multer, { MulterError } from "multer";
+import crypto from "crypto";
 import path from "path";
 import fs from "fs";
 
@@ -88,19 +89,23 @@ export const fileProcess = async (
   _res: Response,
   next: NextFunction,
 ) => {
-  if (!req.files || (req.files as Express.Multer.File[]).length === 0)
-    throw new AppError("NO_FILES_UPLOADED");
+  try {
+    if (!req.files || (req.files as Express.Multer.File[]).length === 0)
+      throw new AppError("NO_FILES_UPLOADED");
 
-  const results: Node[] = [];
-  for (const file of req.files as Express.Multer.File[]) {
-    console.log(`File uploaded: ${file.filename} (${file.size} bytes)`);
-    // null mientras tanto implementemos lo de las carpetas
-    const node = await FileUtils.processFile(file, null);
-    results.push(node);
+    const results: Node[] = [];
+    for (const file of req.files as Express.Multer.File[]) {
+      console.log(`File uploaded: ${file.filename} (${file.size} bytes)`);
+      // null mientras tanto implementemos lo de las carpetas
+      const node = await FileUtils.processFile(file, null);
+      results.push(node);
+    }
+
+    req.nodes = results;
+    next();
+  } catch (err) {
+    next(toAppError(err));
   }
-
-  req.nodes = results;
-  next();
 };
 
 // Middleware to check if a file exists by ID

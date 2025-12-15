@@ -17,5 +17,5 @@ export default async function getFilePath(node: Node) {
     throw new AppError("FILE_NOT_FOUND");
   }
 
-  return path.resolve(process.cwd(), `${process.env.CLOUD_ROOT}`, node.hash);
+  return filePath;
 }

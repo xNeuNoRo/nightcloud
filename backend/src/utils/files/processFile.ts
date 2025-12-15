@@ -1,4 +1,5 @@
 import fs from "fs";
+import fsPromises from "fs/promises";
 import path from "path";
 import crypto from "crypto";
 import { pipeline } from "stream/promises";
@@ -54,7 +55,12 @@ export default async function processFile(
     console.log(err);
 
     // En caso de error, eliminamos el archivo temporal si existe
-    if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
+    try {
+      await fsPromises.access(file.path);
+    } catch (err) {
+      // El archivo no existe, borramos
+      fsPromises.unlink(file.path);
+    }
 
     // Lanzamos un error de procesamiento
     throw new AppError("INTERNAL", "Error al procesar el archivo");
