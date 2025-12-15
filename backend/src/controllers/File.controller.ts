@@ -29,15 +29,15 @@ export class FileController {
       // Obtener la ruta del archivo
       const filePath = await FileUtils.getFilePath(file);
 
+      // Eliminar el archivo del sistema de archivos
+      await FileUtils.deleteFiles([filePath]);
+
       // Eliminar el registro del archivo en la base de datos
       await prisma.node.delete({
         where: { id: file.id },
       });
 
-      // Eliminar el archivo del sistema de archivos
-      await FileUtils.deleteFiles([filePath]);
-
-      res.status(204).end();
+      res.success(undefined, 204);
     } catch (err) {
       if (err instanceof AppError) throw err;
       else throw new AppError("INTERNAL", "Error al eliminar el archivo");

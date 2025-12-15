@@ -16,6 +16,6 @@ router.get("/", FileController.getFilesFromRoot);
 router.get("/download/:fileId", fileExists, FileController.downloadFile);
 
 // Delete file by ID
-router.delete("/delete/:fileId", fileExists, FileController.deleteFile);
+router.delete("/:fileId", fileExists, FileController.deleteFile);
 
 export default router;
