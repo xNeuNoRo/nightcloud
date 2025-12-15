@@ -7,7 +7,7 @@ export class FileValidators {
   static fileRenameValidator = [
     ...this.fileIdValidator,
     param("newName")
-      .notEmpty()
+      .isEmpty()
       .withMessage("El nuevo nombre no puede estar vacío"),
   ];
 }

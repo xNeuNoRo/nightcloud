@@ -6,8 +6,20 @@ import { AppError } from "../errors/handler";
 // Prisma client
 const prisma = DB.getClient();
 
+/**
+ * @description Detectar si hay conflictos de nombres en el mismo directorio.
+ * @param node Nodo de la BD que se le pasara
+ * @param newName Nuevo nombre que se detectara si hay conflictos
+ * @param ignoreNode Si se desea ignorar el nodo actual en la busqueda de conflictos
+ * @returns boolean indicando si hay conflicto de nombres
+ */
+
 // Detectar si hay conflictos de nombres en el mismo directorio
-export async function detectConflict(node: Node, newName?: string) {
+export async function detectConflict(
+  node: Node,
+  newName?: string,
+  ignoreNode: boolean = false,
+) {
   const conflict = await prisma.node.findFirst({
     where: {
       parentId: node.parentId,
@@ -15,11 +27,25 @@ export async function detectConflict(node: Node, newName?: string) {
         equals: newName ?? node.name,
         mode: "insensitive",
       },
+      ...(ignoreNode
+        ? {
+            NOT: {
+              id: node.id,
+            },
+          }
+        : {}),
     },
   });
 
   return conflict !== null;
 }
+
+/**
+ * @description Generar un nuevo nombre libre de conflictos para un nodo dado.
+ * @param node Nodo que se desea resolver conflicto de nombre
+ * @param newName Nuevo nombre que tiene el conflicto, en caso de no pasarse se usara el nombre actual del nodo.
+ * @returns string nuevo nombre sin conflictos y safety para renombrar el archivo.
+ */
 
 // Obtener un nombre unico para el archivo en caso de conflictos
 export async function getNextName(node: Node, newName?: string) {
