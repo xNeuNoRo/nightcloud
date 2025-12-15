@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import multer, { MulterError } from "multer";
 import path from "path";
+import fs from "fs";
 
 import { AppError, toAppError } from "@/utils";
 import processFile from "@/utils/files/processFile";
@@ -12,12 +13,13 @@ const storage = multer.diskStorage({
     cb: (error: Error | null, destination: string) => void,
   ) => {
     // Destination to tmp folder when uploading
-    cb(
-      null,
-      process.env.CLOUD_TMP
-        ? path.resolve(process.cwd(), process.env.CLOUD_TMP || ".tmp")
-        : path.join(process.cwd(), ".tmp"),
-    );
+    const tmpDir = process.env.CLOUD_TMP
+      ? path.resolve(process.cwd(), process.env.CLOUD_TMP)
+      : path.join(process.cwd(), ".tmp");
+    // Ensure tmp directory exists
+    if (!fs.existsSync(tmpDir)) fs.mkdirSync(tmpDir, { recursive: true });
+    // Callback with tmp directory
+    cb(null, tmpDir);
   },
   filename: (
     _req: Request,
