@@ -1,5 +1,10 @@
 import { FileController } from "@/controllers/File.controller";
-import { fileProcess, fileUpload, fileExists, validateRequest } from "@/middlewares";
+import {
+  fileProcess,
+  fileUpload,
+  fileExists,
+  validateRequest,
+} from "@/middlewares";
 import { Router } from "express";
 import { FileValidators } from "@/validators";
 
@@ -28,6 +33,15 @@ router.delete(
   validateRequest, // Validate any errors from express-validator
   fileExists,
   FileController.deleteFile,
+);
+
+// Rename file by ID
+router.patch(
+  "/:fileId/rename",
+  FileValidators.fileIdValidator,
+  validateRequest,
+  fileExists,
+  FileController.renameFile,
 );
 
 export default router;

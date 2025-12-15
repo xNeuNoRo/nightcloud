@@ -19,4 +19,7 @@ model Node {
     isDir    Boolean @default(false)
     parent   Node?   @relation("ParentNode", fields: [parentId], references: [id])
     children Node[]  @relation("ParentNode")
+
+    // Remapping the table name to "node"
+    @@map("node")
 }

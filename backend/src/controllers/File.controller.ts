@@ -1,6 +1,9 @@
 import { DB } from "@/config/db";
 import { AppError, FileUtils } from "@/utils";
 import { Request, Response } from "express";
+import path from "path";
+
+const prisma = DB.getClient();
 
 export class FileController {
   static uploadFiles = async (req: Request, res: Response) => {
@@ -42,7 +45,6 @@ export class FileController {
 
   static deleteFile = async (req: Request, res: Response) => {
     const file = req.node!;
-    const prisma = DB.getClient();
 
     try {
       // Obtener la ruta del archivo
@@ -98,6 +100,48 @@ export class FileController {
     } catch (err) {
       if (err instanceof AppError) throw err;
       else throw new AppError("INTERNAL", "Error al descargar el archivo");
+    }
+  };
+
+  static renameFile = async (
+    req: Request<{}, {}, { newName: string }>,
+    res: Response,
+  ) => {
+    let { newName } = req.body;
+    const file = req.node!;
+
+    // Asegurarse de que la extension del archivo se mantenga igual
+    const fileExt = path.extname(newName);
+    if (
+      !fileExt ||
+      fileExt.length === 0 ||
+      fileExt !== path.extname(file.name)
+    ) {
+      newName += path.extname(file.name);
+    }
+
+    // Verificar si el nuevo nombre ya existe en el mismo directorio
+    const conflict = await FileUtils.nameConflicts.detectConflict(
+      file,
+      newName,
+    );
+
+    // Si hay conflicto, obtener un nombre unico
+    if (conflict) {
+      const uniqueName = await FileUtils.nameConflicts.getNextName(file, newName);
+      console.log("Resolved name conflict, new unique name:", uniqueName);
+      newName = uniqueName;
+    }
+
+    try {
+      const { hash, ...updatedFile } = await prisma.node.update({
+        where: { id: file.id },
+        data: { name: newName },
+      });
+
+      res.success(updatedFile);
+    } catch (errr) {
+      throw new AppError("INTERNAL", "Error al renombrar el archivo");
     }
   };
 }
