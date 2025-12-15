@@ -8,9 +8,15 @@ datasource db {
     provider = "postgresql"
 }
 
-// Example model, DELETE AFTERWARDS
-model Category {
-    id   Int    @id @default(autoincrement())
-    slug String @unique
-    name String
+// Node model representing files and directories
+model Node {
+    id       String  @id @default(uuid()) @db.Uuid
+    parentId String? @db.Uuid
+    name     String
+    hash     String
+    size     Int
+    mime     String
+    IsDir    Boolean @default(false)
+    parent   Node?   @relation("ParentNode", fields: [parentId], references: [id])
+    children Node[]  @relation("ParentNode")
 }
