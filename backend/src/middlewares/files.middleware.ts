@@ -72,8 +72,18 @@ export const fileUpload = (req: Request, res: Response, next: NextFunction) => {
   });
 };
 
+// Extend Express Request to include node property
+declare global {
+  namespace Express {
+    interface Request {
+      node?: Node;
+      nodes?: Node[];
+    }
+  }
+}
+
 // Middleware to process uploaded files
-export const fileProcess = (
+export const fileProcess = async (
   req: Request,
   _res: Response,
   next: NextFunction,
@@ -81,23 +91,17 @@ export const fileProcess = (
   if (!req.files || (req.files as Express.Multer.File[]).length === 0)
     throw new AppError("NO_FILES_UPLOADED");
 
+  const results: Node[] = [];
   for (const file of req.files as Express.Multer.File[]) {
     console.log(`File uploaded: ${file.filename} (${file.size} bytes)`);
     // null mientras tanto implementemos lo de las carpetas
-    FileUtils.processFile(file, null);
+    const node = await FileUtils.processFile(file, null);
+    results.push(node);
   }
 
+  req.nodes = results;
   next();
 };
-
-// Extend Express Request to include node property
-declare global {
-  namespace Express {
-    interface Request {
-      node?: Node;
-    }
-  }
-}
 
 // Middleware to check if a file exists by ID
 export const fileExists = async (
