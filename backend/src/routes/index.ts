@@ -3,7 +3,6 @@ import { Router, type Express } from "express";
 // Import all routes
 import Files from "@/routes/files.routes";
 
-
 export function registerRoutes(app: Express) {
   // API v1 routes
   const v1 = Router();
