@@ -10,9 +10,6 @@ const router = Router();
 router.post("/upload", fileUpload, fileProcess, FileController.uploadFiles);
 
 // Get all files from root ('/cloud')
-router.get("/", async (_req, res) => {
-  const files = await FileUtils.getAllFiles(null);
-  res.success(files);
-});
+router.get("/", FileController.getFilesFromRoot);
 
 export default router;
