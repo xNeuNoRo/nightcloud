@@ -14,6 +14,9 @@ export async function detectConflict(node: Node, newName?: string) {
         equals: newName ?? node.name,
         mode: "insensitive",
       },
+      NOT: {
+        id: node.id,
+      },
     },
   });
 
