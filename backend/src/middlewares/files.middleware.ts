@@ -3,8 +3,7 @@ import multer, { MulterError } from "multer";
 import path from "path";
 import fs from "fs";
 
-import { AppError, toAppError } from "@/utils";
-import processFile from "@/utils/files/processFile";
+import { AppError, toAppError, FileUtils } from "@/utils";
 import { DB } from "@/config/db";
 import { Node } from "@/prisma/generated/client";
 
@@ -85,7 +84,7 @@ export const fileProcess = (
   for (const file of req.files as Express.Multer.File[]) {
     console.log(`File uploaded: ${file.filename} (${file.size} bytes)`);
     // null mientras tanto implementemos lo de las carpetas
-    processFile(file, null);
+    FileUtils.processFile(file, null);
   }
 
   next();
