@@ -1,4 +1,4 @@
-import { param } from "express-validator";
+import { body, param } from "express-validator";
 
 /**
  * Validadores para las rutas relacionadas con nodos (archivos y carpetas)
@@ -9,8 +9,8 @@ export class NodeValidators {
   ];
   static nodeRenameValidator = [
     ...this.nodeIdValidator,
-    param("newName")
-      .isEmpty()
+    body("newName")
+      .notEmpty()
       .withMessage("El nuevo nombre no puede estar vacío"),
   ];
 }

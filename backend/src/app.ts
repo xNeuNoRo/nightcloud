@@ -9,7 +9,7 @@ import { AppError } from "@/utils";
 import { corsConfig } from "@/config/cors";
 
 /**
- * 
+ * Crea y configura la aplicación Express con middlewares y rutas
  * @returns Express aplicación de express configurada
  */
 export function createApp(): Express {
