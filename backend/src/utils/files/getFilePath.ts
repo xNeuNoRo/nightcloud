@@ -6,7 +6,7 @@ export default async function getFilePath(node: Node) {
   console.log(`Getting file path for node: ${node.id}, isDir: ${node.isDir}`);
 
   // Agregar mas logica en un futuro al manejar las carpetas
-  if (node.isDir) throw new Error("No soportado");
+  if (node.isDir) throw new AppError("INTERNAL", "No soportado para carpetas");
 
   // Construir la ruta completa del archivo
   const cloudRoot = path.resolve(process.cwd(), `${process.env.CLOUD_ROOT}`);
