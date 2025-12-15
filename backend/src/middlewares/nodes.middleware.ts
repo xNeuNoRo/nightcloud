@@ -4,7 +4,7 @@ import crypto from "crypto";
 import path from "path";
 import fs from "fs";
 
-import { AppError, toAppError, FileUtils } from "@/utils";
+import { AppError, toAppError, NodeUtils } from "@/utils";
 import { DB } from "@/config/db";
 import { Node } from "@/prisma/generated/client";
 
@@ -26,14 +26,10 @@ const storage = multer.diskStorage({
     fs.access(tmpDir, fs.constants.F_OK, (err) => {
       if (err) {
         fs.mkdir(tmpDir, { recursive: true }, (mkdirErr) => {
-          if (mkdirErr)
-            return cb(
-              new AppError(
-                "INTERNAL",
-                "No se pudo crear el directorio temporal",
-              ),
-              tmpDir,
-            );
+          if (mkdirErr) {
+            console.log(`Error creating tmp directory: ${mkdirErr}`);
+            return cb(new AppError("INTERNAL"), tmpDir);
+          }
           return cb(null, tmpDir);
         });
       } else {
@@ -56,24 +52,30 @@ const upload = multer({
   storage,
 });
 
-// Middleware to handle file upload
-export const fileUpload = (req: Request, res: Response, next: NextFunction) => {
-  const file = upload.array("file", 10); // Max 10 files
-  file(req, res, (err: unknown) => {
+/**
+ * Middleware para manejar la subida de archivos
+ * @param req Request
+ * @param res Response
+ * @param next NextFunction
+ */
+export const nodeUpload = (req: Request, res: Response, next: NextFunction) => {
+  const node = upload.array(
+    process.env.FRONTEND_FORM_FIELD_NAME ?? "file", // Default form field name "file"
+    Number(process.env.CLOUD_MAX_UPLOAD_FILES) || 10, // Max 10 files
+  );
+  node(req, res, (err: unknown) => {
     if (err instanceof MulterError) {
       return next(toAppError(err));
     } else if (err) {
       console.log(err);
-      return next(
-        new AppError("INTERNAL", "Error desconocido al subir el archivo"),
-      );
+      return next(new AppError("INTERNAL"));
     }
 
     next();
   });
 };
 
-// Extend Express Request to include node property
+// Extender la interfaz Request de Express para incluir node y nodes
 declare global {
   namespace Express {
     interface Request {
@@ -83,8 +85,13 @@ declare global {
   }
 }
 
-// Middleware to process uploaded files
-export const fileProcess = async (
+/**
+ * Middleware para procesar los archivos subidos y crear nodos en la base de datos
+ * @param req Request
+ * @param _res Response
+ * @param next NextFunction
+ */
+export const nodeProcess = async (
   req: Request,
   _res: Response,
   next: NextFunction,
@@ -97,7 +104,7 @@ export const fileProcess = async (
     for (const file of req.files as Express.Multer.File[]) {
       console.log(`File uploaded: ${file.filename} (${file.size} bytes)`);
       // null mientras tanto implementemos lo de las carpetas
-      const node = await FileUtils.processFile(file, null);
+      const node = await NodeUtils.processNode(file, null);
       results.push(node);
     }
 
@@ -108,19 +115,26 @@ export const fileProcess = async (
   }
 };
 
-// Middleware to check if a file exists by ID
-export const fileExists = async (
-  req: Request<{ fileId: string }>, // Se espera un parametro fileId (validar despues con express-validator)
+/**
+ * Middleware para verificar si un nodo existe en la base de datos
+ * @param req Request
+ * @param _res Response
+ * @param next NextFunction
+ */
+export const nodeExists = async (
+  req: Request<{ nodeId: string }>, // Se espera un parametro nodeId (validar despues con express-validator)
   _res: Response,
   next: NextFunction,
 ) => {
   try {
-    // Obtener el fileId de los parametros
-    const { fileId } = req.params;
+    // Implementar logica para los nodos que sean carpetas
+
+    // Obtener el nodeId de los parametros
+    const { nodeId } = req.params;
 
     // Buscar el nodo en la base de datos
     const node = await prisma.node.findUnique({
-      where: { id: fileId },
+      where: { id: nodeId },
     });
 
     if (!node || node.isDir) throw new AppError("FILE_NOT_FOUND");
@@ -133,13 +147,13 @@ export const fileExists = async (
   }
 };
 
-export const folderExists = (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
-  // Revisar que exista una ruta en bd, si no, retornar 404
-  // Si existe en la bd, confirmar que exista local
-  // Si no existe local, borrar de la bd
-  // To do...
-};
+// export const folderExists = (
+//   req: Request,
+//   res: Response,
+//   next: NextFunction,
+// ) => {
+//   // Revisar que exista una ruta en bd, si no, retornar 404
+//   // Si existe en la bd, confirmar que exista local
+//   // Si no existe local, borrar de la bd
+//   // To do...
+// };

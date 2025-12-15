@@ -1,14 +1,22 @@
+/**
+ * Esquema de Prisma para la app NightCloud.
+ * Define el modelo de datos y la configuración de la base de datos.
+ */
 generator client {
-    provider   = "prisma-client"
-    output     = "./generated"
-    engineType = "client"
+    provider   = "prisma-client" // Usar el cliente de Prisma
+    output     = "./generated" // Generar a nivel relativo a este archivo en la carpeta "generated"
+    engineType = "client" // Tipo de motor del cliente
 }
 
+// Configuración del datasource para PostgreSQL
 datasource db {
     provider = "postgresql"
 }
 
-// Node model representing files and directories
+/**
+ * Modelo que representa un nodo en el sistema de archivos.
+ * Puede ser un archivo o un directorio.
+ */
 model Node {
     id       String  @id @default(uuid()) @db.Uuid
     parentId String? @db.Uuid
@@ -20,6 +28,6 @@ model Node {
     parent   Node?   @relation("ParentNode", fields: [parentId], references: [id])
     children Node[]  @relation("ParentNode")
 
-    // Remapping the table name to "node"
+    // Remapeo de la tabla a "node"
     @@map("node")
 }

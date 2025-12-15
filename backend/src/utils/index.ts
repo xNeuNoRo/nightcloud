@@ -1,2 +1,2 @@
 export { toAppError, AppError } from "./errors/handler";
-export { FileUtils } from "./files";
+export { NodeUtils } from "./files";

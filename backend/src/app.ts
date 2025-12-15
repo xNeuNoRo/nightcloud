@@ -3,11 +3,15 @@ import cors from "cors";
 import express, { type Express } from "express";
 
 import { error, success } from "@/middlewares";
-import { registerRoutes } from "@/routes";
+import { registerV1Routes } from "@/routes";
 import { AppError } from "@/utils";
 
 import { corsConfig } from "@/config/cors";
 
+/**
+ * 
+ * @returns Express aplicación de express configurada
+ */
 export function createApp(): Express {
   const app: Express = express();
 
@@ -19,7 +23,7 @@ export function createApp(): Express {
   app.use(success);
 
   // Register routes
-  registerRoutes(app);
+  registerV1Routes(app);
 
   // 404 Error => Catches in the below handler
   app.use((_req, _res, next) => {

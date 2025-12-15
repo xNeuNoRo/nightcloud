@@ -1,6 +1,6 @@
 import type { Request, Response, NextFunction } from "express";
 
-// Declarations to add new properties to the interface Response of Express
+// Declaracion global para extender la interfaz Response de Express
 declare global {
   namespace Express {
     interface Response {
@@ -9,6 +9,12 @@ declare global {
   }
 }
 
+/**
+ * Middleware para agregar el método success a la respuesta
+ * @param _req Request
+ * @param res Response
+ * @param next NextFunction
+ */
 export const success = (_req: Request, res: Response, next: NextFunction) => {
   res.success = (data?: unknown, http: number = 200) => {
     res.status(http).json({

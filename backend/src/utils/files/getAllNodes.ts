@@ -6,6 +6,7 @@ import { AppError } from "../errors/handler";
  * @param dir hash del directorio
  * @param recursive (implementar luego)
  */
+
 export default async function getAllFiles(
   dir: string | null,
   recursive: boolean = false,

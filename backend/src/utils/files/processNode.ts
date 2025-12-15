@@ -4,11 +4,23 @@ import { AppError } from "@/utils/errors/handler";
 import { DB } from "@/config/db";
 import { genNodeHash } from "./genNodeHash";
 
+/**
+ *
+ * @param path ruta a verificar
+ * @returns boolean indica si la ruta existe o no
+ */
 const pathExists = async (path: string) =>
   await fs
     .access(path)
     .then(() => true)
     .catch(() => false);
+
+/**
+ *
+ * @param file Archivo subido via Multer
+ * @param parentId ID del nodo padre donde se almacenara el archivo
+ * @returns Node creado en la base de datos
+ */
 
 export default async function processFile(
   file: Express.Multer.File,

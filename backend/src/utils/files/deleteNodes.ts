@@ -1,10 +1,16 @@
 import fs from "fs/promises";
 import { AppError } from "../errors/handler";
 
-export default async function deleteFiles(filePaths: string[]) {
-  // Declare an array of promises for deleting files
-  const deletePromises = filePaths.map(async (filePath) => {
-    return fs.unlink(filePath);
+/**
+ *
+ * @param nodePaths Array de rutas completas de los nodos a eliminar
+ * @throws AppError si ocurre un error al eliminar alguno de los archivos
+ */
+
+export default async function deleteFiles(nodePaths: string[]) {
+  // Declare an array of promises for deleting nodes
+  const deletePromises = nodePaths.map(async (nodePath) => {
+    return fs.unlink(nodePath);
   });
 
   // Execute all delete operations in parallel and collect results
@@ -12,13 +18,13 @@ export default async function deleteFiles(filePaths: string[]) {
 
   const failedDeletions = results.flatMap((res, idx) =>
     res.status === "rejected"
-      ? [{ filePath: filePaths[idx], reason: res.reason }]
+      ? [{ nodePath: nodePaths[idx], reason: res.reason }]
       : [],
   );
 
   if (failedDeletions.length > 0) {
     const errorMessages = failedDeletions
-      .map((f) => `File: ${f?.filePath}, Error: ${f?.reason}`)
+      .map((n) => `File: ${n?.nodePath}, Error: ${n?.reason}`)
       .join(";\n");
     throw new AppError(
       "INTERNAL",

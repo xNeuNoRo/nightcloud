@@ -1,4 +1,4 @@
-// Sample categories seed data - DELETE SOON AFTERWARDS
+// Ejemplo de categorías para seeders u otros propósitos
 export const categories = [
   {
     slug: "video",

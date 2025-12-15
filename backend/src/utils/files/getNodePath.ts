@@ -2,6 +2,11 @@ import path from "path";
 import { Node } from "@/prisma/generated/client";
 import { AppError } from "../errors/handler";
 
+/**
+ * 
+ * @param node Nodo del cual se desea obtener la ruta completa del archivo
+ * @returns string ruta completa del archivo en el sistema de archivos
+ */
 export default async function getFilePath(node: Node) {
   console.log(`Getting file path for node: ${node.id}, isDir: ${node.isDir}`);
 
