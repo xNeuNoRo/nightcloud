@@ -1,6 +1,7 @@
 import path from "path";
 import { Node } from "@/prisma/generated/client";
 import { DB } from "@/config/db";
+import { AppError } from "../errors/handler";
 
 // Prisma client
 const prisma = DB.getClient();
@@ -25,7 +26,7 @@ export async function getNextName(node: Node, newName?: string) {
   const targetName = newName ?? node.name;
   try {
     // Obtener la extension y el nombre base del archivo
-    const fileExt = path.extname(node.name);
+    const fileExt = path.extname(targetName);
     const fileBase = path.basename(targetName, fileExt);
 
     // Funcion para eliminar caracteres especiales en expresiones regulares
@@ -102,7 +103,6 @@ export async function getNextName(node: Node, newName?: string) {
     // Retornamos el nuevo nombre con el sufijo incrementado en 1
     return `${fileBase} (${maxSuffix + 1})${fileExt}`;
   } catch (err) {
-    console.log(err);
-    return targetName;
+    throw new AppError("INTERNAL", "Error al resolver conflictos de nombres");
   }
 }

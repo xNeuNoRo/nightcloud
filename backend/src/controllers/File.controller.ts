@@ -140,7 +140,7 @@ export class FileController {
       });
 
       res.success(updatedFile);
-    } catch (errr) {
+    } catch (err) {
       throw new AppError("INTERNAL", "Error al renombrar el archivo");
     }
   };

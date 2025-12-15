@@ -39,6 +39,7 @@ router.delete(
 router.patch(
   "/:fileId/rename",
   FileValidators.fileIdValidator,
+  FileValidators.fileRenameValidator,
   validateRequest,
   fileExists,
   FileController.renameFile,
