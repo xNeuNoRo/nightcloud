@@ -7,7 +7,7 @@ import { AppError } from "../errors/handler";
  * @throws AppError si ocurre un error al eliminar alguno de los archivos
  */
 
-export default async function deleteFiles(nodePaths: string[]) {
+export default async function deleteNodes(nodePaths: string[]) {
   // Declare an array of promises for deleting nodes
   const deletePromises = nodePaths.map(async (nodePath) => {
     return fs.unlink(nodePath);
@@ -24,7 +24,7 @@ export default async function deleteFiles(nodePaths: string[]) {
 
   if (failedDeletions.length > 0) {
     const errorMessages = failedDeletions
-      .map((n) => `File: ${n?.nodePath}, Error: ${n?.reason}`)
+      .map((n) => `Node: ${n?.nodePath}, Error: ${n?.reason}`)
       .join(";\n");
     throw new AppError(
       "INTERNAL",

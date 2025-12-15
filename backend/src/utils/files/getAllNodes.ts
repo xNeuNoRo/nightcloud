@@ -7,7 +7,7 @@ import { AppError } from "../errors/handler";
  * @param recursive (implementar luego)
  */
 
-export default async function getAllFiles(
+export default async function getAllNodes(
   dir: string | null,
   recursive: boolean = false,
 ) {

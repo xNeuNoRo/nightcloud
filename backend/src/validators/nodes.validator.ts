@@ -5,7 +5,7 @@ import { param } from "express-validator";
  */
 export class NodeValidators {
   static nodeIdValidator = [
-    param("nodeId").isUUID(4).withMessage("Identificador de archivo inválido"),
+    param("nodeId").isUUID(4).withMessage("Identificador de nodo inválido"),
   ];
   static nodeRenameValidator = [
     ...this.nodeIdValidator,

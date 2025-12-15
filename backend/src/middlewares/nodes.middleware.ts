@@ -102,7 +102,7 @@ export const nodeProcess = async (
 
     const results: Node[] = [];
     for (const file of req.files as Express.Multer.File[]) {
-      console.log(`File uploaded: ${file.filename} (${file.size} bytes)`);
+      console.log(`Node uploaded: ${file.filename} (${file.size} bytes)`);
       // null mientras tanto implementemos lo de las carpetas
       const node = await NodeUtils.processNode(file, null);
       results.push(node);
