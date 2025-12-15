@@ -1,7 +1,7 @@
 import { FileController } from "@/controllers/File.controller";
-import { fileProcess, fileUpload } from "@/middlewares";
+import { fileProcess, fileUpload, fileExists, validateRequest } from "@/middlewares";
 import { Router } from "express";
-import { fileExists } from "@/middlewares/files.middleware";
+import { FileValidators } from "@/validators";
 
 // Files Router
 const router = Router();
@@ -13,9 +13,21 @@ router.post("/upload", fileUpload, fileProcess, FileController.uploadFiles);
 router.get("/", FileController.getFilesFromRoot);
 
 // Download file by ID
-router.get("/download/:fileId", fileExists, FileController.downloadFile);
+router.get(
+  "/download/:fileId",
+  FileValidators.fileIdValidator, // Validation chain
+  validateRequest, // Validate any errors from express-validator
+  fileExists,
+  FileController.downloadFile,
+);
 
 // Delete file by ID
-router.delete("/:fileId", fileExists, FileController.deleteFile);
+router.delete(
+  "/:fileId",
+  FileValidators.fileIdValidator, // Validation chain
+  validateRequest, // Validate any errors from express-validator
+  fileExists,
+  FileController.deleteFile,
+);
 
 export default router;
