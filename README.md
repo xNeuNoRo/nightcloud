@@ -66,6 +66,7 @@ Features, APIs, and architecture are subject to change.
   <tbody>
     <tr>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/lorelvis-santos"><img src="https://avatars.githubusercontent.com/u/171438720?v=4?s=100" width="100px;" alt="Lorelvis Santos"/><br /><sub><b>Lorelvis Santos</b></sub></a><br /><a href="#code-lorelvis-santos" title="Code">💻</a> <a href="#ideas-lorelvis-santos" title="Ideas, Planning, & Feedback">🤔</a> <a href="#infra-lorelvis-santos" title="Infrastructure (Hosting, Build-Tools, etc)">🚇</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/me"><img src="https://avatars.githubusercontent.com/u/9734?v=4?s=100" width="100px;" alt="Ivan"/><br /><sub><b>Ivan</b></sub></a><br /><a href="#code-me" title="Code">💻</a> <a href="#ideas-me" title="Ideas, Planning, & Feedback">🤔</a> <a href="#infra-me" title="Infrastructure (Hosting, Build-Tools, etc)">🚇</a></td>
     </tr>
   </tbody>
 </table>
