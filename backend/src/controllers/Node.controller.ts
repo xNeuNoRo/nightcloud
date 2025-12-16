@@ -1,7 +1,10 @@
 import { DB } from "@/config/db";
+import type { Node } from "@/prisma/generated/client";
 import { AppError, NodeUtils } from "@/utils";
 import { Request, Response } from "express";
-import path from "path";
+import path from "node:path";
+import fs from "node:fs/promises";
+import { genNodeHash } from "@/utils/nodes/genNodeHash";
 
 const prisma = DB.getClient();
 
@@ -147,4 +150,60 @@ export class NodeController {
       throw new AppError("INTERNAL", "Error al renombrar el archivo");
     }
   };
+
+  static copyNode = async (req: Request, res: Response) => {
+    const node = req.node!;
+    let newName = req.body.newName;
+
+    // Asegurarse de que la extension del archivo se mantenga igual
+    const nodeExt = path.extname(newName);
+    if (
+      !nodeExt ||
+      nodeExt.length === 0 ||
+      nodeExt !== path.extname(node.name)
+    ) {
+      newName += path.extname(node.name);
+    }
+
+    const conflict = await NodeUtils.nameConflicts.detectConflict(node, newName);
+
+    // Detectamos si existe un conflicto
+    if (conflict) {
+      newName = await NodeUtils.nameConflicts.getNextName(node);
+    }
+
+    const srcPath = await NodeUtils.getNodePath(node);
+    const hash = await genNodeHash(srcPath, newName);
+
+    // Obtener hash del nuevo archivo
+    const newNode: Node = {
+      ...node,
+      name: newName
+    }
+
+    // Obtenemos la carpeta root (todavía no hay soporte para carpetas)
+    const cloudRoot = path.resolve(process.cwd(), `${process.env.CLOUD_ROOT}`);
+    const dest = path.resolve(cloudRoot, hash);
+
+    try {
+      // Copiar el nuevo archivo de forma física y añadir un nueva fila a la base de datos
+      fs.copyFile(srcPath, dest);
+      
+      const { hash: _h, ...result } = await prisma.node.create({
+        data: {
+          name: newNode.name,
+          parentId: newNode.parentId,
+          hash,
+          size: newNode.size,
+          mime: newNode.mime,
+          isDir: newNode.isDir
+        }
+      });
+
+      return res.success(result);
+    } catch (err) {
+      if (err instanceof AppError) throw err;
+      else throw new AppError("INTERNAL", "Error al copiar el archivo");
+    }
+  }
 }
