@@ -60,5 +60,18 @@ Features, APIs, and architecture are subject to change.
 ## Contributors ✨
 
 <!-- ALL-CONTRIBUTORS-LIST:START -->
+<!-- prettier-ignore-start -->
+<!-- markdownlint-disable -->
+<table>
+  <tbody>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/lorelvis-santos"><img src="https://avatars.githubusercontent.com/u/171438720?v=4?s=100" width="100px;" alt="Lorelvis Santos"/><br /><sub><b>Lorelvis Santos</b></sub></a><br /><a href="#code-lorelvis-santos" title="Code">💻</a></td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- markdownlint-restore -->
+<!-- prettier-ignore-end -->
+
 <!-- ALL-CONTRIBUTORS-LIST:END -->
 
