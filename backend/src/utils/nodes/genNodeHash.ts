@@ -10,15 +10,15 @@ import { pipeline } from "stream/promises";
  * @returns string Hash SHA256 del archivo + nombre con su extension
  */
 
-export async function genNodeHash(nodeFullPath: string, nodeName?: string) {
-  const fullName = nodeFullPath ?? path.basename(nodeFullPath);
-  const nodeExt = path.extname(fullName);
+export async function genNodeHash(nodeFullPath: string, nodeName: string) {
+  // Obtener la extension del archivo
+  const nodeExt = path.extname(nodeFullPath);
 
   // Crear hash SHA256 del archivo
   const hash = crypto.createHash("sha256");
 
   // Agregar el nombre del archivo al hash para mayor unicidad (aceptando duplicados de contenido con diferente nombre)
-  hash.update(path.basename(nodeFullPath, nodeExt));
+  hash.update(nodeName);
 
   // Leer el archivo en chunks para no saturar la memoria
   const input = fs.createReadStream(nodeFullPath);

@@ -3,6 +3,10 @@ import path from "path";
 import { AppError } from "@/utils/errors/handler";
 import { DB } from "@/config/db";
 import { genNodeHash } from "./genNodeHash";
+import { getNextName } from "./nameConflicts";
+
+// Prisma client
+const prisma = DB.getClient();
 
 /**
  *
@@ -28,7 +32,20 @@ export default async function processNode(
 ) {
   try {
     // Generar el hash del archivo
-    const nodeHash = await genNodeHash(file.path, file.originalname);
+    let fileName = file.originalname;
+    let nodeHash = await genNodeHash(file.path, fileName);
+
+    // Verificar si el hash ya existe en la base de datos
+    const fileExists = await prisma.node.findFirst({
+      where: { hash: nodeHash },
+    });
+
+    // Si ya existe un archivo con el mismo nombre en la misma carpeta, renombrarlo
+    if (fileExists) {
+      console.log(`Name conflict detected. New name assigned: ${fileName}`);
+      fileName = await getNextName(fileExists);
+      nodeHash = await genNodeHash(file.path, fileName);
+    }
 
     // Definir la ruta final del archivo en la nube
     const cloudPath = path.resolve(process.cwd(), `${process.env.CLOUD_ROOT}`);
@@ -50,12 +67,10 @@ export default async function processNode(
     }
 
     // Guardar la información del archivo en la base de datos
-    const prisma = DB.getClient();
-
     const createdNode = await prisma.node.create({
       data: {
         parentId,
-        name: file.originalname,
+        name: fileName,
         hash: nodeHash,
         size: file.size,
         mime: file.mimetype,
@@ -63,7 +78,7 @@ export default async function processNode(
       },
     });
 
-    console.log(`Node processed: ${file.originalname} as ${nodeHash}`);
+    console.log(`Node processed: ${fileName} as ${nodeHash}`);
 
     return createdNode;
   } catch (err) {
