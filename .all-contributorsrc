@@ -1,4 +1,21 @@
 {
   "projectName": "nightcloud",
-  "projectOwner": "xNeuNoRo"
+  "projectOwner": "xNeuNoRo",
+  "files": [
+    "README.md"
+  ],
+  "commitType": "docs",
+  "commitConvention": "angular",
+  "contributorsPerLine": 7,
+  "contributors": [
+    {
+      "login": "lorelvis-santos",
+      "name": "Lorelvis Santos",
+      "avatar_url": "https://avatars.githubusercontent.com/u/171438720?v=4",
+      "profile": "https://github.com/lorelvis-santos",
+      "contributions": [
+        "code"
+      ]
+    }
+  ]
 }
