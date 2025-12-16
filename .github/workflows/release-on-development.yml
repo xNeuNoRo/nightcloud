@@ -12,6 +12,12 @@ on:
         description: "Version to release (e.g. 1.1.0)"
         required: true
         type: string
+      branch_ref:
+        description: "Branch or tag to release from"
+        required: false
+        default: development
+        type: string
+
 
 permissions:
   contents: write
@@ -26,6 +32,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.ref || github.event.pull_request.merge_commit_sha }}
 
       - name: Determine version
         id: version
