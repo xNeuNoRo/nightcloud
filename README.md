@@ -66,6 +66,7 @@ Features, APIs, and architecture are subject to change.
   <tbody>
     <tr>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/lorelvis-santos"><img src="https://avatars.githubusercontent.com/u/171438720?v=4?s=100" width="100px;" alt="Lorelvis Santos"/><br /><sub><b>Lorelvis Santos</b></sub></a><br /><a href="#code-lorelvis-santos" title="Code">💻</a> <a href="#ideas-lorelvis-santos" title="Ideas, Planning, & Feedback">🤔</a> <a href="#infra-lorelvis-santos" title="Infrastructure (Hosting, Build-Tools, etc)">🚇</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://angel-developer.netlify.app/"><img src="https://avatars.githubusercontent.com/u/119265574?v=4?s=100" width="100px;" alt="Ángel González Muñoz"/><br /><sub><b>Ángel González Muñoz</b></sub></a><br /><a href="#code-xNeuNoRo" title="Code">💻</a> <a href="#ideas-xNeuNoRo" title="Ideas, Planning, & Feedback">🤔</a> <a href="#infra-xNeuNoRo" title="Infrastructure (Hosting, Build-Tools, etc)">🚇</a></td>
     </tr>
   </tbody>
 </table>
