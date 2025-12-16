@@ -7,7 +7,7 @@ export class NodeValidators {
   static readonly nodeIdValidator = [
     param("nodeId").isUUID(4).withMessage("Identificador de nodo inválido"),
   ];
-  static readonly nodeRenameValidator = [
+  static readonly nodeNewNameValidator = [
     ...this.nodeIdValidator,
     body("newName")
       .notEmpty()

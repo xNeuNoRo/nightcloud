@@ -41,7 +41,7 @@ router.delete(
 router.patch(
   "/:nodeId/rename",
   NodeValidators.nodeIdValidator,
-  NodeValidators.nodeRenameValidator,
+  NodeValidators.nodeNewNameValidator,
   validateRequest,
   nodeExists,
   NodeController.renameNode,
@@ -51,7 +51,7 @@ router.patch(
 router.post(
   "/:nodeId/copy",
   NodeValidators.nodeIdValidator,
-  NodeValidators.nodeRenameValidator,
+  NodeValidators.nodeNewNameValidator,
   validateRequest,
   nodeExists,
   NodeController.copyNode
