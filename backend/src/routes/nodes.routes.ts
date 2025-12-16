@@ -16,6 +16,14 @@ const router = Router();
 // Endpoint para subir nodos (archivos/carpetas)
 router.post("/upload", nodeUpload, nodeProcess, NodeController.uploadNodes);
 
+// Crear un nodo (archivo/carpeta)
+router.post(
+  "/", 
+  NodeValidators.nodeCreateValidator,
+  validateRequest,
+  NodeController.createNode
+);
+
 // Obtener nodos desde la raíz de la nube (/cloud)
 router.get("/", NodeController.getNodesFromRoot);
 

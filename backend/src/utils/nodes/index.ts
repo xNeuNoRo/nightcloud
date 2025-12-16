@@ -3,6 +3,7 @@ import processNode from "./processNode";
 import getNodePath from "./getNodePath";
 import deleteNodes from "./deleteNodes";
 import { detectConflict, getNextName } from "./nameConflicts";
+import HashUtils from "./hash";
 
 export class NodeUtils {
   static readonly getAllNodes = getAllNodes;
@@ -13,4 +14,5 @@ export class NodeUtils {
     detectConflict,
     getNextName,
   };
+  static readonly HashUtils = HashUtils;
 }
