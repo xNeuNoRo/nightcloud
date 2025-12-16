@@ -18,7 +18,6 @@ on:
         default: development
         type: string
 
-
 permissions:
   contents: write
 
@@ -29,10 +28,19 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout (PR → development)
+        if: github.event_name == 'pull_request'
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.ref || github.event.pull_request.merge_commit_sha }}
+          ref: development
+
+      - name: Checkout (manual)
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ inputs.ref }}
 
       - name: Determine version
         id: version
