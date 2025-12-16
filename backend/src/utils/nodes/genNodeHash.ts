@@ -1,26 +1,26 @@
-import fs from "fs";
-import path from "path";
-import crypto from "crypto";
-import { pipeline } from "stream/promises";
+import fs from "node:fs";
+import path from "node:path";
+import crypto from "node:crypto";
+import { pipeline } from "node:stream/promises";
 
 /**
  *
- * @param nodeFullPath Ruta completa hacia el archivo
+ * @param nodeFullPath Ruta completa hacia el nodo
  * @param nodeName Nombre del nodo completo con su extension (opcional)
- * @returns string Hash SHA256 del archivo + nombre con su extension
+ * @returns string Hash SHA256 del nodo + nombre con su extension
  */
 
 export async function genNodeHash(nodeFullPath: string, nodeName: string) {
-  // Obtener la extension del archivo
+  // Obtener la extension del nodo
   const nodeExt = path.extname(nodeFullPath);
 
-  // Crear hash SHA256 del archivo
+  // Crear hash SHA256 del nodo
   const hash = crypto.createHash("sha256");
 
-  // Agregar el nombre del archivo al hash para mayor unicidad (aceptando duplicados de contenido con diferente nombre)
+  // Agregar el nombre del nodo al hash para mayor unicidad (aceptando duplicados de contenido con diferente nombre)
   hash.update(nodeName);
 
-  // Leer el archivo en chunks para no saturar la memoria
+  // Leer el nodo en chunks para no saturar la memoria
   const input = fs.createReadStream(nodeFullPath);
   // Pipe del stream para evitar cargar todo en memoria
   await pipeline(input, hash);

@@ -1,4 +1,4 @@
-import path from "path";
+import path from "node:path";
 import { Node } from "@/prisma/generated/client";
 import { AppError } from "../errors/handler";
 

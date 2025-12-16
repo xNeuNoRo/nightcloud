@@ -1,10 +1,10 @@
-import fs from "fs/promises";
+import fs from "node:fs/promises";
 import { AppError } from "../errors/handler";
 
 /**
  *
  * @param nodePaths Array de rutas completas de los nodos a eliminar
- * @throws AppError si ocurre un error al eliminar alguno de los archivos
+ * @throws AppError si ocurre un error al eliminar alguno de los nodos
  */
 
 export default async function deleteNodes(nodePaths: string[]) {
@@ -28,7 +28,7 @@ export default async function deleteNodes(nodePaths: string[]) {
       .join(";\n");
     throw new AppError(
       "INTERNAL",
-      `Error al eliminar los siguientes archivos:\n${errorMessages}`,
+      `Error al eliminar los siguientes nodos:\n${errorMessages}`,
     );
   }
 }

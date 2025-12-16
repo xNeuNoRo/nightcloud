@@ -1,4 +1,4 @@
-import path from "path";
+import path from "node:path";
 import { Node } from "@/prisma/generated/client";
 import { DB } from "@/config/db";
 import { AppError } from "../errors/handler";
@@ -44,29 +44,29 @@ export async function detectConflict(
  * @description Generar un nuevo nombre libre de conflictos para un nodo dado.
  * @param node Nodo que se desea resolver conflicto de nombre
  * @param newName Nuevo nombre que tiene el conflicto, en caso de no pasarse se usara el nombre actual del nodo.
- * @returns string nuevo nombre sin conflictos y safety para renombrar el archivo.
+ * @returns string nuevo nombre sin conflictos y safety para renombrar el nodo.
  */
 
-// Obtener un nombre unico para el archivo en caso de conflictos
+// Obtener un nombre unico para el nodo en caso de conflictos
 export async function getNextName(node: Node, newName?: string) {
   const targetName = newName ?? node.name;
   try {
-    // Obtener la extension y el nombre base del archivo
+    // Obtener la extension y el nombre base del nodo
     const fileExt = path.extname(targetName);
     const fileBase = path.basename(targetName, fileExt);
 
     // Funcion para eliminar caracteres especiales en expresiones regulares
     const escapeRegex = (str: string) =>
-      str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      str.replaceAll(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`);
     const safeBase = escapeRegex(fileBase);
     const safeExt = escapeRegex(fileExt);
 
     // ^               : Inicio de linea
     // safeBase        : Nombre exacto
     // ( \\([0-9]+\\))?: Grupo opcional que busca " (numero)", ej: " (2)"
-    // safeExt         : Extension del archivo exacta
+    // safeExt         : Extension del nodo exacta
     // $               : Fin de linea
-    const regexPattern = `^${safeBase}( \\([0-9]+\\))?${safeExt}$`;
+    const regexPattern = String.raw`^${safeBase}( \([0-9]+\))?${safeExt}$`;
 
     // Buscar en la base de datos todos los nombres que coincidan con el patron
     // ~* : Case insensitive y patron de expresion regular en PostgreSQL
@@ -83,7 +83,7 @@ export async function getNextName(node: Node, newName?: string) {
 
     // Crear patron para buscar nombres con sufijos numericos con el formato "nombre (n)"
     const pattern = new RegExp(
-      `^${safeBase}(?: \\((\\d+)\\))?${safeExt}$`,
+      String.raw`^${safeBase}(?: \((\d+)\))?${safeExt}$`,
       "i",
     );
 
@@ -93,7 +93,7 @@ export async function getNextName(node: Node, newName?: string) {
 
     for (const conflict of conflicts) {
       // Verificar si el nombre coincide con el patron
-      const match = conflict.name.match(pattern);
+      const match = new RegExp(pattern).exec(conflict.name);
       console.log("Matching conflict name:", conflict.name, "->", match);
 
       if (match) {
@@ -113,7 +113,7 @@ export async function getNextName(node: Node, newName?: string) {
         } else if (match[1]) {
           console.log("Suffix found:", match[1]);
           // Si hay un sufijo numerico, actualizar maxSuffix si es mayor
-          const suffixNum = parseInt(match[1], 10);
+          const suffixNum = Number.parseInt(match[1], 10);
           if (suffixNum > maxSuffix) maxSuffix = suffixNum;
         }
       }
@@ -129,6 +129,7 @@ export async function getNextName(node: Node, newName?: string) {
     // Retornamos el nuevo nombre con el sufijo incrementado en 1
     return `${fileBase} (${maxSuffix + 1})${fileExt}`;
   } catch (err) {
+    console.log(err);
     throw new AppError("INTERNAL", "Error al resolver conflictos de nombres");
   }
 }

@@ -1,5 +1,4 @@
 import { DB } from "@/config/db";
-import type { Node } from "@/prisma/generated/client";
 import { AppError, NodeUtils } from "@/utils";
 import { Request, Response } from "express";
 import path from "node:path";
@@ -9,7 +8,7 @@ import { genNodeHash } from "@/utils/nodes/genNodeHash";
 const prisma = DB.getClient();
 
 export class NodeController {
-  static uploadNodes = async (req: Request, res: Response) => {
+  static readonly uploadNodes = async (req: Request, res: Response) => {
     const nodes = req.nodes;
     res.success(
       nodes?.map((n) => {
@@ -26,7 +25,7 @@ export class NodeController {
     );
   };
 
-  static getNodesFromRoot = async (req: Request, res: Response) => {
+  static readonly getNodesFromRoot = async (req: Request, res: Response) => {
     try {
       const nodes = await NodeUtils.getAllNodes(null);
       res.success(
@@ -42,21 +41,22 @@ export class NodeController {
         }),
       );
     } catch (err) {
-      throw new AppError("INTERNAL", "Error al obtener los archivos");
+      console.log(err);
+      throw new AppError("INTERNAL", "Error al obtener los nodos");
     }
   };
 
-  static deleteNode = async (req: Request, res: Response) => {
+  static readonly deleteNode = async (req: Request, res: Response) => {
     const node = req.node!;
 
     try {
-      // Obtener la ruta del archivo
+      // Obtener la ruta del nodo
       const nodePath = await NodeUtils.getNodePath(node);
 
-      // Eliminar el archivo del sistema de archivos
+      // Eliminar el nodo del sistema de nodos
       await NodeUtils.deleteNodes([nodePath]);
 
-      // Eliminar el registro del archivo en la base de datos
+      // Eliminar el registro del nodo en la base de datos
       await prisma.node.delete({
         where: { id: node.id },
       });
@@ -64,11 +64,11 @@ export class NodeController {
       res.success(undefined, 204);
     } catch (err) {
       if (err instanceof AppError) throw err;
-      else throw new AppError("INTERNAL", "Error al eliminar el archivo");
+      else throw new AppError("INTERNAL", "Error al eliminar el nodo");
     }
   };
 
-  static downloadNode = async (req: Request, res: Response) => {
+  static readonly downloadNode = async (req: Request, res: Response) => {
     const node = req.node!;
 
     try {
@@ -92,7 +92,7 @@ export class NodeController {
 
             // Other errors
             return reject(
-              new AppError("INTERNAL", "Error interno al descargar el archivo"),
+              new AppError("INTERNAL", "Error interno al descargar el nodo"),
             );
           }
 
@@ -102,18 +102,18 @@ export class NodeController {
       });
     } catch (err) {
       if (err instanceof AppError) throw err;
-      else throw new AppError("INTERNAL", "Error al descargar el archivo");
+      else throw new AppError("INTERNAL", "Error al descargar el nodo");
     }
   };
 
-  static renameNode = async (
+  static readonly renameNode = async (
     req: Request<{}, {}, { newName: string }>,
     res: Response,
   ) => {
     let { newName } = req.body;
     const node = req.node!;
 
-    // Asegurarse de que la extension del archivo se mantenga igual
+    // Asegurarse de que la extension del nodo se mantenga igual
     const nodeExt = path.extname(newName);
     if (
       !nodeExt ||
@@ -127,13 +127,14 @@ export class NodeController {
     const conflict = await NodeUtils.nameConflicts.detectConflict(
       node,
       newName,
+      true
     );
 
     // Si hay conflicto, obtener un nombre unico
     if (conflict) {
       const uniqueName = await NodeUtils.nameConflicts.getNextName(
         node,
-        newName,
+        newName
       );
       console.log("Resolved name conflict, new unique name:", uniqueName);
       newName = uniqueName;
@@ -147,15 +148,16 @@ export class NodeController {
 
       res.success(updatedNode);
     } catch (err) {
-      throw new AppError("INTERNAL", "Error al renombrar el archivo");
+      console.log(err);
+      throw new AppError("INTERNAL", "Error al renombrar el nodo");
     }
   };
 
-  static copyNode = async (req: Request, res: Response) => {
+  static readonly copyNode = async (req: Request, res: Response) => {
     const node = req.node!;
     let newName = req.body.newName;
 
-    // Asegurarse de que la extension del archivo se mantenga igual
+    // Asegurarse de que la extension del nodo se mantenga igual
     const nodeExt = path.extname(newName);
     if (
       !nodeExt ||
@@ -174,7 +176,7 @@ export class NodeController {
 
     const srcPath = await NodeUtils.getNodePath(node);
 
-    // Obtener hash del nuevo archivo
+    // Obtener hash del nuevo nodo
     const newHash = await genNodeHash(srcPath, newName);
 
     // Obtenemos la carpeta root (todavía no hay soporte para carpetas)
@@ -182,7 +184,7 @@ export class NodeController {
     const dest = path.resolve(cloudRoot, newHash);
 
     try {
-      // Copiar el nuevo archivo de forma física y añadir un nueva fila a la base de datos
+      // Copiar el nuevo nodo de forma física y añadir un nueva fila a la base de datos
       await fs.copyFile(srcPath, dest);
       
       // Preparamos un resultado para devolver al frontend, ignorando el hash
@@ -193,14 +195,14 @@ export class NodeController {
           hash: newHash,
           size: node.size,
           mime: node.mime,
-          isDir: node.isDir
+          isDir: node.isDir,
         }
       });
 
       return res.success(result);
     } catch (err) {
       if (err instanceof AppError) throw err;
-      else throw new AppError("INTERNAL", "Error al copiar el archivo");
+      else throw new AppError("INTERNAL", "Error al copiar el nodo");
     }
   };
 }
