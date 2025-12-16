@@ -1,0 +1,141 @@
+# ================================
+# Release Drafter Configuration
+# ================================
+
+# Nombre del release (visible en GitHub)
+name-template: "v$RESOLVED_VERSION"
+tag-template: "v$RESOLVED_VERSION"
+
+# Emoji + categorías del changelog
+categories:
+    - title: "🚀 Features"
+      labels:
+          - feature
+          - enhancement
+          - improvement
+
+    - title: "🐛 Bug Fixes"
+      labels:
+          - bug
+          - fix
+          - hotfix
+
+    - title: "🧨 Breaking Changes"
+      labels:
+          - breaking
+          - major
+
+    - title: "🔒 Security"
+      labels:
+          - security
+          - vulnerability
+
+    - title: "⚡ Performance"
+      labels:
+          - performance
+          - perf
+
+    - title: "♻️ Refactoring"
+      labels:
+          - refactor
+          - cleanup
+
+    - title: "📦 Dependencies"
+      labels:
+          - dependencies
+          - deps
+
+    - title: "🧪 Tests"
+      labels:
+          - test
+          - tests
+          - qa
+
+    - title: "📚 Documentation"
+      labels:
+          - docs
+          - documentation
+
+    - title: "🛠️ Chore"
+      labels:
+          - chore
+          - build
+          - ci
+
+# Formato de cada entrada del changelog
+change-template: "- $TITLE (#$NUMBER) — @$AUTHOR"
+
+# Si un PR no tiene label conocido
+uncategorized-title: "🧩 Other Changes"
+
+# Qué hacer si no hay cambios
+no-changes-template: "- No changes in this release."
+
+# ----------------
+# Versioning (SemVer)
+# ----------------
+version-resolver:
+    major:
+        labels:
+            - major
+            - breaking
+    minor:
+        labels:
+            - minor
+            - feature
+    patch:
+        labels:
+            - patch
+            - bug
+            - fix
+            - hotfix
+    default: patch
+
+# ----------------
+# Exclusions
+# ----------------
+exclude-labels:
+    - skip-changelog
+    - no-release
+    - internal
+
+# ----------------
+# Autolabeling (opcional pero potente)
+# ----------------
+autolabeler:
+    - label: feature
+      title:
+          - "/^feat/i"
+
+    - label: bug
+      title:
+          - "/^fix/i"
+          - "/bug/i"
+
+    - label: docs
+      title:
+          - "/docs?/i"
+
+    - label: refactor
+      title:
+          - "/refactor/i"
+
+    - label: performance
+      title:
+          - "/perf/i"
+
+    - label: chore
+      title:
+          - "/chore/i"
+
+# ----------------
+# Release notes footer
+# ----------------
+template: |
+    ## 🧾 Summary
+
+    $CHANGES
+
+    ---
+
+    **Full Changelog**: https://github.com/$OWNER/$REPOSITORY/compare/$PREVIOUS_TAG...v$RESOLVED_VERSION
