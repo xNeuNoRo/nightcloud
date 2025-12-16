@@ -169,37 +169,31 @@ export class NodeController {
 
     // Detectamos si existe un conflicto
     if (conflict) {
-      newName = await NodeUtils.nameConflicts.getNextName(node);
+      newName = await NodeUtils.nameConflicts.getNextName(node, newName);
     }
 
     const srcPath = await NodeUtils.getNodePath(node);
 
     // Obtener hash del nuevo archivo
-    const hash = await genNodeHash(srcPath, newName);
-
-    // Hacemos una copia del nodo anterior, modificando el nombre
-    const newNode: Node = {
-      ...node,
-      name: newName
-    }
+    const newHash = await genNodeHash(srcPath, newName);
 
     // Obtenemos la carpeta root (todavía no hay soporte para carpetas)
     const cloudRoot = path.resolve(process.cwd(), `${process.env.CLOUD_ROOT}`);
-    const dest = path.resolve(cloudRoot, hash);
+    const dest = path.resolve(cloudRoot, newHash);
 
     try {
       // Copiar el nuevo archivo de forma física y añadir un nueva fila a la base de datos
-      fs.copyFile(srcPath, dest);
+      await fs.copyFile(srcPath, dest);
       
       // Preparamos un resultado para devolver al frontend, ignorando el hash
       const { hash: _h, ...result } = await prisma.node.create({
         data: {
-          name: newNode.name,
-          parentId: newNode.parentId,
-          hash,
-          size: newNode.size,
-          mime: newNode.mime,
-          isDir: newNode.isDir
+          name: newName,
+          parentId: node.parentId,
+          hash: newHash,
+          size: node.size,
+          mime: node.mime,
+          isDir: node.isDir
         }
       });
 
@@ -208,5 +202,5 @@ export class NodeController {
       if (err instanceof AppError) throw err;
       else throw new AppError("INTERNAL", "Error al copiar el archivo");
     }
-  }
+  };
 }
