@@ -47,4 +47,14 @@ router.patch(
   NodeController.renameNode,
 );
 
+// Copiar nodo por ID
+router.post(
+  "/:nodeId/copy",
+  NodeValidators.nodeIdValidator,
+  NodeValidators.nodeRenameValidator,
+  validateRequest,
+  nodeExists,
+  NodeController.copyNode
+);
+
 export default router;
