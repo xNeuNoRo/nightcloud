@@ -1,1 +1,1 @@
-export { FileValidators } from "./files.validator";
+export { NodeValidators } from "./nodes.validator";

@@ -9,3 +9,6 @@ pnpm-workspace.yaml
 
 # prisma
 /src/prisma/generated/
+
+# SonarQube
+sonar-project.properties

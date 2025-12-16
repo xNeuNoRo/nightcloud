@@ -2,6 +2,9 @@ import "dotenv/config";
 import { createApp } from "@/app";
 import { DB } from "@/config/db";
 
+/**
+ *  Inicializa la aplicación, conecta a la base de datos y arranca el servidor
+ */
 async function initApp() {
   try {
     // Connect to the database

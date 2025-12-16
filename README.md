@@ -59,6 +59,14 @@ Features, APIs, and architecture are subject to change.
 
 ## Contributors ✨
 
-<!-- ALL-CONTRIBUTORS-LIST:START -->
+## Contributors
+
+<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
+<!-- prettier-ignore-start -->
+<!-- markdownlint-disable -->
+
+<!-- markdownlint-restore -->
+<!-- prettier-ignore-end -->
+
 <!-- ALL-CONTRIBUTORS-LIST:END -->
 
