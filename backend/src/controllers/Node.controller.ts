@@ -173,9 +173,11 @@ export class NodeController {
     }
 
     const srcPath = await NodeUtils.getNodePath(node);
-    const hash = await genNodeHash(srcPath, newName);
 
     // Obtener hash del nuevo archivo
+    const hash = await genNodeHash(srcPath, newName);
+
+    // Hacemos una copia del nodo anterior, modificando el nombre
     const newNode: Node = {
       ...node,
       name: newName
@@ -189,6 +191,7 @@ export class NodeController {
       // Copiar el nuevo archivo de forma física y añadir un nueva fila a la base de datos
       fs.copyFile(srcPath, dest);
       
+      // Preparamos un resultado para devolver al frontend, ignorando el hash
       const { hash: _h, ...result } = await prisma.node.create({
         data: {
           name: newNode.name,
