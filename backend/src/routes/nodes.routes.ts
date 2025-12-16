@@ -14,7 +14,14 @@ import { NodeValidators } from "@/validators";
 const router = Router();
 
 // Endpoint para subir nodos (archivos/carpetas)
-router.post("/upload", nodeUpload, nodeProcess, NodeController.uploadNodes);
+router.post(
+  "/upload",
+  NodeValidators.nodeUploadValidator,
+  validateRequest,
+  nodeUpload,
+  nodeProcess,
+  NodeController.uploadNodes,
+);
 
 // Obtener nodos desde la raíz de la nube (/cloud)
 router.get("/", NodeController.getNodesFromRoot);
@@ -54,7 +61,7 @@ router.post(
   NodeValidators.nodeNewNameValidator,
   validateRequest,
   nodeExists,
-  NodeController.copyNode
+  NodeController.copyNode,
 );
 
 export default router;

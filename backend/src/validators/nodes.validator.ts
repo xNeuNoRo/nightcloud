@@ -13,4 +13,10 @@ export class NodeValidators {
       .notEmpty()
       .withMessage("El nuevo nombre no puede estar vacío"),
   ];
+  static readonly nodeUploadValidator = [
+    body("parentId")
+      .optional({ nullable: true })
+      .isUUID(4)
+      .withMessage("Identificador de nodo padre inválido"),
+  ];
 }

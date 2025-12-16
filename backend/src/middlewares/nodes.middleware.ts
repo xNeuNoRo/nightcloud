@@ -1,12 +1,13 @@
 import { Request, Response, NextFunction } from "express";
 import multer, { MulterError } from "multer";
-import crypto from "crypto";
-import path from "path";
-import fs from "fs";
+import crypto from "node:crypto";
+import path from "node:path";
+import fs from "node:fs";
 
-import { AppError, toAppError, NodeUtils } from "@/utils";
+import { AppError, toAppError } from "@/utils";
 import { DB } from "@/config/db";
 import { Node } from "@/prisma/generated/client";
+import { processNode } from "@/services";
 
 // Prisma client
 const prisma = DB.getClient();
@@ -100,11 +101,13 @@ export const nodeProcess = async (
     if (!req.files || (req.files as Express.Multer.File[]).length === 0)
       throw new AppError("NO_FILES_UPLOADED");
 
+    const { parentId } = req.body;
+    console.log(parentId);
     const results: Node[] = [];
     for (const file of req.files as Express.Multer.File[]) {
       console.log(`Node uploaded: ${file.filename} (${file.size} bytes)`);
       // null mientras tanto implementemos lo de las carpetas
-      const node = await NodeUtils.processNode(file, null);
+      const node = await processNode(file, parentId ?? null);
       results.push(node);
     }
 
@@ -146,14 +149,3 @@ export const nodeExists = async (
     next(toAppError(err));
   }
 };
-
-// export const folderExists = (
-//   req: Request,
-//   res: Response,
-//   next: NextFunction,
-// ) => {
-//   // Revisar que exista una ruta en bd, si no, retornar 404
-//   // Si existe en la bd, confirmar que exista local
-//   // Si no existe local, borrar de la bd
-//   // To do...
-// };

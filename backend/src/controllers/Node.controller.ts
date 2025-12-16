@@ -8,6 +8,7 @@ import { genNodeHash } from "@/utils/nodes/genNodeHash";
 const prisma = DB.getClient();
 
 export class NodeController {
+  // Subir nodos
   static readonly uploadNodes = async (req: Request, res: Response) => {
     const nodes = req.nodes;
     res.success(
@@ -25,9 +26,12 @@ export class NodeController {
     );
   };
 
+  // Obtener todos los nodos desde la raiz
   static readonly getNodesFromRoot = async (req: Request, res: Response) => {
     try {
-      const nodes = await NodeUtils.getAllNodes(null);
+      const nodes = await NodeUtils.getAllNodes(
+        "7050fa45-377f-4e09-b64e-92ec4c7169b2",
+      );
       res.success(
         nodes.map((n) => {
           return {
@@ -46,6 +50,7 @@ export class NodeController {
     }
   };
 
+  // Eliminar un nodo
   static readonly deleteNode = async (req: Request, res: Response) => {
     const node = req.node!;
 
@@ -68,6 +73,7 @@ export class NodeController {
     }
   };
 
+  // Descargar un nodo
   static readonly downloadNode = async (req: Request, res: Response) => {
     const node = req.node!;
 
@@ -106,6 +112,7 @@ export class NodeController {
     }
   };
 
+  // Renombrar un nodo
   static readonly renameNode = async (
     req: Request<{}, {}, { newName: string }>,
     res: Response,
@@ -124,17 +131,17 @@ export class NodeController {
     }
 
     // Verificar si el nuevo nombre ya existe en el mismo directorio
-    const conflict = await NodeUtils.nameConflicts.detectConflict(
+    const conflict = await NodeUtils.ConflictsUtils.detectConflict(
       node,
       newName,
-      true
+      true,
     );
 
     // Si hay conflicto, obtener un nombre unico
     if (conflict) {
-      const uniqueName = await NodeUtils.nameConflicts.getNextName(
+      const uniqueName = await NodeUtils.ConflictsUtils.getNextName(
         node,
-        newName
+        newName,
       );
       console.log("Resolved name conflict, new unique name:", uniqueName);
       newName = uniqueName;
@@ -153,6 +160,7 @@ export class NodeController {
     }
   };
 
+  // Copiar un nodo
   static readonly copyNode = async (req: Request, res: Response) => {
     const node = req.node!;
     let newName = req.body.newName;
@@ -167,11 +175,14 @@ export class NodeController {
       newName += path.extname(node.name);
     }
 
-    const conflict = await NodeUtils.nameConflicts.detectConflict(node, newName);
+    const conflict = await NodeUtils.ConflictsUtils.detectConflict(
+      node,
+      newName,
+    );
 
     // Detectamos si existe un conflicto
     if (conflict) {
-      newName = await NodeUtils.nameConflicts.getNextName(node, newName);
+      newName = await NodeUtils.ConflictsUtils.getNextName(node, newName);
     }
 
     const srcPath = await NodeUtils.getNodePath(node);
@@ -186,7 +197,7 @@ export class NodeController {
     try {
       // Copiar el nuevo nodo de forma física y añadir un nueva fila a la base de datos
       await fs.copyFile(srcPath, dest);
-      
+
       // Preparamos un resultado para devolver al frontend, ignorando el hash
       const { hash: _h, ...result } = await prisma.node.create({
         data: {
@@ -196,7 +207,7 @@ export class NodeController {
           size: node.size,
           mime: node.mime,
           isDir: node.isDir,
-        }
+        },
       });
 
       return res.success(result);

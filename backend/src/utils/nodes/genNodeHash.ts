@@ -22,7 +22,7 @@ export async function genNodeHash(nodeFullPath: string, nodeName: string) {
 
   // Leer el nodo en chunks para no saturar la memoria
   const input = fs.createReadStream(nodeFullPath);
-  // Pipe del stream para evitar cargar todo en memoria
+  // Pipe del stream para evitar cargar la memoria
   await pipeline(input, hash);
 
   // Retornar el hash en formato hexadecimal y agregarle la extension original
