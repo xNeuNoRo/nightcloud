@@ -6,8 +6,8 @@ import fs from "node:fs";
 
 import { AppError, toAppError } from "@/utils";
 import { DB } from "@/config/db";
-import { Node } from "@/prisma/generated/client";
-import { processNode } from "@/services";
+import { Node } from "@/infra/prisma/generated/client";
+import { NodeService } from "@/services/nodes/Node.service";
 
 // Prisma client
 const prisma = DB.getClient();
@@ -54,7 +54,7 @@ const upload = multer({
 });
 
 /**
- * Middleware para manejar la subida de archivos
+ * @description Middleware para manejar la subida de archivos
  * @param req Request
  * @param res Response
  * @param next NextFunction
@@ -87,7 +87,7 @@ declare global {
 }
 
 /**
- * Middleware para procesar los archivos subidos y crear nodos en la base de datos
+ * @description Middleware para procesar los archivos subidos y crear nodos en la base de datos
  * @param req Request
  * @param _res Response
  * @param next NextFunction
@@ -107,7 +107,7 @@ export const nodeProcess = async (
     for (const file of req.files as Express.Multer.File[]) {
       console.log(`Node uploaded: ${file.filename} (${file.size} bytes)`);
       // null mientras tanto implementemos lo de las carpetas
-      const node = await processNode(file, parentId ?? null);
+      const node = await NodeService.process(file, parentId ?? null);
       results.push(node);
     }
 

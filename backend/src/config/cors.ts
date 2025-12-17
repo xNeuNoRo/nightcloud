@@ -1,5 +1,8 @@
 import type { CorsOptions } from "cors";
 
+/**
+ * @description Configuración de CORS para la aplicación Express.
+ */
 export const corsConfig: CorsOptions = {
   origin: function (origin, callback) {
     // Allow requests from FRONTEND_URL and localhost during development
