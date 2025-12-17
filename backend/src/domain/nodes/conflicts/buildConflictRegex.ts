@@ -13,5 +13,5 @@ export function buildConflictRegex(fileName: string) {
   const safeBase = escapeRegex(fileBase);
   const safeExt = escapeRegex(fileExt);
 
-  return String.raw`^${safeBase}( \\([0-9]+\\))?${safeExt}$`;
+  return `^${safeBase}( \\([0-9]+\\))?${safeExt}$`; // NOSONAR
 }
