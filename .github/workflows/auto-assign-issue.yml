@@ -1,0 +1,15 @@
+name: Auto Assign Issue
+on:
+  issues:
+    types: [opened]
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+    - uses: pozil/auto-assign-issue@v1
+      with:
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
+        assignees: xNeuNoRo,lorelvis-santos
+        numOfAssignee: 2

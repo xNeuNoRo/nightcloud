@@ -1,0 +1,11 @@
+addReviewers: true
+addAssignees: false
+
+reviewers:
+  - nightcoders-lab/core
+
+numberOfReviewers: 2
+
+skipKeywords:
+  - wip
+  - draft
