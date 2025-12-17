@@ -9,8 +9,7 @@ import { pipeline } from "node:stream/promises";
  * @param nodeName Nombre del nodo completo con su extension (opcional)
  * @returns string Hash SHA256 del nodo + nombre con su extension
  */
-
-export async function genNodeHash(nodeFullPath: string, nodeName: string) {
+export default async function genFileHash(nodeFullPath: string, nodeName: string) {
   // Obtener la extension del nodo
   const nodeExt = path.extname(nodeFullPath);
 

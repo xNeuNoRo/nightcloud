@@ -3,12 +3,55 @@ import { AppError, NodeUtils } from "@/utils";
 import { Request, Response } from "express";
 import path from "node:path";
 import fs from "node:fs/promises";
-import { genNodeHash } from "@/utils/nodes/genNodeHash";
 
 const prisma = DB.getClient();
 
 export class NodeController {
-  // Subir nodos
+  static readonly createNode = async (req: Request, res: Response) => {
+    // Se necesita:
+    //  id del parent, null si es root : string?
+    //  nombre del archivo : string?
+    //  si es dir : boolean
+
+    // Por hacer:
+    //  - Implementar manejo de conflictos de carpetas
+    //  - Implementar hash de carpetas en base al parent dir
+
+    const { parentId, name, isDir } = req.body;
+
+    if (!isDir) {
+      throw new AppError("La creación de archivos no está implementada");
+    }
+
+    const prisma = DB.getClient();
+    let finalName = name;
+
+    if (!name) {
+      finalName = "Untitled Folder";
+    }
+
+    const hash = await NodeUtils.HashUtils.genDirectoryHash(finalName);
+    const mime = "inode/directory";
+
+    try {
+      const { hash: _h, ...node } = await prisma.node.create({
+        data: {
+          name: finalName,
+          hash,
+          parentId,
+          size: 0,
+          mime,
+          isDir,
+        },
+      });
+
+      res.success(node);
+    } catch (err) {
+      console.log(err);
+      throw new AppError("INTERNAL", "Error al crear el nodo");
+    }
+  };
+
   static readonly uploadNodes = async (req: Request, res: Response) => {
     const nodes = req.nodes;
     res.success(
@@ -188,7 +231,7 @@ export class NodeController {
     const srcPath = await NodeUtils.getNodePath(node);
 
     // Obtener hash del nuevo nodo
-    const newHash = await genNodeHash(srcPath, newName);
+    const newHash = await NodeUtils.HashUtils.genFileHash(srcPath, newName);
 
     // Obtenemos la carpeta root (todavía no hay soporte para carpetas)
     const cloudRoot = path.resolve(process.cwd(), `${process.env.CLOUD_ROOT}`);
