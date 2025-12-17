@@ -23,7 +23,7 @@ export class NodeValidators {
     ...this.nodeUploadValidator,
     body("name")
       .optional({ nullable: true })
-      .isLength({ min: 1})
+      .isLength({ min: 1 })
       .withMessage("El nombre no puede ir vacio")
       .isLength({ max: 250 })
       .withMessage("El nombre no puede exceder los 250 carácteres"),
@@ -31,6 +31,6 @@ export class NodeValidators {
       .notEmpty()
       .withMessage("Se debe especificar si es un archivo o una carpeta")
       .isBoolean()
-      .withMessage("El valor tiene que ser true o false")
-  ]
+      .withMessage("El valor tiene que ser true o false"),
+  ];
 }

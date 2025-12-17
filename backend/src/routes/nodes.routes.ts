@@ -25,10 +25,10 @@ router.post(
 
 // Crear un nodo (archivo/carpeta)
 router.post(
-  "/", 
+  "/",
   NodeValidators.nodeCreateValidator,
   validateRequest,
-  NodeController.createNode
+  NodeController.createNode,
 );
 
 // Obtener nodos desde la raíz de la nube (/cloud)

@@ -9,7 +9,7 @@ export default async function genDirectoryHash(nodeName: string) {
   // Crear hash SHA256 del nodo
   const hash = crypto.createHash("sha256");
 
-  // Agregar el nombre del nodo al hash)
+  // Agregar el nombre del nodo al hash
   hash.update(nodeName);
 
   // Retornar el hash en formato hexadecimal y agregar o no la extension original

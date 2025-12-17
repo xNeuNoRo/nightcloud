@@ -102,7 +102,6 @@ export const nodeProcess = async (
       throw new AppError("NO_FILES_UPLOADED");
 
     const { parentId } = req.body;
-    console.log(parentId);
     const results: Node[] = [];
     for (const file of req.files as Express.Multer.File[]) {
       console.log(`Node uploaded: ${file.filename} (${file.size} bytes)`);
