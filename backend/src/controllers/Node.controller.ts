@@ -175,7 +175,7 @@ export class NodeController {
     try {
       // Actualizar el nombre del nodo
       const { hash, ...updatedNode } = await NodeService.updateNodeName(
-        node,
+        node.id,
         newName,
       );
 

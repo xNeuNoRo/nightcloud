@@ -23,18 +23,30 @@ export class NodeService {
    */
   static async process(file: Express.Multer.File, parentId: string | null) {
     try {
+      // Resolver nombre y hash unicos
       const { nodeName, nodeHash } = await this.identity.resolve(
         file,
         parentId,
       );
 
       console.log(`Processing node: ${nodeName}`);
+
+      // Persistir el nodo en la base de datos
       const node = await this.persistence.persist(
         file,
         parentId,
         nodeName,
         nodeHash,
       );
+
+      // Actualizar el tamaño del nodo padre si es una carpeta
+      if (parentId) {
+        const parentNode = await this.repo.findById(parentId);
+
+        if (parentNode?.isDir) {
+          await this.repo.updateSizeById(parentId, parentNode.size + file.size);
+        }
+      }
 
       console.log(`Node processed: ${nodeName} as ${nodeHash}`);
       return node;
@@ -102,7 +114,23 @@ export class NodeService {
    * @param newName Nuevo nombre para el nodo
    * @returns Nodo actualizado
    */
-  static async updateNodeName(node: Node, newName: string): Promise<Node> {
-    return await this.repo.updateNameById(node.id, newName);
+  static async updateNodeName(
+    nodeId: Node["id"],
+    newName: string,
+  ): Promise<Node> {
+    return await this.repo.updateNameById(nodeId, newName);
+  }
+
+  /**
+   * @description Actualiza el tamaño de un nodo.
+   * @param nodeId ID del nodo a actualizar
+   * @param newSize Nuevo tamaño del nodo
+   * @returns Nodo actualizado
+   */
+  static async updateNodeSizeById(
+    nodeId: Node["id"],
+    newSize: number,
+  ): Promise<Node> {
+    return await this.repo.updateSizeById(nodeId, newSize);
   }
 }

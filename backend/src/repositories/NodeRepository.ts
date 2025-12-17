@@ -37,6 +37,17 @@ export class NodeRepository {
   }
 
   /**
+   * @description Encuentra un nodo por su ID
+   * @param id ID del nodo a buscar
+   * @returns Nodo encontrado o null
+   */
+  static async findById(id: Node["id"]) {
+    return await prisma.node.findUnique({
+      where: { id },
+    });
+  }
+
+  /**
    * @description Encuentra nodos por su parentId
    * @param parentId ID del nodo padre
    * @returns Lista de nodos hijos
@@ -128,5 +139,18 @@ export class NodeRepository {
     });
 
     return conflict !== null;
+  }
+
+  /**
+   * @description Actualiza el tamaño de un nodo por su ID
+   * @param id ID del nodo a actualizar
+   * @param size Nuevo tamaño para el nodo
+   * @returns Nodo actualizado
+   */
+  static async updateSizeById(id: Node["id"], size: number) {
+    return await prisma.node.update({
+      data: { size },
+      where: { id },
+    });
   }
 }
