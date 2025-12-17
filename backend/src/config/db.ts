@@ -19,10 +19,9 @@ export class DB {
 
   // Method to get the PrismaClient instance
   public static getClient(): PrismaClient {
-    if (!this.client)
-      this.client = new PrismaClient({
-        adapter,
-      });
+    this.client ??= new PrismaClient({
+      adapter,
+    });
 
     return this.client;
   }
