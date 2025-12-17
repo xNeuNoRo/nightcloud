@@ -59,7 +59,10 @@ export class NodeRepository {
     return await prisma.node.findFirst({
       where: {
         parentId,
-        name,
+        name: {
+          equals: name,
+          mode: "insensitive",
+        },
         isDir: true
       },
     });

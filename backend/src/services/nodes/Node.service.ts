@@ -59,7 +59,7 @@ export class NodeService {
    * @param parentId ID del nodo padre donde se creara la carpeta
    * @param name Nombre de la carpeta (opcional)
    */
-  static async createDirectory(parentId: string | null, name: string | null) {
+  static async createDirectory(parentId: string | null, name: string | null): Promise<Omit<Node, 'hash'>> {
     try {
       // Si no hay nombre, colocamos uno por defecto
       let finalName = name ?? "Untitled Folder";
@@ -73,7 +73,7 @@ export class NodeService {
       }
 
       // Preparamos los datos para crear el directorio
-      const hash = await NodeUtils.genDirectoryHash(finalName, parentId);
+      const hash = NodeUtils.genDirectoryHash(finalName, parentId);
       const mime = "inode/directory";
 
       // Tratamos de crear el directorio (nodo al fin)
