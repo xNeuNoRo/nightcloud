@@ -142,14 +142,21 @@ export class NodeRepository {
   }
 
   /**
-   * @description Actualiza el tamaño de un nodo por su ID
-   * @param id ID del nodo a actualizar
-   * @param size Nuevo tamaño para el nodo
-   * @returns Nodo actualizado
+   * @description Incrementa el tamaño de un nodo por su ID
+   * @param id ID del nodo a incrementar
+   * @param size Tamaño a incrementar del nodo
+   * @returns Nodo con el tamaño actualizado
    */
-  static async updateSizeById(id: Node["id"], size: number) {
+  static async incrementSizeById(id: Node["id"], delta: number) {
+    // Por seguridad, evitar que el tamaño sea negativo
+    if (delta < 0) delta = 0;
+
     return await prisma.node.update({
-      data: { size },
+      data: {
+        size: {
+          increment: delta,
+        },
+      },
       where: { id },
     });
   }

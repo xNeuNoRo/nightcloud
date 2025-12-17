@@ -44,7 +44,7 @@ export class NodeService {
         const parentNode = await this.repo.findById(parentId);
 
         if (parentNode?.isDir) {
-          await this.repo.updateSizeById(parentId, parentNode.size + file.size);
+          await this.incrementNodeSizeById(parentId, file.size);
         }
       }
 
@@ -127,10 +127,10 @@ export class NodeService {
    * @param newSize Nuevo tamaño del nodo
    * @returns Nodo actualizado
    */
-  static async updateNodeSizeById(
+  static async incrementNodeSizeById(
     nodeId: Node["id"],
     newSize: number,
   ): Promise<Node> {
-    return await this.repo.updateSizeById(nodeId, newSize);
+    return await this.repo.incrementSizeById(nodeId, newSize);
   }
 }
