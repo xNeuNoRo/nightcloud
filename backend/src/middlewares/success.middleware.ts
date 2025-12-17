@@ -10,7 +10,7 @@ declare global {
 }
 
 /**
- * Middleware para agregar el método success a la respuesta
+ * @description Middleware para agregar el método success a la respuesta
  * @param _req Request
  * @param res Response
  * @param next NextFunction
