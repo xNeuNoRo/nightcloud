@@ -55,11 +55,12 @@ export class NodeRepository {
    * @param name Nombre del nodo a buscar
    * @returns Nodo encontrado o null
    */
-  static async findDirByName(parentId: string | null, name: string): Promise<Node|null> {
+  static async findDirByName(parentId: string | null, name: string): Promise<Node | null> {
     return await prisma.node.findFirst({
       where: {
         parentId,
         name,
+        isDir: true
       },
     });
   }

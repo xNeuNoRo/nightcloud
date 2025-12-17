@@ -16,13 +16,8 @@ export class NodeController {
       throw new AppError("La creación de archivos no está implementada");
     }
 
-    try {
-      const node = await NodeService.createDirectory(parentId, name);
-      res.success(node);
-    } catch (err) {
-      console.log(err);
-      throw new AppError("INTERNAL", "Error al crear el nodo");
-    }
+    const node = await NodeService.createDirectory(parentId, name);
+    res.success(node);
   };
 
   static readonly uploadNodes = async (req: Request, res: Response) => {

@@ -2,7 +2,7 @@ import { computeNodeIdentity } from "@/domain/nodes/identity/computeNodeIdentity
 import crypto from "node:crypto";
 
 
-export default async function genDirectoryHash(nodeName: string, parentId: string|null) {
+export default function genDirectoryHash(nodeName: string, parentId: string | null) {
   // Crear hash SHA256 del nodo
   const hash = crypto.createHash("sha256");
 

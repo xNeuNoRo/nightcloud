@@ -61,12 +61,8 @@ export class NodeService {
    */
   static async createDirectory(parentId: string | null, name: string | null) {
     try {
-      let finalName = name ?? "";
-
       // Si no hay nombre, colocamos uno por defecto
-      if (!name) {
-        finalName = "Untitled Folder";
-      }
+      let finalName = name ?? "Untitled Folder";
 
       // Verificamos que no exista un directorio con el mismo nombre
       const existentNode = await this.repo.findDirByName(parentId, finalName);
