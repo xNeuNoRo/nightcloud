@@ -1,56 +1,23 @@
 import path from "node:path";
-import { DB } from "@/config/db";
 import { AppError, NodeUtils } from "@/utils";
 import { Request, Response } from "express";
 import { NodeService } from "@/services/nodes/Node.service";
 import { CloudStorageService } from "@/services/cloud/CloudStorage.service";
 
-const prisma = DB.getClient();
-
 export class NodeController {
-  static readonly createNode = async (req: Request, res: Response) => {
-    // Se necesita:
-    //  id del parent, null si es root : string?
-    //  nombre del archivo : string?
-    //  si es dir : boolean
-
-    // Por hacer:
-    //  - Implementar manejo de conflictos de carpetas
-    //  - Implementar hash de carpetas en base al parent dir
-
+  static readonly createNode = async (req: Request<{}, {}, {
+    parentId: string | null,
+    name: string | null,
+    isDir: boolean
+  }>, res: Response) => {
     const { parentId, name, isDir } = req.body;
 
     if (!isDir) {
       throw new AppError("La creación de archivos no está implementada");
     }
 
-    const prisma = DB.getClient();
-    let finalName = name;
-
-    if (!name) {
-      finalName = "Untitled Folder";
-    }
-
-    const hash = await NodeUtils.genDirectoryHash(finalName);
-    const mime = "inode/directory";
-
-    try {
-      const { hash: _h, ...node } = await prisma.node.create({
-        data: {
-          name: finalName,
-          hash,
-          parentId,
-          size: 0,
-          mime,
-          isDir,
-        },
-      });
-
-      res.success(node);
-    } catch (err) {
-      console.log(err);
-      throw new AppError("INTERNAL", "Error al crear el nodo");
-    }
+    const node = await NodeService.createDirectory(parentId, name);
+    res.success(node);
   };
 
   static readonly uploadNodes = async (req: Request, res: Response) => {
@@ -167,7 +134,7 @@ export class NodeController {
 
     // Si hay conflicto, obtener un nombre unico
     if (conflict) {
-      const uniqueName = await NodeService.resolveName(node, newName);
+      const uniqueName = await NodeService.resolveName(node.parentId, node.name, newName);
       console.log("Resolved name conflict, new unique name:", uniqueName);
       newName = uniqueName;
     }
@@ -198,7 +165,7 @@ export class NodeController {
 
     // Detectamos si existe un conflicto
     if (conflict) {
-      newName = await NodeService.resolveName(node, newName);
+      newName = await NodeService.resolveName(node.parentId, node.name, newName);
     }
 
     // Obtener la ruta del archivo original

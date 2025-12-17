@@ -51,16 +51,17 @@ export class NodeIdentityService {
 
   /**
    * @description Resuelve un nombre único para un nodo dentro de su carpeta padre.
-   * @param node Nodo a resolver
+   * @param parentId ParentId del nodo a resolver
+   * @param name Nombre original del nodo a resolver
    * @param newName Nuevo nombre propuesto (opcional)
    * @returns string Nombre único resuelto
    */
-  static async resolveName(node: Node, newName?: string): Promise<string> {
-    const targetName = newName ?? node.name;
+  static async resolveName(parentId: Node["parentId"], name: Node["name"], newName?: string): Promise<string> {
+    const targetName = newName ?? name;
     const regexPattern = buildConflictRegex(targetName);
 
     const existingNames = await this.repo.findConflictingNames(
-      node.parentId,
+      parentId,
       regexPattern,
     );
 
