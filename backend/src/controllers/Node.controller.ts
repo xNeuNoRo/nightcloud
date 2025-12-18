@@ -4,6 +4,7 @@ import path from "node:path";
 import { CloudStorageService } from "@/services/cloud/CloudStorage.service";
 import { NodeService } from "@/services/nodes/Node.service";
 import { AppError, NodeUtils } from "@/utils";
+import { toNodeDTO } from "@/mappers/node.dto-mapper";
 
 export class NodeController {
   static readonly createNode = async (
@@ -21,7 +22,10 @@ export class NodeController {
     const { parentId, name, isDir } = req.body;
 
     if (!isDir) {
-      throw new AppError("La creación de archivos no está implementada");
+      throw new AppError(
+        "INTERNAL",
+        "La creación de archivos no está implementada",
+      );
     }
 
     const node = await NodeService.createDirectory(parentId, name);
@@ -49,21 +53,30 @@ export class NodeController {
   static readonly getNodesFromRoot = async (req: Request, res: Response) => {
     try {
       const nodes = await NodeService.getAllNodes(null);
-      res.success(
-        nodes.map((n) => {
-          return {
-            id: n.id,
-            parentId: n.parentId,
-            name: n.name,
-            size: n.size,
-            mime: n.mime,
-            isDir: n.isDir,
-          };
-        }),
-      );
+      res.success(nodes.map((n) => toNodeDTO(n)));
     } catch (err) {
       console.log(err);
       throw new AppError("INTERNAL", "Error al obtener los nodos");
+    }
+  };
+
+  // Obtener todos los nodos de un directorio
+  static readonly getNodesFromDirectory = async (
+    req: Request,
+    res: Response,
+  ) => {
+    // Asegurarse de que el nodo sea un directorio, puesto que un archivo no puede contener nodos hijos
+    if (!req.node!.isDir) throw new AppError("NODE_IS_NOT_DIRECTORY");
+
+    try {
+      const nodes = await NodeService.getAllNodes(req.node!.id);
+      res.success(nodes.map((n) => toNodeDTO(n)));
+    } catch (err) {
+      console.log(err);
+      throw new AppError(
+        "INTERNAL",
+        `Error al obtener los nodos de ${req.node!.name}`,
+      );
     }
   };
 

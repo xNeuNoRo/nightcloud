@@ -73,4 +73,13 @@ router.post(
   NodeController.copyNode,
 );
 
+// Obtener nodos de un directorio en especifico
+router.get(
+  "/:nodeId",
+  NodeValidators.nodeIdValidator, // Validation chain
+  validateRequest, // Validate any errors from express-validator
+  nodeExists,
+  NodeController.getNodesFromDirectory,
+);
+
 export default router;

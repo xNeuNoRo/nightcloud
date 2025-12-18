@@ -119,8 +119,6 @@ export const nodeExists = async (
   next: NextFunction,
 ) => {
   try {
-    // Implementar logica para los nodos que sean carpetas
-
     // Obtener el nodeId de los parametros
     const { nodeId } = req.params;
 
@@ -129,7 +127,7 @@ export const nodeExists = async (
       where: { id: nodeId },
     });
 
-    if (!node || node.isDir) throw new AppError("FILE_NOT_FOUND");
+    if (!node) throw new AppError("NODE_NOT_FOUND");
 
     req.node = node;
 

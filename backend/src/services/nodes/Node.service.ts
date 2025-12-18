@@ -125,11 +125,11 @@ export class NodeService {
 
   /**
    * @description Obtiene todos los nodos bajo un nodo padre especifico.
-   * @param parentId ID del nodo padre (null para la raiz)
+   * @param id ID del nodo padre (null para la raiz)
    * @returns Array de nodos hijos
    */
-  static async getAllNodes(parentId: string | null = null) {
-    return await this.repo.findByParentId(parentId);
+  static async getAllNodes(id: string | null = null) {
+    return await this.repo.findByParentId(id);
   }
 
   /**
