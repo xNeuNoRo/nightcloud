@@ -5,6 +5,7 @@ import { NodePersistenceService } from "./NodePersistence.service";
 import { NodeRepository } from "@/repositories/NodeRepository";
 import { CloudStorageService } from "../cloud/CloudStorage.service";
 import { Node, Prisma } from "@/infra/prisma/generated/client";
+import { PrismaTxClient } from "@/types/prisma";
 
 /**
  * @description Servicio para gestionar nodos (archivos y directorios).
@@ -42,15 +43,14 @@ export class NodeService {
       );
 
       // Actualizar el tamaño del nodo padre si es una carpeta
-      if (parentId) {
-        const parentNode = await this.repo.findById(parentId);
-        if (parentNode)
-          await this.incrementNodeSizeById(
-            parentId,
-            file.size,
-            parentNode?.isDir,
-          );
-      }
+      await this.prisma.$transaction(async (tx) => {
+        if (parentId) {
+          const parentNode = await this.repo.findByIdTx(tx, parentId);
+          if (parentNode) {
+            await this.incrementNodeSizeByIdTx(tx, parentId, file.size);
+          }
+        }
+      });
 
       console.log(`Node processed: ${nodeName} as ${nodeHash}`);
       return node;
@@ -130,11 +130,7 @@ export class NodeService {
 
           if (parent) {
             // Actualizar el tamaño de todos los ancestros
-            await this.decrementNodeSizeById(
-              node.parentId,
-              node.size,
-              parent.isDir,
-            );
+            await this.decrementNodeSizeByIdTx(tx, node.parentId, node.size);
           }
         }
 
@@ -169,50 +165,44 @@ export class NodeService {
    * @param newSize Nuevo tamaño del nodo
    * @returns Nodo actualizado
    */
-  static async incrementNodeSizeById(
+  static async incrementNodeSizeByIdTx(
+    tx: PrismaTxClient,
     nodeId: Node["id"],
     newSize: number,
-    isDirectory: boolean = false,
   ): Promise<Node> {
-    // Si no es un directorio, actualizar solo el nodo
-    if (!isDirectory) return await this.repo.incrementSizeById(nodeId, newSize);
+    // Propagar el cambio de tamaño a los ancestros
+    await this.repo.propagateSizeToAncestorsTx(
+      tx,
+      nodeId,
+      newSize,
+      "increment",
+    );
 
-    // Si es un directorio, usar transacción para actualizar el nodo y propagar a ancestros
-    return await this.prisma.$transaction(async (tx) => {
-      // Propagar el cambio de tamaño a los ancestros
-      await this.repo.propagateSizeToAncestorsTx(
-        tx,
-        nodeId,
-        newSize,
-        "increment",
-      );
-
-      // Retornamos el nodo actualizado, ya que sabemos que existe previamente le decimos a ts que no sera null
-      return (await this.repo.findByIdTx(tx, nodeId))!;
-    });
+    // Retornamos el nodo actualizado, ya que sabemos que existe previamente le decimos a ts que no sera null
+    return (await this.repo.findByIdTx(tx, nodeId))!;
   }
 
-  static async decrementNodeSizeById(
+  /**
+   * @description Decrementa el tamaño de un nodo.
+   * @param tx Transacción de Prisma
+   * @param nodeId ID del nodo a actualizar
+   * @param sizeToDecrement Tamaño a decrementar
+   * @returns Nodo actualizado
+   */
+  static async decrementNodeSizeByIdTx(
+    tx: PrismaTxClient,
     nodeId: Node["id"],
     sizeToDecrement: number,
-    isDirectory: boolean = false,
   ): Promise<Node> {
-    // Si no es un directorio, actualizar solo el nodo
-    if (!isDirectory)
-      return await this.repo.decrementSizeById(nodeId, sizeToDecrement);
+    // Propagar el cambio de tamaño a los ancestros
+    await this.repo.propagateSizeToAncestorsTx(
+      tx,
+      nodeId,
+      sizeToDecrement,
+      "decrement",
+    );
 
-    // Si es un directorio, usar transacción para actualizar el nodo y propagar a ancestros
-    return await this.prisma.$transaction(async (tx) => {
-      // Propagar el cambio de tamaño a los ancestros
-      await this.repo.propagateSizeToAncestorsTx(
-        tx,
-        nodeId,
-        sizeToDecrement,
-        "decrement",
-      );
-
-      // Retornamos el nodo actualizado, ya que sabemos que existe previamente le decimos a ts que no sera null
-      return (await this.repo.findByIdTx(tx, nodeId))!;
-    });
+    // Retornamos el nodo actualizado, ya que sabemos que existe previamente le decimos a ts que no sera null
+    return (await this.repo.findByIdTx(tx, nodeId))!;
   }
 }

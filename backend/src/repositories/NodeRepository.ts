@@ -227,7 +227,7 @@ export class NodeRepository {
    * @param id ID del nodo a decrementar
    * @param delta Cantidad a decrementar
    * @param isDir Indica si el nodo es un directorio
-   * @returns
+   * @returns Nodo con el tamaño actualizado
    */
   static async decrementSizeById(id: Node["id"], delta: number) {
     return await prisma.node.update({

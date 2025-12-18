@@ -8,7 +8,7 @@ export const nodeDescendantsExtension = {
       // Obtener el contexto del cliente Prisma
       const ctx = Prisma.getExtensionContext(this) as unknown as PrismaClient;
 
-      // Ejecutar la consulta raw para obtener los ancestros
+      // Ejecutar la consulta raw para obtener los descendientes
       return ctx.$queryRaw<DescendantRow[]>`
         SELECT *
         FROM get_descendants(${startNodeId});
