@@ -1,9 +1,11 @@
-import { AppError, NodeUtils } from "@/utils";
+import { DB } from "@/config/db";
+import { AppError } from "@/utils";
 import { NodeIdentityService } from "./NodeIdentity.service";
 import { NodePersistenceService } from "./NodePersistence.service";
 import { NodeRepository } from "@/repositories/NodeRepository";
 import { CloudStorageService } from "../cloud/CloudStorage.service";
 import { Node, Prisma } from "@/infra/prisma/generated/client";
+import { PrismaTxClient } from "@/types/prisma";
 
 /**
  * @description Servicio para gestionar nodos (archivos y directorios).
@@ -14,6 +16,7 @@ export class NodeService {
   private static readonly cloud = CloudStorageService;
   private static readonly identity = NodeIdentityService;
   private static readonly repo = NodeRepository;
+  private static readonly prisma = DB.getClient();
 
   /**
    * @description Procesa un nodo subido y lo almacena en la nube y la base de datos.
@@ -23,18 +26,31 @@ export class NodeService {
    */
   static async process(file: Express.Multer.File, parentId: string | null) {
     try {
+      // Resolver nombre y hash unicos
       const { nodeName, nodeHash } = await this.identity.resolve(
         file,
         parentId,
       );
 
       console.log(`Processing node: ${nodeName}`);
+
+      // Persistir el nodo en la base de datos
       const node = await this.persistence.persist(
         file,
         parentId,
         nodeName,
         nodeHash,
       );
+
+      // Actualizar el tamaño del nodo padre si es una carpeta
+      await this.prisma.$transaction(async (tx) => {
+        if (parentId) {
+          const parentNode = await this.repo.findByIdTx(tx, parentId);
+          if (parentNode) {
+            await this.incrementNodeSizeByIdTx(tx, parentId, file.size);
+          }
+        }
+      });
 
       console.log(`Node processed: ${nodeName} as ${nodeHash}`);
       return node;
@@ -55,6 +71,15 @@ export class NodeService {
   }
 
   /**
+   * @description Obtiene un nodo por su ID.
+   * @param nodeId ID del nodo a obtener
+   * @returns Nodo obtenido o null si no existe
+   */
+  static async getNodeById(nodeId: Node["id"]): Promise<Node | null> {
+    return await this.repo.findById(nodeId); 
+  }
+  
+  /*
    * @description Crea un nuevo directorio (nodo) en la base de datos
    * @param parentId ID del nodo padre donde se creara la carpeta
    * @param name Nombre de la carpeta (opcional)
@@ -133,8 +158,33 @@ export class NodeService {
    * @description Elimina un nodo por su ID.
    * @param nodeId ID del nodo a eliminar
    */
-  static async deleteNodeById(nodeId: Node["id"]) {
-    await this.repo.deleteById(nodeId);
+  static async deleteNode(node: Node) {
+    try {
+      // Obtener la ruta del nodo
+      const nodePath = await this.cloud.getFilePath(node);
+
+      // Usar transacción para eliminar el nodo y actualizar tamaños
+      await this.prisma.$transaction(async (tx) => {
+        // Si tiene padre, actualizar el tamaño de todos los ancestros que haya
+        if (node.parentId) {
+          const parent = await this.repo.findByIdTx(tx, node.parentId);
+
+          if (parent) {
+            // Actualizar el tamaño de todos los ancestros
+            await this.decrementNodeSizeByIdTx(tx, node.parentId, node.size);
+          }
+        }
+
+        // Eliminar el registro del nodo en la base de datos
+        await this.repo.deleteByIdTx(tx, node.id);
+      });
+
+      // Eliminar el nodo del sistema de nodos
+      await this.cloud.delete(nodePath);
+    } catch (err) {
+      if (err instanceof AppError) throw err;
+      else throw new AppError("INTERNAL", "Error al eliminar el nodo");
+    }
   }
 
   /**
@@ -143,7 +193,57 @@ export class NodeService {
    * @param newName Nuevo nombre para el nodo
    * @returns Nodo actualizado
    */
-  static async updateNodeName(node: Node, newName: string): Promise<Node> {
-    return await this.repo.updateNameById(node.id, newName);
+  static async updateNodeName(
+    nodeId: Node["id"],
+    newName: string,
+  ): Promise<Node> {
+    return await this.repo.updateNameById(nodeId, newName);
+  }
+
+  /**
+   * @description Actualiza el tamaño de un nodo.
+   * @param nodeId ID del nodo a actualizar
+   * @param newSize Nuevo tamaño del nodo
+   * @returns Nodo actualizado
+   */
+  static async incrementNodeSizeByIdTx(
+    tx: PrismaTxClient,
+    nodeId: Node["id"],
+    newSize: number,
+  ): Promise<Node> {
+    // Propagar el cambio de tamaño a los ancestros
+    await this.repo.propagateSizeToAncestorsTx(
+      tx,
+      nodeId,
+      newSize,
+      "increment",
+    );
+
+    // Retornamos el nodo actualizado, ya que sabemos que existe previamente le decimos a ts que no sera null
+    return (await this.repo.findByIdTx(tx, nodeId))!;
+  }
+
+  /**
+   * @description Decrementa el tamaño de un nodo.
+   * @param tx Transacción de Prisma
+   * @param nodeId ID del nodo a actualizar
+   * @param sizeToDecrement Tamaño a decrementar
+   * @returns Nodo actualizado
+   */
+  static async decrementNodeSizeByIdTx(
+    tx: PrismaTxClient,
+    nodeId: Node["id"],
+    sizeToDecrement: number,
+  ): Promise<Node> {
+    // Propagar el cambio de tamaño a los ancestros
+    await this.repo.propagateSizeToAncestorsTx(
+      tx,
+      nodeId,
+      sizeToDecrement,
+      "decrement",
+    );
+
+    // Retornamos el nodo actualizado, ya que sabemos que existe previamente le decimos a ts que no sera null
+    return (await this.repo.findByIdTx(tx, nodeId))!;
   }
 }

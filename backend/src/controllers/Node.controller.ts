@@ -61,18 +61,8 @@ export class NodeController {
 
   // Eliminar un nodo
   static readonly deleteNode = async (req: Request, res: Response) => {
-    const node = req.node!;
-
     try {
-      // Obtener la ruta del nodo
-      const nodePath = await CloudStorageService.getFilePath(node);
-
-      // Eliminar el nodo del sistema de nodos
-      await CloudStorageService.delete(nodePath);
-
-      // Eliminar el registro del nodo en la base de datos
-      await NodeService.deleteNodeById(node.id);
-
+      await NodeService.deleteNode(req.node!);
       res.success(undefined, 204);
     } catch (err) {
       if (err instanceof AppError) throw err;
@@ -142,7 +132,7 @@ export class NodeController {
     try {
       // Actualizar el nombre del nodo
       const { hash, ...updatedNode } = await NodeService.updateNodeName(
-        node,
+        node.id,
         newName,
       );
 
