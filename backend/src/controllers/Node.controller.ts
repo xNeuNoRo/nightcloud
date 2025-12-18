@@ -5,7 +5,7 @@ import { CloudStorageService } from "@/services/cloud/CloudStorage.service";
 import { NodeService } from "@/services/nodes/Node.service";
 import { AppError, NodeUtils } from "@/utils";
 import { DownloadService } from "@/services/download/Download.service";
-import { toNodeDTO } from "@/mappers/node.mapper";
+import { toNodeDTO } from "@/mappers/node.dto-mapper";
 
 export class NodeController {
   static readonly createNode = async (
