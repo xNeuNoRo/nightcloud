@@ -7,6 +7,7 @@ import { FileNode, DirectoryNode } from "./node";
  * @param id ID del nodo
  * @param parentId ID del nodo padre
  * @param name Nombre del nodo
+ * @param hash Hash del nodo
  * @param size Tamaño del nodo
  * @param mime Tipo MIME del archivo
  * @returns Nodo de archivo
@@ -35,6 +36,7 @@ export function createFileNode(
  * @param id ID del nodo
  * @param parentId ID del nodo padre
  * @param name Nombre del nodo
+ * @param hash Hash del nodo
  * @param size Tamaño del nodo
  * @returns Nodo de directorio
  */

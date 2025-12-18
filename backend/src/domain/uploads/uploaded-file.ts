@@ -1,4 +1,4 @@
-// Interface que representa un archivo subido (por ahora solo esos se usan)
+// Interfaz que representa un archivo subido. Contiene los campos necesarios para el procesamiento de archivos
 export interface UploadedFile {
   path: string;
   filename: string;

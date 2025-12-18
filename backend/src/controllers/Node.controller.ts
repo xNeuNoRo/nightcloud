@@ -44,7 +44,7 @@ export class NodeController {
       const nodes = await NodeService.getAllNodes(null);
       res.success(nodes.map((n) => toNodeDTO(n)));
     } catch (err) {
-      console.log(err);
+      console.error(err);
       throw new AppError("INTERNAL", "Error al obtener los nodos");
     }
   };
@@ -61,7 +61,7 @@ export class NodeController {
       const nodes = await NodeService.getAllNodes(req.node!.id);
       res.success(nodes.map((n) => toNodeDTO(n)));
     } catch (err) {
-      console.log(err);
+      console.error(err);
       throw new AppError(
         "INTERNAL",
         `Error al obtener los nodos de ${req.node!.name}`,
@@ -152,7 +152,7 @@ export class NodeController {
 
       res.success(updatedNode);
     } catch (err) {
-      console.log(err);
+      console.error(err);
       throw new AppError("INTERNAL", "Error al renombrar el nodo");
     }
   };

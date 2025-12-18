@@ -9,7 +9,7 @@ import { LocalCloudStorage } from "../cloud/LocalCloudStorage";
 // Instancia de LocalCloudStorage
 const storage = new LocalCloudStorage();
 
-// Multer storage configuration
+// Configuración del almacenamiento de Multer
 export const multerStorage = multer.diskStorage({
   destination: (
     _req: Request,
@@ -20,7 +20,7 @@ export const multerStorage = multer.diskStorage({
       .ensureTmp()
       .then((tmpDir) => cb(null, tmpDir))
       .catch((err) => {
-        console.log(err);
+        console.error(err);
         cb(
           new AppError(
             "INTERNAL",
@@ -35,7 +35,7 @@ export const multerStorage = multer.diskStorage({
     file: Express.Multer.File,
     cb: (error: Error | null, filename: string) => void,
   ) => {
-    // Generate random filename with original extension
+    // Generar un nombre de archivo unico usando UUID y conservar la extension original
     cb(null, crypto.randomUUID() + path.extname(file.originalname));
   },
 });

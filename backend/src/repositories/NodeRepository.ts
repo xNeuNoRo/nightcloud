@@ -48,7 +48,7 @@ export class NodeRepository {
     tx: PrismaTxClient,
     id: Node["id"],
   ): Promise<Pick<Node, "parentId" | "size" | "mime" | "isDir"> | null> {
-    return await tx.node.findUnique({
+    const res = await tx.node.findUnique({
       where: { id },
       select: {
         parentId: true,
@@ -56,6 +56,17 @@ export class NodeRepository {
         mime: true,
         isDir: true,
       },
+    });
+    if (!res) return null;
+
+    return fromPrismaNode({
+      id,
+      parentId: res.parentId,
+      name: "", // Nombre no necesario
+      hash: "", // Hash no necesario
+      size: res.size,
+      mime: res.mime,
+      isDir: res.isDir,
     });
   }
 
@@ -221,7 +232,7 @@ export class NodeRepository {
    * @param size Tamaño a incrementar del nodo
    * @returns Nodo con el tamaño actualizado
    */
-  static async incrementSizeById(id: Node["id"], delta: number) {
+  static async incrementSizeById(id: Node["id"], delta: bigint) {
     const res = await prisma.node.update({
       data: {
         size: {
@@ -243,7 +254,7 @@ export class NodeRepository {
   static async incrementSizeByIdTx(
     tx: PrismaTxClient,
     id: Node["id"],
-    delta: number,
+    delta: bigint,
   ) {
     const res = await tx.node.update({
       data: {
@@ -263,7 +274,7 @@ export class NodeRepository {
    * @param isDir Indica si el nodo es un directorio
    * @returns Nodo con el tamaño actualizado
    */
-  static async decrementSizeById(id: Node["id"], delta: number) {
+  static async decrementSizeById(id: Node["id"], delta: bigint) {
     const res = await prisma.node.update({
       data: {
         size: {
@@ -285,7 +296,7 @@ export class NodeRepository {
   static async decrementSizeByIdTx(
     tx: PrismaTxClient,
     id: Node["id"],
-    delta: number,
+    delta: bigint,
   ) {
     const res = await tx.node.update({
       data: {

@@ -28,7 +28,7 @@ export const nodeUpload = (req: Request, res: Response, next: NextFunction) => {
     } else if (err instanceof AppError) {
       return next(err);
     } else if (err) {
-      console.log(err);
+      console.error(err);
       return next(new AppError("INTERNAL"));
     }
 
@@ -62,7 +62,9 @@ export const nodeProcess = async (
 
     // Procesar cada archivo subido
     for (const file of uploadedFiles) {
-      console.log(`Node uploaded: ${file.filename} (${file.size} bytes)`);
+      console.log(
+        `Node uploaded: ${file.filename} (${file.size.toString()} bytes)`,
+      );
 
       // Procesar el nodo subido
       const node = await NodeService.process(file, parentId ?? null);
