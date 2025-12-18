@@ -1,12 +1,14 @@
 import type { Node } from "@/infra/prisma/generated/client";
-import "express";
+import "express-serve-static-core";
 
-declare module "express" {
+// Agregar tipos personalizados al Response de Express
+declare module "express-serve-static-core" {
+  interface Response {
+    success: (data?: unknown, http?: number) => void;
+  }
+
   interface Request {
     node?: Node;
     nodes?: Node[];
-  }
-  interface Response {
-    success: (data?: unknown, http?: number) => void;
   }
 }
