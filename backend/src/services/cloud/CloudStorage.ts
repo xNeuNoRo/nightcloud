@@ -1,4 +1,4 @@
-import { Node } from "@/infra/prisma/generated/client";
+import type { Node } from "@/infra/prisma/generated/client";
 
 /**
  * @description Interfaz para el almacenamiento en la nube.
@@ -19,5 +19,5 @@ export interface CloudStorage {
    * @description Verifica si una ruta existe en el sistema de archivos.
    * @param file ruta a verificar
    */
-  getFilePath(file: Node): Promise<string>;
+  getFilePath(file: Node): string;
 }

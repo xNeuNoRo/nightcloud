@@ -2,11 +2,10 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import express, { type Express } from "express";
 
+import { corsConfig } from "@/config/cors";
 import { error, success } from "@/middlewares";
 import { registerV1Routes } from "@/routes";
 import { AppError } from "@/utils";
-
-import { corsConfig } from "@/config/cors";
 
 /**
  * Crea y configura la aplicación Express con middlewares y rutas

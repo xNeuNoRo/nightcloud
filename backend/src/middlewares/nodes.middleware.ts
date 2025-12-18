@@ -1,13 +1,13 @@
-import { Request, Response, NextFunction } from "express";
+import type { Request, Response, NextFunction } from "express";
 import multer, { MulterError } from "multer";
 import crypto from "node:crypto";
-import path from "node:path";
 import fs from "node:fs";
+import path from "node:path";
 
-import { AppError, toAppError } from "@/utils";
 import { DB } from "@/config/db";
-import { Node } from "@/infra/prisma/generated/client";
+import type { Node } from "@/infra/prisma/generated/client";
 import { NodeService } from "@/services/nodes/Node.service";
+import { AppError, toAppError } from "@/utils";
 
 // Prisma client
 const prisma = DB.getClient();

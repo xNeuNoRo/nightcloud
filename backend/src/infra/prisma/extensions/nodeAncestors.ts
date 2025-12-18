@@ -1,4 +1,5 @@
-import { Prisma, PrismaClient } from "@/infra/prisma/generated/client";
+import { Prisma, type PrismaClient } from "@/infra/prisma/generated/client";
+
 import type { AncestorRow } from "../types";
 
 export const nodeAncestorsExtension = {

@@ -1,6 +1,6 @@
-import genFileHash from "./genFileHash";
-import genDirectoryHash from "./genDirectoryHash";
 import ensureNodeExt from "./ensureNodeExt";
+import genDirectoryHash from "./genDirectoryHash";
+import genFileHash from "./genFileHash";
 
 export class NodeUtils {
   static readonly genFileHash = genFileHash;

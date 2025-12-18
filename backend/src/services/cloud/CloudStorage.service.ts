@@ -1,5 +1,5 @@
 import { LocalCloudStorage } from "@/infra/cloud/LocalCloudStorage";
-import { Node } from "@/infra/prisma/generated/client";
+import type { Node } from "@/infra/prisma/generated/client";
 
 export class CloudStorageService {
   private static readonly storage: LocalCloudStorage = new LocalCloudStorage();
@@ -17,8 +17,8 @@ export class CloudStorageService {
    * @param file Nodo del cual obtener la ruta
    * @returns Ruta completa del archivo en el almacenamiento en la nube
    */
-  static async getFilePath(file: Node) {
-    return await this.storage.getFilePath(file);
+  static getFilePath(file: Node) {
+    return this.storage.getFilePath(file);
   }
 
   /**

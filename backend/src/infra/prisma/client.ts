@@ -1,6 +1,8 @@
-import { PrismaClient } from "@/infra/prisma/generated/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
+
+import { PrismaClient } from "@/infra/prisma/generated/client";
+
 import { nodeAncestorsExtension, nodeDescendantsExtension } from "./extensions";
 
 // Initialize PostgreSQL connection pool

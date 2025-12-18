@@ -1,11 +1,12 @@
 import { DB } from "@/config/db";
+import type { Node, Prisma } from "@/infra/prisma/generated/client";
+import { NodeRepository } from "@/repositories/NodeRepository";
+import type { PrismaTxClient } from "@/types/prisma";
 import { AppError, NodeUtils } from "@/utils";
+
 import { NodeIdentityService } from "./NodeIdentity.service";
 import { NodePersistenceService } from "./NodePersistence.service";
-import { NodeRepository } from "@/repositories/NodeRepository";
 import { CloudStorageService } from "../cloud/CloudStorage.service";
-import { Node, Prisma } from "@/infra/prisma/generated/client";
-import { PrismaTxClient } from "@/types/prisma";
 
 /**
  * @description Servicio para gestionar nodos (archivos y directorios).
@@ -168,7 +169,7 @@ export class NodeService {
   static async deleteNode(node: Node) {
     try {
       // Obtener la ruta del nodo
-      const nodePath = await this.cloud.getFilePath(node);
+      const nodePath = this.cloud.getFilePath(node);
 
       // Usar transacción para eliminar el nodo y actualizar tamaños
       await this.prisma.$transaction(async (tx) => {

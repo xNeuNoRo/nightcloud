@@ -1,3 +1,5 @@
+import { Router } from "express";
+
 import { NodeController } from "@/controllers/Node.controller";
 import {
   nodeProcess,
@@ -5,7 +7,6 @@ import {
   nodeExists,
   validateRequest,
 } from "@/middlewares";
-import { Router } from "express";
 import { NodeValidators } from "@/validators";
 
 /**

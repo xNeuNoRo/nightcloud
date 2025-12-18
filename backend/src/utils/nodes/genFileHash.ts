@@ -1,6 +1,6 @@
+import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
-import crypto from "node:crypto";
 import { pipeline } from "node:stream/promises";
 
 /**
@@ -9,7 +9,10 @@ import { pipeline } from "node:stream/promises";
  * @param nodeName Nombre del nodo completo con su extension (opcional)
  * @returns string Hash SHA256 del nodo + nombre con su extension
  */
-export default async function genFileHash(nodeFullPath: string, nodeName: string) {
+export default async function genFileHash(
+  nodeFullPath: string,
+  nodeName: string,
+) {
   // Obtener la extension del nodo
   const nodeExt = path.extname(nodeFullPath);
 

@@ -1,6 +1,6 @@
 import { DB } from "@/config/db";
-import { Node, Prisma } from "@/infra/prisma/generated/client";
-import { PrismaTxClient } from "@/types/prisma";
+import type { Node, Prisma } from "@/infra/prisma/generated/client";
+import type { PrismaTxClient } from "@/types/prisma";
 
 const prisma = DB.getClient();
 
@@ -108,7 +108,10 @@ export class NodeRepository {
    * @param name Nombre del nodo a buscar
    * @returns Nodo encontrado o null
    */
-  static async findDirByName(parentId: string | null, name: string): Promise<Node | null> {
+  static async findDirByName(
+    parentId: string | null,
+    name: string,
+  ): Promise<Node | null> {
     return await prisma.node.findFirst({
       where: {
         parentId,
@@ -116,7 +119,7 @@ export class NodeRepository {
           equals: name,
           mode: "insensitive",
         },
-        isDir: true
+        isDir: true,
       },
     });
   }

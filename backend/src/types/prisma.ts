@@ -1,4 +1,4 @@
-import { DB } from "@/config/db";
+import type { DB } from "@/config/db";
 
 // Tipo del cliente de Prisma
 export type PrismaDbClient = ReturnType<typeof DB.getClient>;

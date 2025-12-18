@@ -1,15 +1,23 @@
+import type { Request, Response } from "express";
 import path from "node:path";
-import { AppError, NodeUtils } from "@/utils";
-import { Request, Response } from "express";
-import { NodeService } from "@/services/nodes/Node.service";
+
 import { CloudStorageService } from "@/services/cloud/CloudStorage.service";
+import { NodeService } from "@/services/nodes/Node.service";
+import { AppError, NodeUtils } from "@/utils";
 
 export class NodeController {
-  static readonly createNode = async (req: Request<{}, {}, {
-    parentId: string | null,
-    name: string | null,
-    isDir: boolean
-  }>, res: Response) => {
+  static readonly createNode = async (
+    req: Request<
+      unknown,
+      unknown,
+      {
+        parentId: string | null;
+        name: string | null;
+        isDir: boolean;
+      }
+    >,
+    res: Response,
+  ) => {
     const { parentId, name, isDir } = req.body;
 
     if (!isDir) {
@@ -20,7 +28,7 @@ export class NodeController {
     res.success(node);
   };
 
-  static readonly uploadNodes = async (req: Request, res: Response) => {
+  static readonly uploadNodes = (req: Request, res: Response) => {
     const nodes = req.nodes;
     res.success(
       nodes?.map((n) => {
@@ -62,7 +70,7 @@ export class NodeController {
   // Eliminar un nodo
   static readonly deleteNode = async (req: Request, res: Response) => {
     try {
-      await NodeService.deleteNode(req.node!);
+      await NodeService.deleteNode(req.node!); // NOSONAR
       res.success(undefined, 204);
     } catch (err) {
       if (err instanceof AppError) throw err;
@@ -76,7 +84,7 @@ export class NodeController {
 
     try {
       // Get the node path
-      const nodePath = await CloudStorageService.getFilePath(node);
+      const nodePath = CloudStorageService.getFilePath(node);
 
       // Send the node as a download
       console.log(`Downloading node: ${node.name} from path: ${nodePath}`);
@@ -111,7 +119,7 @@ export class NodeController {
 
   // Renombrar un nodo
   static readonly renameNode = async (
-    req: Request<{}, {}, { newName: string }>,
+    req: Request<unknown, unknown, { newName: string }>,
     res: Response,
   ) => {
     const node = req.node!;
@@ -124,14 +132,18 @@ export class NodeController {
 
     // Si hay conflicto, obtener un nombre unico
     if (conflict) {
-      const uniqueName = await NodeService.resolveName(node.parentId, node.name, newName);
+      const uniqueName = await NodeService.resolveName(
+        node.parentId,
+        node.name,
+        newName,
+      );
       console.log("Resolved name conflict, new unique name:", uniqueName);
       newName = uniqueName;
     }
 
     try {
       // Actualizar el nombre del nodo
-      const { hash, ...updatedNode } = await NodeService.updateNodeName(
+      const { hash: _h, ...updatedNode } = await NodeService.updateNodeName(
         node.id,
         newName,
       );
@@ -144,7 +156,10 @@ export class NodeController {
   };
 
   // Copiar un nodo
-  static readonly copyNode = async (req: Request, res: Response) => {
+  static readonly copyNode = async (
+    req: Request<unknown, unknown, { newName: string }>,
+    res: Response,
+  ) => {
     const node = req.node!;
 
     // Asegurarse de que la extension del nodo se mantenga igual
@@ -155,11 +170,15 @@ export class NodeController {
 
     // Detectamos si existe un conflicto
     if (conflict) {
-      newName = await NodeService.resolveName(node.parentId, node.name, newName);
+      newName = await NodeService.resolveName(
+        node.parentId,
+        node.name,
+        newName,
+      );
     }
 
     // Obtener la ruta del archivo original
-    const srcPath = await CloudStorageService.getFilePath(node);
+    const srcPath = CloudStorageService.getFilePath(node);
 
     // Obtener hash del nuevo nodo
     const newHash = await NodeUtils.genFileHash(srcPath, newName);

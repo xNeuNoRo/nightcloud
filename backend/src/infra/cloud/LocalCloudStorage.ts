@@ -1,8 +1,10 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+
+import type { CloudStorage } from "@/services/cloud/CloudStorage";
 import { AppError, pathExists } from "@/utils";
-import { CloudStorage } from "@/services/cloud/CloudStorage";
-import { Node } from "../prisma/generated/client";
+
+import type { Node } from "../prisma/generated/client";
 
 /**
  * @description Implementación de almacenamiento en la nube local.
@@ -83,7 +85,12 @@ export class LocalCloudStorage implements CloudStorage {
 
     const failedDeletions = results.flatMap((res, idx) =>
       res.status === "rejected"
-        ? [{ nodePath: filePaths[idx], reason: res.reason }]
+        ? [
+            {
+              nodePath: filePaths[idx],
+              reason: res.reason as NodeJS.ErrnoException,
+            },
+          ]
         : [],
     );
 
@@ -103,7 +110,7 @@ export class LocalCloudStorage implements CloudStorage {
    * @param node Nodo del cual se desea obtener la ruta completa del archivo
    * @returns string ruta completa del archivo en el sistema de archivos
    */
-  async getFilePath(file: Node) {
+  getFilePath(file: Node) {
     console.log(`Getting node path for node: ${file.id}, isDir: ${file.isDir}`);
 
     // Agregar mas logica en un futuro al manejar las carpetas

@@ -1,9 +1,9 @@
-import { Node } from "@/infra/prisma/generated/client";
-import { NodeRepository } from "@/repositories/NodeRepository";
-import { getNextName } from "@/domain/nodes/conflicts/getNextName";
-import { NodeUtils } from "@/utils";
-import { computeNodeIdentity } from "@/domain/nodes/identity/computeNodeIdentity";
 import { buildConflictRegex } from "@/domain/nodes/conflicts/buildConflictRegex";
+import { getNextName } from "@/domain/nodes/conflicts/getNextName";
+import { computeNodeIdentity } from "@/domain/nodes/identity/computeNodeIdentity";
+import type { Node } from "@/infra/prisma/generated/client";
+import { NodeRepository } from "@/repositories/NodeRepository";
+import { NodeUtils } from "@/utils";
 
 /**
  * @description Servicio para resolver identidades únicas de nodos.
@@ -56,7 +56,11 @@ export class NodeIdentityService {
    * @param newName Nuevo nombre propuesto (opcional)
    * @returns string Nombre único resuelto
    */
-  static async resolveName(parentId: Node["parentId"], name: Node["name"], newName?: string): Promise<string> {
+  static async resolveName(
+    parentId: Node["parentId"],
+    name: Node["name"],
+    newName?: string,
+  ): Promise<string> {
     const targetName = newName ?? name;
     const regexPattern = buildConflictRegex(targetName);
 

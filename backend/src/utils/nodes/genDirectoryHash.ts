@@ -1,13 +1,17 @@
-import { computeNodeIdentity } from "@/domain/nodes/identity/computeNodeIdentity";
 import crypto from "node:crypto";
 
+import { computeNodeIdentity } from "@/domain/nodes/identity/computeNodeIdentity";
+
 /**
- * @description 
+ * @description
  * @param nodeName Nombre del nodo completo
  * @param parentId Id del padre del nodo
  * @returns string Hash SHA256 del nodo + nombre con su extension
  */
-export default function genDirectoryHash(nodeName: string, parentId: string | null) {
+export default function genDirectoryHash(
+  nodeName: string,
+  parentId: string | null,
+) {
   // Crear hash SHA256 del nodo
   const hash = crypto.createHash("sha256");
 
