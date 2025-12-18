@@ -35,6 +35,15 @@ router.post(
 // Obtener nodos desde la raíz de la nube (/cloud)
 router.get("/", NodeController.getNodesFromRoot);
 
+// Obtener nodos de un directorio en especifico
+router.get(
+  "/:nodeId",
+  NodeValidators.nodeIdValidator, // Validation chain
+  validateRequest, // Validate any errors from express-validator
+  nodeExists,
+  NodeController.getNodesFromDirectory,
+);
+
 // Descargar nodo por ID
 router.get(
   "/download/:nodeId",

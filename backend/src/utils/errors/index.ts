@@ -11,4 +11,5 @@ export const ERRORS: ErrorDef = {
   FILE_UPLOAD: { http: 400, msg: "Error al subir el archivo" },
   NO_FILES_UPLOADED: { http: 400, msg: "No se han subido archivos" },
   FILE_NOT_FOUND: { http: 404, msg: "Archivo no encontrado" },
+  NODE_NOT_FOUND: { http: 404, msg: "Nodo no encontrado" },
 } as const;

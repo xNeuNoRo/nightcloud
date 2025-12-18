@@ -67,6 +67,34 @@ export class NodeController {
     }
   };
 
+  // Obtener todos los nodos de un directorio
+  static readonly getNodesFromDirectory = async (
+    req: Request,
+    res: Response,
+  ) => {
+    try {
+      const nodes = await NodeService.getAllNodes(req.node!.id);
+      res.success(
+        nodes.map((n) => {
+          return {
+            id: n.id,
+            parentId: n.parentId,
+            name: n.name,
+            size: n.size,
+            mime: n.mime,
+            isDir: n.isDir,
+          };
+        }),
+      );
+    } catch (err) {
+      console.log(err);
+      throw new AppError(
+        "INTERNAL",
+        `Error al obtener los nodos de ${req.node!.name}`,
+      );
+    }
+  };
+
   // Eliminar un nodo
   static readonly deleteNode = async (req: Request, res: Response) => {
     try {
