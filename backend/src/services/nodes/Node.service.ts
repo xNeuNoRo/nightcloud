@@ -1,5 +1,5 @@
 import { DB } from "@/config/db";
-import { AppError } from "@/utils";
+import { AppError, NodeUtils } from "@/utils";
 import { NodeIdentityService } from "./NodeIdentity.service";
 import { NodePersistenceService } from "./NodePersistence.service";
 import { NodeRepository } from "@/repositories/NodeRepository";
@@ -76,15 +76,18 @@ export class NodeService {
    * @returns Nodo obtenido o null si no existe
    */
   static async getNodeById(nodeId: Node["id"]): Promise<Node | null> {
-    return await this.repo.findById(nodeId); 
+    return await this.repo.findById(nodeId);
   }
-  
+
   /*
    * @description Crea un nuevo directorio (nodo) en la base de datos
    * @param parentId ID del nodo padre donde se creara la carpeta
    * @param name Nombre de la carpeta (opcional)
    */
-  static async createDirectory(parentId: string | null, name: string | null): Promise<Omit<Node, 'hash'>> {
+  static async createDirectory(
+    parentId: string | null,
+    name: string | null,
+  ): Promise<Omit<Node, "hash">> {
     try {
       // Si no hay nombre, colocamos uno por defecto
       let finalName = name ?? "Untitled Folder";
@@ -150,7 +153,11 @@ export class NodeService {
    * @param newName Nuevo nombre propuesto (opcional)
    * @returns string Nombre único resuelto
    */
-  static async resolveName(parentId: Node["parentId"], name: Node["name"], newName?: string): Promise<string> {
+  static async resolveName(
+    parentId: Node["parentId"],
+    name: Node["name"],
+    newName?: string,
+  ): Promise<string> {
     return await this.identity.resolveName(parentId, name, newName);
   }
 

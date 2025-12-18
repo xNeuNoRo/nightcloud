@@ -2,8 +2,8 @@
   "compilerOptions": {
     // Para compilar a versiones mas recientes
     "target": "esnext",
-    "module": "nodenext",
-    "moduleResolution": "NodeNext",
+    "module": "esnext",
+    "moduleResolution": "bundler",
     // Para que jest quiera funcionar
     "isolatedModules": true,
     // Otros parametros

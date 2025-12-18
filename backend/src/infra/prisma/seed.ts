@@ -1,5 +1,4 @@
 import { DB } from "@/config/db";
-import { categories } from "./data/categories";
 
 // Obtener el cliente de Prisma
 const prisma = DB.getClient();
@@ -15,12 +14,11 @@ async function main() {
   }
 }
 
-main()
-  .then(async () => {
-    await prisma.$disconnect();
-  })
-  .catch(async (e) => {
-    console.error(e);
-    await prisma.$disconnect();
-    process.exit(1);
-  });
+try {
+  await main();
+} catch (err) {
+  console.error(err);
+  process.exitCode = 1;
+} finally {
+  await prisma.$disconnect();
+}
