@@ -44,15 +44,6 @@ router.get(
   NodeController.downloadNode,
 );
 
-// Obtener nodos de un directorio en especifico
-router.get(
-  "/:nodeId",
-  NodeValidators.nodeIdValidator, // Validation chain
-  validateRequest, // Validate any errors from express-validator
-  nodeExists,
-  NodeController.getNodesFromDirectory,
-);
-
 // Borrar nodo por ID
 router.delete(
   "/:nodeId",
@@ -80,6 +71,15 @@ router.post(
   validateRequest,
   nodeExists,
   NodeController.copyNode,
+);
+
+// Obtener nodos de un directorio en especifico
+router.get(
+  "/:nodeId",
+  NodeValidators.nodeIdValidator, // Validation chain
+  validateRequest, // Validate any errors from express-validator
+  nodeExists,
+  NodeController.getNodesFromDirectory,
 );
 
 export default router;
