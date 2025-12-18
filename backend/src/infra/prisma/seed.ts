@@ -1,14 +1,16 @@
 import { DB } from "@/config/db";
 
+import { rootFolders } from "./data/nodes";
+
 // Obtener el cliente de Prisma
 const prisma = DB.getClient();
 
 async function main() {
   try {
-    // Ejemplo de seed para cualquier modelo
-    // await prisma.category.createMany({
-    //   data: categories
-    // });
+    await prisma.node.createMany({
+      data: rootFolders,
+      skipDuplicates: true,
+    });
   } catch (err) {
     console.log(err);
   }

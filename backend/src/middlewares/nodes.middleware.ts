@@ -76,16 +76,6 @@ export const nodeUpload = (req: Request, res: Response, next: NextFunction) => {
   });
 };
 
-// Extender la interfaz Request de Express para incluir node y nodes
-declare global {
-  namespace Express {
-    interface Request {
-      node?: Node;
-      nodes?: Node[];
-    }
-  }
-}
-
 /**
  * @description Middleware para procesar los archivos subidos y crear nodos en la base de datos
  * @param req Request
@@ -93,7 +83,7 @@ declare global {
  * @param next NextFunction
  */
 export const nodeProcess = async (
-  req: Request,
+  req: Request<unknown, unknown, { parentId?: string | null }>,
   _res: Response,
   next: NextFunction,
 ) => {
