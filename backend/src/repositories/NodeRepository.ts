@@ -59,15 +59,12 @@ export class NodeRepository {
     });
     if (!res) return null;
 
-    return fromPrismaNode({
-      id,
+    return {
       parentId: res.parentId,
-      name: "", // Nombre no necesario
-      hash: "", // Hash no necesario
-      size: res.size,
+      size: BigInt(res.size),
       mime: res.mime,
       isDir: res.isDir,
-    });
+    };
   }
 
   /**
