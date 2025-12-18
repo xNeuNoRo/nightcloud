@@ -1,8 +1,8 @@
-import { Node } from "@/infra/prisma/generated/client";
+import { Node as PrismaNode } from "@/infra/prisma/generated/client";
 import { NodeDTO } from "@/dtos/node.dto";
 
 type NodePicked = Pick<
-  Node,
+  PrismaNode,
   "id" | "parentId" | "name" | "size" | "mime" | "isDir"
 >;
 
