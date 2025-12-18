@@ -19,10 +19,10 @@ async function initApp() {
       console.log("Server is running on port", port);
     });
   } catch (err) {
-    console.log(err);
+    console.error(err);
     process.exit(1);
   }
 }
 
 // Start the application
-void initApp();
+await initApp();

@@ -1,5 +1,5 @@
 import { LocalCloudStorage } from "@/infra/cloud/LocalCloudStorage";
-import type { Node } from "@/infra/prisma/generated/client";
+import { Node } from "@/domain/nodes/node";
 
 export class CloudStorageService {
   private static readonly storage: LocalCloudStorage = new LocalCloudStorage();

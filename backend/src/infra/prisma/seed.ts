@@ -12,7 +12,7 @@ async function main() {
       skipDuplicates: true,
     });
   } catch (err) {
-    console.log(err);
+    console.error(err);
   }
 }
 

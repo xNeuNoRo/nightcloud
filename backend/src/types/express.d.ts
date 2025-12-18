@@ -1,4 +1,4 @@
-import type { Node } from "@/infra/prisma/generated/client";
+import { Node } from "@/domain/nodes/node";
 import "express-serve-static-core";
 
 // Agregar tipos personalizados al Response de Express

@@ -1,5 +1,6 @@
 import { DB } from "@/config/db";
-import type { Node, Prisma } from "@/infra/prisma/generated/client";
+import { Node } from "@/domain/nodes/node";
+import type { Prisma } from "@/infra/prisma/generated/client";
 import { NodeRepository } from "@/repositories/NodeRepository";
 import type { PrismaTxClient } from "@/types/prisma";
 import { AppError, NodeUtils } from "@/utils";
@@ -7,6 +8,7 @@ import { AppError, NodeUtils } from "@/utils";
 import { NodeIdentityService } from "./NodeIdentity.service";
 import { NodePersistenceService } from "./NodePersistence.service";
 import { CloudStorageService } from "../cloud/CloudStorage.service";
+import { UploadedFile } from "@/domain/uploads/uploaded-file";
 
 /**
  * @description Servicio para gestionar nodos (archivos y directorios).
@@ -25,7 +27,7 @@ export class NodeService {
    * @param parentId ID del nodo padre donde se almacenara el nodo
    * @returns Node creado en la base de datos
    */
-  static async process(file: Express.Multer.File, parentId: string | null) {
+  static async process(file: UploadedFile, parentId: string | null) {
     try {
       // Resolver nombre y hash unicos
       const { nodeName, nodeHash } = await this.identity.resolve(
@@ -217,7 +219,7 @@ export class NodeService {
   static async incrementNodeSizeByIdTx(
     tx: PrismaTxClient,
     nodeId: Node["id"],
-    newSize: number,
+    newSize: bigint,
   ): Promise<Node> {
     // Propagar el cambio de tamaño a los ancestros
     await this.repo.propagateSizeToAncestorsTx(
@@ -241,7 +243,7 @@ export class NodeService {
   static async decrementNodeSizeByIdTx(
     tx: PrismaTxClient,
     nodeId: Node["id"],
-    sizeToDecrement: number,
+    sizeToDecrement: bigint,
   ): Promise<Node> {
     // Propagar el cambio de tamaño a los ancestros
     await this.repo.propagateSizeToAncestorsTx(

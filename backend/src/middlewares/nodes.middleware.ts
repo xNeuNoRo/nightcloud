@@ -1,57 +1,12 @@
 import type { Request, Response, NextFunction } from "express";
-import multer, { MulterError } from "multer";
-import crypto from "node:crypto";
-import fs from "node:fs";
-import path from "node:path";
+import { MulterError } from "multer";
 
-import { DB } from "@/config/db";
-import type { Node } from "@/infra/prisma/generated/client";
+import { Node } from "@/domain/nodes/node";
 import { NodeService } from "@/services/nodes/Node.service";
 import { AppError, toAppError } from "@/utils";
-
-// Prisma client
-const prisma = DB.getClient();
-
-// Multer storage configuration
-const storage = multer.diskStorage({
-  destination: (
-    _req: Request,
-    _file: Express.Multer.File,
-    cb: (error: Error | null, destination: string) => void,
-  ) => {
-    // Destination to tmp folder when uploading
-    const tmpDir = process.env.CLOUD_TMP
-      ? path.resolve(process.cwd(), process.env.CLOUD_TMP)
-      : path.join(process.cwd(), ".tmp");
-    // Ensure tmp directory exists
-    fs.access(tmpDir, fs.constants.F_OK, (err) => {
-      if (err) {
-        fs.mkdir(tmpDir, { recursive: true }, (mkdirErr) => {
-          if (mkdirErr) {
-            console.log(`Error creating tmp directory: ${mkdirErr}`);
-            return cb(new AppError("INTERNAL"), tmpDir);
-          }
-          return cb(null, tmpDir);
-        });
-      } else {
-        return cb(null, tmpDir);
-      }
-    });
-  },
-  filename: (
-    _req: Request,
-    file: Express.Multer.File,
-    cb: (error: Error | null, filename: string) => void,
-  ) => {
-    // Generate random filename with original extension
-    cb(null, crypto.randomUUID() + path.extname(file.originalname));
-  },
-});
-
-// Multer upload instance
-const upload = multer({
-  storage,
-});
+import { NodeRepository } from "@/repositories/NodeRepository";
+import { multerUpload } from "@/infra/upload/multer.upload";
+import { fromMulterFile } from "@/infra/upload/multer-file";
 
 /**
  * @description Middleware para manejar la subida de archivos
@@ -60,15 +15,20 @@ const upload = multer({
  * @param next NextFunction
  */
 export const nodeUpload = (req: Request, res: Response, next: NextFunction) => {
-  const node = upload.array(
+  // Configurar multer para manejar multiples archivos
+  const node = multerUpload.array(
     process.env.FRONTEND_FORM_FIELD_NAME ?? "file", // Default form field name "file"
     Number(process.env.CLOUD_MAX_UPLOAD_FILES) || 10, // Max 10 files
   );
+
+  // Ejecutar el middleware de multer
   node(req, res, (err: unknown) => {
     if (err instanceof MulterError) {
       return next(toAppError(err));
+    } else if (err instanceof AppError) {
+      return next(err);
     } else if (err) {
-      console.log(err);
+      console.error(err);
       return next(new AppError("INTERNAL"));
     }
 
@@ -88,18 +48,32 @@ export const nodeProcess = async (
   next: NextFunction,
 ) => {
   try {
+    // Verificar que existan archivos subidos
     if (!req.files || (req.files as Express.Multer.File[]).length === 0)
       throw new AppError("NO_FILES_UPLOADED");
 
+    // Convertir los archivos de Multer a UploadedFile
+    const uploadedFiles = (req.files as Express.Multer.File[]).map((f) =>
+      fromMulterFile(f),
+    );
+
     const { parentId } = req.body;
     const results: Node[] = [];
-    for (const file of req.files as Express.Multer.File[]) {
-      console.log(`Node uploaded: ${file.filename} (${file.size} bytes)`);
-      // null mientras tanto implementemos lo de las carpetas
+
+    // Procesar cada archivo subido
+    for (const file of uploadedFiles) {
+      console.log(
+        `Node uploaded: ${file.filename} (${file.size.toString()} bytes)`,
+      );
+
+      // Procesar el nodo subido
       const node = await NodeService.process(file, parentId ?? null);
+
+      // Almacenamos el resultado
       results.push(node);
     }
 
+    // Adjuntar los nodos creados a la request para uso posterior
     req.nodes = results;
     next();
   } catch (err) {
@@ -108,7 +82,7 @@ export const nodeProcess = async (
 };
 
 /**
- * Middleware para verificar si un nodo existe en la base de datos
+ * @description Middleware para verificar si un nodo existe en la base de datos
  * @param req Request
  * @param _res Response
  * @param next NextFunction
@@ -123,12 +97,12 @@ export const nodeExists = async (
     const { nodeId } = req.params;
 
     // Buscar el nodo en la base de datos
-    const node = await prisma.node.findUnique({
-      where: { id: nodeId },
-    });
+    const node = await NodeRepository.findById(nodeId);
 
+    // Si no existe, lanzar un error
     if (!node) throw new AppError("NODE_NOT_FOUND");
 
+    // Adjuntar el nodo a la request para uso posterior
     req.node = node;
 
     next();

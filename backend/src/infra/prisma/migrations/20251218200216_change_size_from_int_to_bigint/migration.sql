@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "node" ALTER COLUMN "size" SET DATA TYPE BIGINT;
