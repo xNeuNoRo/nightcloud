@@ -1,7 +1,8 @@
 import { buildConflictRegex } from "@/domain/nodes/conflicts/buildConflictRegex";
 import { getNextName } from "@/domain/nodes/conflicts/getNextName";
 import { computeNodeIdentity } from "@/domain/nodes/identity/computeNodeIdentity";
-import type { Node } from "@/infra/prisma/generated/client";
+import { Node } from "@/domain/nodes/node";
+import { UploadedFile } from "@/domain/uploads/uploaded-file";
 import { NodeRepository } from "@/repositories/NodeRepository";
 import { NodeUtils } from "@/utils";
 
@@ -17,7 +18,7 @@ export class NodeIdentityService {
    * @param parentId ID del nodo padre
    * @returns Objeto con nodeName y nodeHash únicos
    */
-  static async resolve(file: Express.Multer.File, parentId: string | null) {
+  static async resolve(file: UploadedFile, parentId: string | null) {
     let nodeName = file.originalname;
 
     let nodeHash = await NodeUtils.genFileHash(

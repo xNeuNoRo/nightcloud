@@ -11,27 +11,55 @@ import type { Node } from "../prisma/generated/client";
  */
 export class LocalCloudStorage implements CloudStorage {
   /**
-   * @description Ruta absoluta del directorio raiz de almacenamiento en la nube local
+   * @description Ruta absoluta del directorio raiz y temporal de almacenamiento en la nube local.
    */
   private static cloudPath: string | null = null;
+  private static tmpPath: string | null = null;
 
   /**
    * @description Asegura que el directorio raiz de almacenamiento en la nube local exista.
    * @returns Ruta absoluta del directorio raiz de almacenamiento en la nube local
    */
   async ensureRoot(): Promise<string> {
+    // Si la ruta es null
     if (!LocalCloudStorage.cloudPath) {
+      // Definir la ruta absoluta del directorio raiz
       LocalCloudStorage.cloudPath = path.resolve(
         process.cwd(),
         process.env.CLOUD_ROOT || "cloud",
       );
+
+      // Crear el directorio si no existe
+      if (!(await pathExists(LocalCloudStorage.cloudPath))) {
+        await fs.mkdir(LocalCloudStorage.cloudPath, { recursive: true });
+      }
     }
 
-    if (!(await pathExists(LocalCloudStorage.cloudPath))) {
-      await fs.mkdir(LocalCloudStorage.cloudPath, { recursive: true });
-    }
-
+    // Si ya fue inicializada, retornar la ruta
     return LocalCloudStorage.cloudPath;
+  }
+
+  /**
+   * @description Asegura que el directorio temporal de almacenamiento en la nube local exista.
+   * @returns Ruta absoluta del directorio temporal de almacenamiento en la nube local
+   */
+  async ensureTmp(): Promise<string> {
+    // Si la ruta es null
+    if (!LocalCloudStorage.tmpPath) {
+      // Definir la ruta absoluta del directorio temporal
+      LocalCloudStorage.tmpPath = path.resolve(
+        process.cwd(),
+        process.env.CLOUD_TMP || ".tmp",
+      );
+
+      // Crear el directorio si no existe
+      if (!(await pathExists(LocalCloudStorage.tmpPath))) {
+        await fs.mkdir(LocalCloudStorage.tmpPath, { recursive: true });
+      }
+    }
+
+    // Si ya fue inicializada, retornar la ruta
+    return LocalCloudStorage.tmpPath;
   }
 
   /**

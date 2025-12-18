@@ -1,6 +1,8 @@
 import { DB } from "@/config/db";
-import type { Node, Prisma } from "@/infra/prisma/generated/client";
+import type { Node } from "@/domain/nodes/node";
+import type { Prisma } from "@/infra/prisma/generated/client";
 import type { PrismaTxClient } from "@/types/prisma";
+import { fromPrismaNode } from "@/mappers/node.mapper";
 
 const prisma = DB.getClient();
 
@@ -11,7 +13,8 @@ export class NodeRepository {
    * @returns Nodo creado
    */
   static async create(data: Prisma.NodeCreateInput): Promise<Node> {
-    return await prisma.node.create({ data });
+    const res = await prisma.node.create({ data });
+    return fromPrismaNode(res);
   }
 
   /**
@@ -41,7 +44,10 @@ export class NodeRepository {
    * @param id ID del nodo
    * @returns Metadatos del nodo
    */
-  static async getNodeMetaByIdTx(tx: PrismaTxClient, id: Node["id"]) {
+  static async getNodeMetaByIdTx(
+    tx: PrismaTxClient,
+    id: Node["id"],
+  ): Promise<Pick<Node, "parentId" | "size" | "mime" | "isDir"> | null> {
     return await tx.node.findUnique({
       where: { id },
       select: {
@@ -60,10 +66,11 @@ export class NodeRepository {
    * @returns Nodo actualizado
    */
   static async updateNameById(id: Node["id"], newName: string) {
-    return await prisma.node.update({
+    const res = await prisma.node.update({
       where: { id },
       data: { name: newName },
     });
+    return fromPrismaNode(res);
   }
 
   /**
@@ -72,9 +79,10 @@ export class NodeRepository {
    * @returns Nodo encontrado o null
    */
   static async findById(id: Node["id"]) {
-    return await prisma.node.findUnique({
+    const res = await prisma.node.findUnique({
       where: { id },
     });
+    return res ? fromPrismaNode(res) : null;
   }
 
   /**
@@ -84,9 +92,10 @@ export class NodeRepository {
    * @returns Nodo encontrado o null
    */
   static async findByIdTx(tx: PrismaTxClient, id: Node["id"]) {
-    return await tx.node.findUnique({
+    const res = await tx.node.findUnique({
       where: { id },
     });
+    return res ? fromPrismaNode(res) : null;
   }
 
   /**
@@ -94,12 +103,13 @@ export class NodeRepository {
    * @param parentId ID del nodo padre
    * @returns Lista de nodos hijos
    */
-  static async findByParentId(parentId: string | null): Promise<Node[]> {
-    return await prisma.node.findMany({
+  static async findByParentId(parentId: string | null) {
+    const res = await prisma.node.findMany({
       where: {
         parentId,
       },
     });
+    return res.map(fromPrismaNode);
   }
 
   /**
@@ -108,11 +118,8 @@ export class NodeRepository {
    * @param name Nombre del nodo a buscar
    * @returns Nodo encontrado o null
    */
-  static async findDirByName(
-    parentId: string | null,
-    name: string,
-  ): Promise<Node | null> {
-    return await prisma.node.findFirst({
+  static async findDirByName(parentId: string | null, name: string) {
+    const res = await prisma.node.findFirst({
       where: {
         parentId,
         name: {
@@ -122,6 +129,7 @@ export class NodeRepository {
         isDir: true,
       },
     });
+    return res ? fromPrismaNode(res) : null;
   }
 
   /**
@@ -129,10 +137,11 @@ export class NodeRepository {
    * @param hash Hash del nodo
    * @returns Nodo encontrado o null
    */
-  static async findByHash(hash: string): Promise<Node | null> {
-    return await prisma.node.findFirst({
+  static async findByHash(hash: string) {
+    const res = await prisma.node.findFirst({
       where: { hash },
     });
+    return res ? fromPrismaNode(res) : null;
   }
 
   /**
@@ -145,12 +154,13 @@ export class NodeRepository {
     hash: string,
     parentId: string | null,
   ): Promise<Node | null> {
-    return await prisma.node.findFirst({
+    const res = await prisma.node.findFirst({
       where: {
         hash,
         parentId,
       },
     });
+    return res ? fromPrismaNode(res) : null;
   }
 
   /**
@@ -162,7 +172,7 @@ export class NodeRepository {
   static async findConflictingNames(
     parentId: string | null,
     regexPattern: string,
-  ): Promise<string[]> {
+  ): Promise<Node["name"][]> {
     const rows = await prisma.$queryRaw<{ name: string }[]>`
       SELECT name
       FROM node
@@ -212,7 +222,7 @@ export class NodeRepository {
    * @returns Nodo con el tamaño actualizado
    */
   static async incrementSizeById(id: Node["id"], delta: number) {
-    return await prisma.node.update({
+    const res = await prisma.node.update({
       data: {
         size: {
           increment: delta,
@@ -220,6 +230,7 @@ export class NodeRepository {
       },
       where: { id },
     });
+    return fromPrismaNode(res);
   }
 
   /**
@@ -234,7 +245,7 @@ export class NodeRepository {
     id: Node["id"],
     delta: number,
   ) {
-    return await tx.node.update({
+    const res = await tx.node.update({
       data: {
         size: {
           increment: delta,
@@ -242,6 +253,7 @@ export class NodeRepository {
       },
       where: { id },
     });
+    return fromPrismaNode(res);
   }
 
   /**
@@ -252,7 +264,7 @@ export class NodeRepository {
    * @returns Nodo con el tamaño actualizado
    */
   static async decrementSizeById(id: Node["id"], delta: number) {
-    return await prisma.node.update({
+    const res = await prisma.node.update({
       data: {
         size: {
           decrement: delta,
@@ -260,6 +272,7 @@ export class NodeRepository {
       },
       where: { id },
     });
+    return fromPrismaNode(res);
   }
 
   /**
@@ -274,7 +287,7 @@ export class NodeRepository {
     id: Node["id"],
     delta: number,
   ) {
-    return await tx.node.update({
+    const res = await tx.node.update({
       data: {
         size: {
           decrement: delta,
@@ -282,6 +295,7 @@ export class NodeRepository {
       },
       where: { id },
     });
+    return fromPrismaNode(res);
   }
 
   /**
@@ -292,9 +306,9 @@ export class NodeRepository {
   static async propagateSizeToAncestorsTx(
     tx: PrismaTxClient,
     id: Node["id"],
-    delta: number,
+    delta: bigint,
     mode: "increment" | "decrement",
-  ) {
+  ): Promise<void> {
     // Obtener los ancestros del nodo
     const ancestors = await tx.getAncestors(id);
     console.log("Propagating size to ancestors:", ancestors);

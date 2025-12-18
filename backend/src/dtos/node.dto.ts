@@ -3,7 +3,7 @@ export interface NodeDTO {
   id: string;
   parentId: string | null;
   name: string;
-  size: number;
+  size: string;
   mime: string;
   isDir: boolean;
 }

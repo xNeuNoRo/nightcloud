@@ -25,4 +25,4 @@ async function initApp() {
 }
 
 // Start the application
-void initApp();
+await initApp();
