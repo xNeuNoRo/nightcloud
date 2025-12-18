@@ -103,6 +103,25 @@ export class NodeRepository {
   }
 
   /**
+   * @description Encuentra nodos de tipo dir por su nombre
+   * @param parentId ID del nodo padre
+   * @param name Nombre del nodo a buscar
+   * @returns Nodo encontrado o null
+   */
+  static async findDirByName(parentId: string | null, name: string): Promise<Node | null> {
+    return await prisma.node.findFirst({
+      where: {
+        parentId,
+        name: {
+          equals: name,
+          mode: "insensitive",
+        },
+        isDir: true
+      },
+    });
+  }
+
+  /**
    * @description Busca un nodo por su hash
    * @param hash Hash del nodo
    * @returns Nodo encontrado o null

@@ -76,7 +76,47 @@ export class NodeService {
    * @returns Nodo obtenido o null si no existe
    */
   static async getNodeById(nodeId: Node["id"]): Promise<Node | null> {
-    return await this.repo.findById(nodeId);
+    return await this.repo.findById(nodeId); 
+  }
+  
+  /*
+   * @description Crea un nuevo directorio (nodo) en la base de datos
+   * @param parentId ID del nodo padre donde se creara la carpeta
+   * @param name Nombre de la carpeta (opcional)
+   */
+  static async createDirectory(parentId: string | null, name: string | null): Promise<Omit<Node, 'hash'>> {
+    try {
+      // Si no hay nombre, colocamos uno por defecto
+      let finalName = name ?? "Untitled Folder";
+
+      // Verificamos que no exista un directorio con el mismo nombre
+      const existentNode = await this.repo.findDirByName(parentId, finalName);
+
+      // En caso de que exista un directorio, resolvemos el nombre
+      if (existentNode) {
+        finalName = await this.resolveName(parentId, finalName);
+      }
+
+      // Preparamos los datos para crear el directorio
+      const hash = NodeUtils.genDirectoryHash(finalName, parentId);
+      const mime = "inode/directory";
+
+      // Tratamos de crear el directorio (nodo al fin)
+      const { hash: _h, ...node } = await this.createNode({
+        name: finalName,
+        hash,
+        parent: parentId ? { connect: { id: parentId } } : undefined,
+        size: 0,
+        mime,
+        isDir: true,
+      });
+
+      // Si sale bien, devolvemos el directorio creado en el parentId correspondiente
+      return node;
+    } catch (err) {
+      console.error(err);
+      throw new AppError("INTERNAL", "Error al crear el directorio (nodo)");
+    }
   }
 
   /**
@@ -105,12 +145,13 @@ export class NodeService {
 
   /**
    * @description Resuelve un nombre único para un nodo dentro de su carpeta padre.
-   * @param node Nodo a resolver
+   * @param parentId ParentId del nodo a resolver
+   * @param name Nombre original del nodo a resolver
    * @param newName Nuevo nombre propuesto (opcional)
    * @returns string Nombre único resuelto
    */
-  static async resolveName(node: Node, newName?: string): Promise<string> {
-    return await this.identity.resolveName(node, newName);
+  static async resolveName(parentId: Node["parentId"], name: Node["name"], newName?: string): Promise<string> {
+    return await this.identity.resolveName(parentId, name, newName);
   }
 
   /**
