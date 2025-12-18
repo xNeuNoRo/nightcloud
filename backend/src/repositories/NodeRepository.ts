@@ -1,11 +1,12 @@
 import { DB } from "@/config/db";
 import { Node, Prisma } from "@/infra/prisma/generated/client";
+import { PrismaTxClient } from "@/types/prisma";
 
 const prisma = DB.getClient();
 
 export class NodeRepository {
   /**
-   * Crea un nuevo nodo en la base de datos
+   * @description Crea un nuevo nodo en la base de datos
    * @param data Datos del nodo a crear
    * @returns Nodo creado
    */
@@ -20,6 +21,35 @@ export class NodeRepository {
   static async deleteById(id: Node["id"]) {
     await prisma.node.delete({
       where: { id },
+    });
+  }
+
+  /**
+   * @description Elimina un nodo por su ID dentro de una transaccion
+   * @param tx Transaccion de Prisma
+   * @param id ID del nodo a eliminar
+   */
+  static async deleteByIdTx(tx: PrismaTxClient, id: Node["id"]) {
+    await tx.node.delete({
+      where: { id },
+    });
+  }
+
+  /**
+   * @description Obtiene los metadatos de un nodo por su ID dentro de una transaccion
+   * @param tx Transaccion de Prisma
+   * @param id ID del nodo
+   * @returns Metadatos del nodo
+   */
+  static async getNodeMetaByIdTx(tx: PrismaTxClient, id: Node["id"]) {
+    return await tx.node.findUnique({
+      where: { id },
+      select: {
+        parentId: true,
+        size: true,
+        mime: true,
+        isDir: true,
+      },
     });
   }
 
@@ -43,6 +73,18 @@ export class NodeRepository {
    */
   static async findById(id: Node["id"]) {
     return await prisma.node.findUnique({
+      where: { id },
+    });
+  }
+
+  /**
+   * @description Encuentra un nodo por su ID dentro de una transaccion
+   * @param tx Transaccion de Prisma
+   * @param id ID del nodo a buscar
+   * @returns Nodo encontrado o null
+   */
+  static async findByIdTx(tx: PrismaTxClient, id: Node["id"]) {
+    return await tx.node.findUnique({
       where: { id },
     });
   }
@@ -147,23 +189,7 @@ export class NodeRepository {
    * @param size Tamaño a incrementar del nodo
    * @returns Nodo con el tamaño actualizado
    */
-  static async incrementSizeById(
-    id: Node["id"],
-    delta: number,
-    isDir: boolean = false,
-  ) {
-    // Por seguridad, evitar que el tamaño sea negativo
-    if (delta < 0) delta = 0;
-
-    // Si es un directorio, propagar el cambio de tamaño a los padres
-    // Coste: 1+1 consultas -- todavia pensando si quitar la busqueda final xd
-    if (isDir) {
-      // Propagar el incremento de tamaño a los ancestros
-      await this.propagateSizeIncrementToAncestors(id, delta);
-      // Devolver el nodo actualizado
-      return (await this.findById(id))!; // El nodo debe existir
-    }
-
+  static async incrementSizeById(id: Node["id"], delta: number) {
     return await prisma.node.update({
       data: {
         size: {
@@ -175,30 +201,92 @@ export class NodeRepository {
   }
 
   /**
-   * @description Propaga un incremento de tamaño a todos los ancestros de un nodo
-   * @param id ID del nodo desde el cual propagar el incremento
-   * @param delta Incremento de tamaño a propagar
+   * @description Incrementa el tamaño de un nodo por su ID dentro de una transaccion
+   * @param tx Transaccion de Prisma
+   * @param id ID del nodo a incrementar
+   * @param delta Cantidad a incrementar
+   * @returns Nodo actualizado
    */
-  static async propagateSizeIncrementToAncestors(
+  static async incrementSizeByIdTx(
+    tx: PrismaTxClient,
     id: Node["id"],
     delta: number,
   ) {
-    // Usamos una transaccion de Prisma para asegurar la atomicidad
-    await prisma.$transaction(async (tx) => {
-      // Obtener los ancestros del nodo
-      const ancestors = await tx.getAncestors(id);
+    return await tx.node.update({
+      data: {
+        size: {
+          increment: delta,
+        },
+      },
+      where: { id },
+    });
+  }
 
-      // Actualizar el tamaño de cada ancestro
-      await prisma.node.updateMany({
-        where: {
-          id: { in: ancestors.map((a) => a.id) },
+  /**
+   * @description Decrementa el tamaño de un nodo por su ID
+   * @param id ID del nodo a decrementar
+   * @param delta Cantidad a decrementar
+   * @param isDir Indica si el nodo es un directorio
+   * @returns
+   */
+  static async decrementSizeById(id: Node["id"], delta: number) {
+    return await prisma.node.update({
+      data: {
+        size: {
+          decrement: delta,
         },
-        data: {
-          size: {
-            increment: delta,
-          },
+      },
+      where: { id },
+    });
+  }
+
+  /**
+   * @description Decrementa el tamaño de un nodo por su ID dentro de una transaccion
+   * @param tx Transaccion de Prisma
+   * @param id ID del nodo a decrementar
+   * @param delta Cantidad a decrementar
+   * @returns Nodo actualizado
+   */
+  static async decrementSizeByIdTx(
+    tx: PrismaTxClient,
+    id: Node["id"],
+    delta: number,
+  ) {
+    return await tx.node.update({
+      data: {
+        size: {
+          decrement: delta,
         },
-      });
+      },
+      where: { id },
+    });
+  }
+
+  /**
+   * @description Propaga el incremento o decremento de tamaño a los ancestros de un nodo
+   * @param id ID del nodo desde el cual propagar el incremento/decremento
+   * @param delta Incremento/Decremento de tamaño a propagar
+   */
+  static async propagateSizeToAncestorsTx(
+    tx: PrismaTxClient,
+    id: Node["id"],
+    delta: number,
+    mode: "increment" | "decrement",
+  ) {
+    // Obtener los ancestros del nodo
+    const ancestors = await tx.getAncestors(id);
+    console.log("Propagating size to ancestors:", ancestors);
+
+    // Actualizar el tamaño de cada ancestro
+    await tx.node.updateMany({
+      where: {
+        id: { in: ancestors.map((a) => a.id) },
+      },
+      data: {
+        size: {
+          [mode]: delta, // Usar incremento o decremento segun el modo
+        },
+      },
     });
   }
 
@@ -223,7 +311,7 @@ export class NodeRepository {
    * @param callback Funcion a ejecutar para cada ancestro encontrado
    */
   static async forEachAncestor(
-    tx: Prisma.TransactionClient,
+    tx: PrismaTxClient,
     startNodeId: Node["id"],
     callback: (ancestor: Pick<Node, "id" | "parentId">) => Promise<void>,
   ) {
