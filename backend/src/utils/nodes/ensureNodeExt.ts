@@ -1,6 +1,6 @@
 import path from "node:path";
 
-import type { Node } from "@/infra/prisma/generated/client";
+import { Node } from "@/domain/nodes/node";
 
 /**
  * @description Asegura que el nuevo nombre de un nodo mantenga su extensión original.

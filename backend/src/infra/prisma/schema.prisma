@@ -22,7 +22,7 @@ model Node {
     parentId String? @db.Uuid
     name     String
     hash     String @unique
-    size     Int
+    size     BigInt
     mime     String
     isDir    Boolean @default(false)
     parent   Node?   @relation("ParentNode", fields: [parentId], references: [id])

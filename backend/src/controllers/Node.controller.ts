@@ -8,6 +8,7 @@ import { DownloadService } from "@/services/download/Download.service";
 import { toNodeDTO } from "@/mappers/node.dto-mapper";
 
 export class NodeController {
+  // Crear un nuevo nodo (solo directorios por ahora)
   static readonly createNode = async (
     req: Request<
       unknown,
@@ -30,24 +31,12 @@ export class NodeController {
     }
 
     const node = await NodeService.createDirectory(parentId, name);
-    res.success(node);
+    res.success(toNodeDTO(node), 201);
   };
 
   static readonly uploadNodes = (req: Request, res: Response) => {
     const nodes = req.nodes;
-    res.success(
-      nodes?.map((n) => {
-        return {
-          id: n.id,
-          parentId: n.parentId,
-          name: n.name,
-          size: n.size,
-          mime: n.mime,
-          isDir: n.isDir,
-        };
-      }),
-      201,
-    );
+    res.success(nodes?.map((n) => toNodeDTO(n)) ?? [], 201);
   };
 
   // Obtener todos los nodos desde la raiz
@@ -56,7 +45,7 @@ export class NodeController {
       const nodes = await NodeService.getAllNodes(null);
       res.success(nodes.map((n) => toNodeDTO(n)));
     } catch (err) {
-      console.log(err);
+      console.error(err);
       throw new AppError("INTERNAL", "Error al obtener los nodos");
     }
   };
@@ -73,7 +62,7 @@ export class NodeController {
       const nodes = await NodeService.getAllNodes(req.node!.id);
       res.success(nodes.map((n) => toNodeDTO(n)));
     } catch (err) {
-      console.log(err);
+      console.error(err);
       throw new AppError(
         "INTERNAL",
         `Error al obtener los nodos de ${req.node!.name}`,
@@ -143,7 +132,7 @@ export class NodeController {
 
       res.success(updatedNode);
     } catch (err) {
-      console.log(err);
+      console.error(err);
       throw new AppError("INTERNAL", "Error al renombrar el nodo");
     }
   };

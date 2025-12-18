@@ -1,4 +1,4 @@
-import type { Node } from "@/infra/prisma/generated/client";
+import { Node } from "@/domain/nodes/node";
 
 /**
  * @description Interfaz para el almacenamiento en la nube.
@@ -8,6 +8,11 @@ export interface CloudStorage {
    * @description Asegura que el directorio raiz de almacenamiento en la nube exista.
    */
   ensureRoot(): Promise<string>;
+
+  /**
+   * @description Asegura que el directorio temporal de almacenamiento en la nube exista.
+   */
+  ensureTmp(): Promise<string>;
 
   /**
    * @description Verifica si una ruta existe en el sistema de archivos.

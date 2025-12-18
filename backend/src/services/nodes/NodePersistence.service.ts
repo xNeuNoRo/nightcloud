@@ -3,6 +3,7 @@ import path from "node:path";
 import { NodeRepository } from "@/repositories/NodeRepository";
 
 import { CloudStorageService } from "../cloud/CloudStorage.service";
+import { UploadedFile } from "@/domain/uploads/uploaded-file";
 
 /**
  * @description Servicio para persistir nodos en el almacenamiento y la base de datos.
@@ -20,7 +21,7 @@ export class NodePersistenceService {
    * @returns Nodo persistido
    */
   async persist(
-    file: Express.Multer.File,
+    file: UploadedFile,
     parentId: string | null,
     nodeName: string,
     nodeHash: string,
