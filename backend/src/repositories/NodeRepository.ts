@@ -147,9 +147,22 @@ export class NodeRepository {
    * @param size Tamaño a incrementar del nodo
    * @returns Nodo con el tamaño actualizado
    */
-  static async incrementSizeById(id: Node["id"], delta: number) {
+  static async incrementSizeById(
+    id: Node["id"],
+    delta: number,
+    isDir: boolean = false,
+  ) {
     // Por seguridad, evitar que el tamaño sea negativo
     if (delta < 0) delta = 0;
+
+    // Si es un directorio, propagar el cambio de tamaño a los padres
+    // Coste: 1+1 consultas -- todavia pensando si quitar la busqueda final xd
+    if (isDir) {
+      // Propagar el incremento de tamaño a los ancestros
+      await this.propagateSizeIncrementToAncestors(id, delta);
+      // Devolver el nodo actualizado
+      return (await this.findById(id))!; // El nodo debe existir
+    }
 
     return await prisma.node.update({
       data: {
@@ -159,5 +172,84 @@ export class NodeRepository {
       },
       where: { id },
     });
+  }
+
+  /**
+   * @description Propaga un incremento de tamaño a todos los ancestros de un nodo
+   * @param id ID del nodo desde el cual propagar el incremento
+   * @param delta Incremento de tamaño a propagar
+   */
+  static async propagateSizeIncrementToAncestors(
+    id: Node["id"],
+    delta: number,
+  ) {
+    // Usamos una transaccion de Prisma para asegurar la atomicidad
+    await prisma.$transaction(async (tx) => {
+      // Obtener los ancestros del nodo
+      const ancestors = await tx.getAncestors(id);
+
+      // Actualizar el tamaño de cada ancestro
+      await prisma.node.updateMany({
+        where: {
+          id: { in: ancestors.map((a) => a.id) },
+        },
+        data: {
+          size: {
+            increment: delta,
+          },
+        },
+      });
+    });
+  }
+
+  /**
+   * @remarks La funcion getAncestors es una queryRaw de una funcion almacenada optimizada
+   * Es la forma mas eficiente de obtener todos los ancestros en una sola consulta.
+   * @description Obtiene todos los ancestros de un nodo dado.
+   * @param tx Transaccion de Prisma
+   * @param startNodeId ID del nodo desde el cual comenzar a buscar ancestros
+   * @returns Lista de ancestros con sus IDs y parentIds
+   */
+  static async getAllNodeAncestors(startNodeId: Node["id"]) {
+    return await prisma.getAncestors(startNodeId);
+  }
+
+  /**
+   * !
+   * @warning ESTA FUNCION TIENE UN COSTE DE 2N CONSULTAS A LA BD, USAR CON MUCHO MAS CUIDADO.
+   * @description Ejecuta un callback para cada ancestro de un nodo dado.
+   * @param tx Transaccion de Prisma
+   * @param startNodeId ID del nodo desde el cual comenzar a buscar ancestros
+   * @param callback Funcion a ejecutar para cada ancestro encontrado
+   */
+  static async forEachAncestor(
+    tx: Prisma.TransactionClient,
+    startNodeId: Node["id"],
+    callback: (ancestor: Pick<Node, "id" | "parentId">) => Promise<void>,
+  ) {
+    // Recorrer hacia arriba en la jerarquia hasta la raiz
+    let currentNodeId: string | null = startNodeId;
+
+    // Mientras haya un nodo actual
+    while (currentNodeId) {
+      // Obtener el nodo padre actual
+      const parent: Pick<Node, "id" | "parentId"> | null =
+        await tx.node.findUnique({
+          where: { id: currentNodeId },
+          select: {
+            id: true,
+            parentId: true,
+          },
+        });
+
+      // Si no hay padre, quiere decir que llegamos a la raiz
+      if (!parent) break;
+
+      // Ejecutar el callback con el padre actual
+      await callback(parent);
+
+      // Actualizar el ID del nodo actual al ID del padre para la siguiente iteracion
+      currentNodeId = parent.parentId;
+    }
   }
 }

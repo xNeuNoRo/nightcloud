@@ -42,10 +42,12 @@ export class NodeService {
       // Actualizar el tamaño del nodo padre si es una carpeta
       if (parentId) {
         const parentNode = await this.repo.findById(parentId);
-
-        if (parentNode?.isDir) {
-          await this.incrementNodeSizeById(parentId, file.size);
-        }
+        if (parentNode)
+          await this.incrementNodeSizeById(
+            parentId,
+            file.size,
+            parentNode?.isDir,
+          );
       }
 
       console.log(`Node processed: ${nodeName} as ${nodeHash}`);
@@ -130,7 +132,8 @@ export class NodeService {
   static async incrementNodeSizeById(
     nodeId: Node["id"],
     newSize: number,
+    isDirectory: boolean = false,
   ): Promise<Node> {
-    return await this.repo.incrementSizeById(nodeId, newSize);
+    return await this.repo.incrementSizeById(nodeId, newSize, isDirectory);
   }
 }

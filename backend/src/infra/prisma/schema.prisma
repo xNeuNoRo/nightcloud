@@ -21,7 +21,7 @@ model Node {
     id       String  @id @default(uuid()) @db.Uuid
     parentId String? @db.Uuid
     name     String
-    hash     String
+    hash     String @unique
     size     Int
     mime     String
     isDir    Boolean @default(false)
@@ -30,4 +30,7 @@ model Node {
 
     // Remapeo de la tabla a "node"
     @@map("node")
+
+    // Indice para optimizar consultas por parentId y hash
+    @@index([parentId, hash])
 }
