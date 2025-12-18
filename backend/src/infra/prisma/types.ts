@@ -8,5 +8,8 @@ export type AncestorRow = {
 export type DescendantRow = {
   id: string;
   parentId: string | null;
+  name: string;
+  hash: string;
+  isDir: boolean;
   depth: number;
 };
