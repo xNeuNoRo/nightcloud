@@ -5,6 +5,7 @@ import { CloudStorageService } from "@/services/cloud/CloudStorage.service";
 import { NodeService } from "@/services/nodes/Node.service";
 import { AppError, NodeUtils } from "@/utils";
 import { DownloadService } from "@/services/download/Download.service";
+import { toNodeDTO } from "@/mappers/node.mapper";
 
 export class NodeController {
   static readonly createNode = async (
@@ -50,18 +51,7 @@ export class NodeController {
   static readonly getNodesFromRoot = async (req: Request, res: Response) => {
     try {
       const nodes = await NodeService.getAllNodes(null);
-      res.success(
-        nodes.map((n) => {
-          return {
-            id: n.id,
-            parentId: n.parentId,
-            name: n.name,
-            size: n.size,
-            mime: n.mime,
-            isDir: n.isDir,
-          };
-        }),
-      );
+      res.success(nodes.map((n) => toNodeDTO(n)));
     } catch (err) {
       console.log(err);
       throw new AppError("INTERNAL", "Error al obtener los nodos");
@@ -75,18 +65,7 @@ export class NodeController {
   ) => {
     try {
       const nodes = await NodeService.getAllNodes(req.node!.id);
-      res.success(
-        nodes.map((n) => {
-          return {
-            id: n.id,
-            parentId: n.parentId,
-            name: n.name,
-            size: n.size,
-            mime: n.mime,
-            isDir: n.isDir,
-          };
-        }),
-      );
+      res.success(nodes.map((n) => toNodeDTO(n)));
     } catch (err) {
       console.log(err);
       throw new AppError(
