@@ -22,7 +22,10 @@ export class NodeController {
     const { parentId, name, isDir } = req.body;
 
     if (!isDir) {
-      throw new AppError("La creación de archivos no está implementada");
+      throw new AppError(
+        "INTERNAL",
+        "La creación de archivos no está implementada",
+      );
     }
 
     const node = await NodeService.createDirectory(parentId, name);
@@ -62,6 +65,9 @@ export class NodeController {
     req: Request,
     res: Response,
   ) => {
+    // Asegurarse de que el nodo sea un directorio, puesto que un archivo no puede contener nodos hijos
+    if (!req.node!.isDir) throw new AppError("NODE_IS_NOT_DIRECTORY");
+
     try {
       const nodes = await NodeService.getAllNodes(req.node!.id);
       res.success(nodes.map((n) => toNodeDTO(n)));
