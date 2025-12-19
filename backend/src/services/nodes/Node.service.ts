@@ -1,4 +1,4 @@
-import path from "path";
+import path from "node:path";
 
 import { DB } from "@/config/db";
 import type { Node } from "@/domain/nodes/node";
