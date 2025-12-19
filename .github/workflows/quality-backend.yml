@@ -24,29 +24,14 @@ jobs:
         with:
           bun-version: latest # luego fíjalo, ahora sirve para debug
 
-      - name: Debug exact commit
-        run: |
-          echo "github.ref = ${{ github.ref }}"
-          echo "github.sha = ${{ github.sha }}"
-          echo "head.sha   = ${{ github.event.pull_request.head.sha }}"
-          echo "HEAD       = $(git rev-parse HEAD)"
-
-          echo ""
-          echo "Last commit:"
-          git --no-pager show -1 --oneline --name-only
-
-          echo ""
-          echo "Node.controller.ts (lines 130–160):"
-          sed -n '130,160p' src/controllers/Node.controller.ts
-
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
       - name: Lint
-        run: bun lint
+        run: bun run lint
 
       - name: Format check
-        run: bun format
+        run: bun run format
 
       - name: Typecheck
-        run: bun typecheck
+        run: bun run typecheck
