@@ -1,8 +1,6 @@
 import type { Request, Response } from "express";
-import path from "node:path";
 
 import { toNodeDTO } from "@/infra/mappers/node.dto-mapper";
-import { CloudStorageService } from "@/services/cloud/CloudStorage.service";
 import { DownloadService } from "@/services/download/Download.service";
 import { NodeService } from "@/services/nodes/Node.service";
 import { AppError, NodeUtils } from "@/utils";

@@ -1,4 +1,4 @@
-import { DirectoryNode, FileNode } from "@/domain/nodes/node";
+import type { DirectoryNode, FileNode } from "@/domain/nodes/node";
 
 /**
  * @description TypeGuard que verifica si un nodo es un FileNode.

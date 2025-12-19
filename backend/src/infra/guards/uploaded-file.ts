@@ -1,4 +1,4 @@
-import { UploadedFile } from "@/domain/uploads/uploaded-file";
+import type { UploadedFile } from "@/domain/uploads/uploaded-file";
 
 /**
  * @description TypeGuard que verifica si un objeto es un UploadedFile.

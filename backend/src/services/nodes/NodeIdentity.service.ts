@@ -1,4 +1,5 @@
 import path from "node:path";
+
 import { buildConflictRegex } from "@/domain/nodes/conflicts/buildConflictRegex";
 import { getNextName } from "@/domain/nodes/conflicts/getNextName";
 import { computeNodeIdentity } from "@/domain/nodes/identity/computeNodeIdentity";
@@ -6,8 +7,8 @@ import type { DirectoryNode, FileNode, Node } from "@/domain/nodes/node";
 import type { UploadedFile } from "@/domain/uploads/uploaded-file";
 import { isUploadedFile } from "@/infra/guards/uploaded-file";
 import { NodeRepository } from "@/repositories/NodeRepository";
-import { PrismaTxClient } from "@/types/prisma";
 import { NodeUtils } from "@/utils";
+
 import { CloudStorageService } from "../cloud/CloudStorage.service";
 
 /**
