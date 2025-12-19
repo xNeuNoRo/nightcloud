@@ -56,6 +56,13 @@ export class DownloadService {
     res: Response,
   ) => {
     try {
+      if (!rootNode.isDir) {
+        throw new AppError(
+          "BAD_REQUEST",
+          "No se puede descargar un archivo como directorio",
+        );
+      }
+
       console.log("Iniciando descarga de directorio:", rootNode.name);
 
       const zipName = `${rootNode.name}.zip`;
