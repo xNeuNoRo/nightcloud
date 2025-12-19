@@ -347,6 +347,47 @@ export class NodeRepository {
   }
 
   /**
+   * @remarks La funcion getAncestors es una queryRaw de una funcion almacenada optimizada
+   * Es la forma mas eficiente de obtener todos los ancestros en una sola consulta.
+   * @description Obtiene todos los ancestros de un nodo
+   * @param tx  Transaccion de Prisma
+   * @param startNodeId ID del nodo desde el cual comenzar a buscar ancestros
+   * @returns Lista de ancestros con sus IDs y parentIds
+   */
+  static async getAllNodeAncestorsTx(
+    tx: PrismaTxClient,
+    startNodeId: Node["id"],
+  ) {
+    return await tx.getAncestors(startNodeId);
+  }
+
+  /**
+   * @remarks La funcion getDescendants es una queryRaw de una funcion almacenada optimizada
+   * Es la forma mas eficiente de obtener todos los descendientes en una sola consulta.
+   * @description Obtiene todos los descendientes de un nodo dado.
+   * @param startNodeId ID del nodo desde el cual comenzar a buscar descendientes
+   * @returns Lista de descendientes
+   */
+  static async getAllNodeDescendants(startNodeId: Node["id"]) {
+    return await prisma.getDescendants(startNodeId);
+  }
+
+  /**
+   * @remarks La funcion getDescendants es una queryRaw de una funcion almacenada optimizada
+   * Es la forma mas eficiente de obtener todos los descendientes en una sola consulta.
+   * @description Obtiene todos los descendientes de un nodo dado dentro de una transaccion.
+   * @param tx Transaccion de Prisma
+   * @param startNodeId ID del nodo desde el cual comenzar a buscar descendientes
+   * @returns Lista de descendientes
+   */
+  static async getAllNodeDescendantsTx(
+    tx: PrismaTxClient,
+    startNodeId: Node["id"],
+  ) {
+    return await tx.getDescendants(startNodeId);
+  }
+
+  /**
    * !
    * @warning ESTA FUNCION TIENE UN COSTE DE 2N CONSULTAS A LA BD, USAR CON MUCHO MAS CUIDADO.
    * @description Ejecuta un callback para cada ancestro de un nodo dado.
