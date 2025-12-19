@@ -9,7 +9,7 @@
     "dev": "bun --watch src/server.ts",
     "prepare-husky": "git init && bunx husky-init && bun install && bunx husky add .husky/pre-commit \"bun lint-staged\"",
     "check": "bun build.mjs",
-    "lint": "eslint . --ext .ts,.js",
+    "lint": "eslint src --ext .ts,.js",
     "lint:fix": "eslint . --ext .ts,.js --fix",
     "format": "prettier --check 'src/**/*.{ts,js,json,md}'",
     "format:fix": "prettier --write 'src/**/*.{ts,js,json,md}'",
