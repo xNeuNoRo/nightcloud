@@ -9,9 +9,7 @@ export class NodeValidators {
   ];
   static readonly nodeNewNameValidator = [
     ...this.nodeIdValidator,
-    body("newName")
-      .notEmpty()
-      .withMessage("El nuevo nombre no puede estar vacío"),
+    body("newName").optional(),
   ];
   static readonly nodeUploadValidator = [
     body("parentId")

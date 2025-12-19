@@ -1,3 +1,4 @@
+import path from "path";
 import { DB } from "@/config/db";
 import type { Node } from "@/domain/nodes/node";
 import type { UploadedFile } from "@/domain/uploads/uploaded-file";
@@ -162,6 +163,52 @@ export class NodeService {
     newName?: string,
   ): Promise<string> {
     return await this.identity.resolveName(parentId, name, newName);
+  }
+
+  static async copyNode(node: Node, parentId: string | null, newName?: string) {
+    // TODO: Refactorizar para que se adapte a carpetas
+
+    // Si hay nuevo nombre, asegurarse de que la extension del nodo se mantenga igual
+    if (newName) newName = NodeUtils.ensureNodeExt(newName, node);
+
+    // TODO: esta ya es compatible con carpetas, solo falta adaptar la copia masiva de archivos
+    const { nodeName, nodeHash } = await this.identity.resolve(node, parentId, {
+      newName,
+    });
+
+    // Obtenemos la carpeta root (todavía no hay soporte para carpetas)
+    const cloudRoot = await CloudStorageService.getCloudRootPath();
+    const src = path.resolve(cloudRoot, node.hash); // Ruta actual del nodo
+    const dest = path.resolve(cloudRoot, nodeHash); // Nueva ruta del nodo copiado
+
+    try {
+      // Copiar el nuevo nodo de forma física y añadir un nueva fila a la base de datos
+      await CloudStorageService.copy(src, dest);
+
+      // Transaccion para "copiar" el nodo en la base de datos
+      return await this.prisma.$transaction(async (tx) => {
+        // Preparamos un resultado para devolver al frontend, ignorando el hash
+        const res = await this.repo.createTx(tx, {
+          name: nodeName,
+          parent: parentId ? { connect: { id: parentId } } : undefined,
+          hash: nodeHash,
+          size: node.size,
+          mime: node.mime,
+          isDir: node.isDir,
+        });
+
+        // Si tiene padre, actualizar el tamaño de todos los ancestros que haya
+        if (parentId)
+          await this.incrementNodeSizeByIdTx(tx, parentId, node.size);
+
+        // Retornamos el nodo copiado
+        return res;
+      });
+    } catch (err) {
+      console.log(err);
+      if (err instanceof AppError) throw err;
+      else throw new AppError("INTERNAL", "Error al copiar el nodo");
+    }
   }
 
   /**

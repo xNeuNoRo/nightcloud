@@ -1,10 +1,14 @@
+import path from "node:path";
 import { buildConflictRegex } from "@/domain/nodes/conflicts/buildConflictRegex";
 import { getNextName } from "@/domain/nodes/conflicts/getNextName";
 import { computeNodeIdentity } from "@/domain/nodes/identity/computeNodeIdentity";
-import type { Node } from "@/domain/nodes/node";
+import type { DirectoryNode, FileNode, Node } from "@/domain/nodes/node";
 import type { UploadedFile } from "@/domain/uploads/uploaded-file";
+import { isUploadedFile } from "@/infra/guards/uploaded-file";
 import { NodeRepository } from "@/repositories/NodeRepository";
+import { PrismaTxClient } from "@/types/prisma";
 import { NodeUtils } from "@/utils";
+import { CloudStorageService } from "../cloud/CloudStorage.service";
 
 /**
  * @description Servicio para resolver identidades únicas de nodos.
@@ -13,38 +17,66 @@ export class NodeIdentityService {
   private static readonly repo = NodeRepository;
 
   /**
-   * @description Resuelve el nombre y hash únicos para un archivo subido.
-   * @param file Archivo subido via Multer
-   * @param parentId ID del nodo padre
-   * @returns Objeto con nodeName y nodeHash únicos
+   * @description Resuelve la identidad única de un nodo (nombre y hash) dentro de su carpeta padre.
+   * @param node Nodo a resolver (puede ser un archivo subido o un nodo existente)
+   * @param parentId ID del nodo padre donde se ubicará el nodo
+   * @param params Parámetros adicionales (como un nuevo nombre propuesto)
+   * @returns Objeto con el nombre y hash resueltos
    */
-  static async resolve(file: UploadedFile, parentId: string | null) {
-    let nodeName = file.originalname;
+  static async resolve(
+    node: UploadedFile | FileNode | DirectoryNode,
+    parentId: string | null,
+    params: { newName?: string } = {},
+  ) {
+    // TODO: Adaptarlo a nodos existentes y no solo archivos nuevos
+    // TODO: Tambien adaptarlo a directorios
+    // TODO: TESTEAR ESTA FUNCIONALIDAD AHORA ADAPTADA
+    // Almacenamos la referencia al nombre original del nodo
+    const originalNodeName = isUploadedFile(node)
+      ? node.originalname
+      : params.newName || node.name;
 
+    // Ruta completa del nodo en el almacenamiento en la nube
+    const nodePath = isUploadedFile(node)
+      ? node.path
+      : path.resolve(await CloudStorageService.getCloudRootPath(), node.hash);
+
+    // Nombre del nodo resuelto (inicialmente el original)
+    let nodeName = originalNodeName;
+
+    // Generamos el hash del nodo basado en su identidad unica
     let nodeHash = await NodeUtils.genFileHash(
-      file.path,
-      computeNodeIdentity(file.originalname, parentId).identityName,
+      nodePath,
+      computeNodeIdentity(nodeName, parentId).identityName,
     );
 
+    // Buscamos si ya existe un nodo con el mismo hash en la carpeta destino
     const conflict = await this.repo.findByHashAndParentId(nodeHash, parentId);
 
+    // Si no hay conflicto, retornamos el nombre y hash resueltos
     if (!conflict) {
       return { nodeName, nodeHash };
     }
 
+    // Si hay conflicto y pertenece a la misma carpeta padre, resolvemos un nuevo nombre
     if (conflict.parentId === parentId) {
+      // Obtenemos los nombres que ya existen y que generan conflicto
       const conflictingNames = await this.repo.findConflictingNames(
         parentId,
         buildConflictRegex(nodeName),
       );
 
+      // Generamos un nuevo nombre unico en base a los nombres conflictivos
       nodeName = getNextName(nodeName, conflictingNames);
-      file.originalname = nodeName;
+
+      // Actualizar el nombre en el nodo original
+      if (isUploadedFile(node)) node.originalname = nodeName;
     }
 
+    // Generamos un nuevo hash basado en el nuevo nombre unico
     nodeHash = await NodeUtils.genFileHash(
-      file.path,
-      computeNodeIdentity(file.originalname, parentId).identityName,
+      nodePath,
+      computeNodeIdentity(nodeName, parentId).identityName,
     );
 
     return { nodeName, nodeHash };

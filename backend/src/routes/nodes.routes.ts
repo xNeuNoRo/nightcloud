@@ -66,7 +66,6 @@ router.patch(
 // Copiar nodo por ID
 router.post(
   "/:nodeId/copy",
-  NodeValidators.nodeIdValidator,
   NodeValidators.nodeNewNameValidator,
   validateRequest,
   nodeExists,
