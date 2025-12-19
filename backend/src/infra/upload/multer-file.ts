@@ -1,4 +1,4 @@
-import { UploadedFile } from "@/domain/uploads/uploaded-file";
+import type { UploadedFile } from "@/domain/uploads/uploaded-file";
 
 export function fromMulterFile(file: Express.Multer.File): UploadedFile {
   return {

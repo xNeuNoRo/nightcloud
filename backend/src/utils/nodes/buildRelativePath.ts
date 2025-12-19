@@ -1,5 +1,5 @@
-import { Node } from "@/domain/nodes/node";
-import { DescendantRow } from "@/infra/prisma/types";
+import type { Node } from "@/domain/nodes/node";
+import type { DescendantRow } from "@/infra/prisma/types";
 
 /**
  * @description Construye la ruta relativa de un nodo basado en su mapa de descendientes.

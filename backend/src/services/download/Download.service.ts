@@ -1,17 +1,18 @@
-import archiver from "archiver";
 import type { Response } from "express";
-import fs from "node:fs";
 
-import { CloudStorageService } from "@/services/cloud/CloudStorage.service";
-import { AppError, NodeUtils, pathExists } from "@/utils";
-import { Node } from "@/domain/nodes/node";
+import type { DirectoryNode, FileNode } from "@/domain/nodes/node";
+import { zipStreamDirectory } from "@/infra/download/zip-stream";
+import { toZipEntry } from "@/infra/mappers/zip.mapper";
+import type { DescendantRow } from "@/infra/prisma/types";
 import { NodeRepository } from "@/repositories/NodeRepository";
-import { DescendantRow } from "@/infra/prisma/types";
+import { CloudStorageService } from "@/services/cloud/CloudStorage.service";
+import { AppError } from "@/utils";
+import buildRelativeNodePath from "@/utils/nodes/buildRelativePath";
 
 export class DownloadService {
   private static readonly repo = NodeRepository;
 
-  static readonly downloadFileNode = async (node: Node, res: Response) => {
+  static readonly downloadFileNode = async (node: FileNode, res: Response) => {
     // Asegurarse de que no sea un directorio
     if (node.isDir) {
       throw new AppError(
@@ -51,43 +52,13 @@ export class DownloadService {
   };
 
   static readonly downloadDirectoryNode = async (
-    rootNode: Node,
+    rootNode: DirectoryNode,
     res: Response,
   ) => {
     try {
       console.log("Iniciando descarga de directorio:", rootNode.name);
-      // Establecemos los headers
+
       const zipName = `${rootNode.name}.zip`;
-      res.attachment(zipName);
-      res.setHeader("Content-Type", "application/zip");
-
-      // Inicializamos archiver
-      const archive = archiver("zip", {
-        zlib: {
-          level: 9,
-        },
-      });
-
-      // Manejo de errores del stream (con promesa para que llegue al flujo de Express)
-      await new Promise<void>((resolve, reject) => {
-        archive.on("error", (err) => {
-          console.error("Error al generar ZIP:", err);
-
-          // Si ya se enviaron headers, no podemos enviar un error JSON
-          if (res.headersSent) {
-            res.end(); // Cortar la conexión si ya empezó
-            return resolve();
-          }
-
-          // Rechazar la promesa con un AppError
-          reject(new AppError("INTERNAL", "Error al descargar el directorio"));
-        });
-      });
-
-      // Conectamos el ZIP a la respuesta HTTP
-      archive.pipe(res);
-      console.log("Archiver conectado a la respuesta HTTP");
-
       // Obtener todos los archivos y subcarpetas.
       const descendants = await this.repo.getAllNodeDescendants(rootNode.id);
 
@@ -96,61 +67,22 @@ export class DownloadService {
         descendants.map((n) => [n.id, n]),
       );
 
-      console.log(
-        `mapa de descendientes construido con ${descendantMap.size} nodos`,
+      // Construir todas las entradas que se agregarán al ZIP
+      const entries = descendants.map((n) =>
+        toZipEntry(n, buildRelativeNodePath(descendantMap, rootNode.id, n.id)),
       );
-      console.log(descendantMap);
 
-      for (const node of descendants) {
-        const relativePath = NodeUtils.buildRelativeNodePath(
-          descendantMap,
-          rootNode.id,
-          node.id,
-        );
-        console.log(`Agregando al ZIP: ${relativePath}`);
-
-        if (node.isDir) {
-          // Agregamos la carpeta vacía para asegurar que exista en el ZIP
-          archive.append(Buffer.from(""), { name: relativePath + "/" });
-        } else {
-          // Es un archivo: Obtenemos su ubicación física
-          const physicalPath = CloudStorageService.getFilePath(node);
-
-          // Verificamos si existe físicamente antes de intentar leerlo
-          if (await pathExists(physicalPath)) {
-            const fileStream = fs
-              .createReadStream(physicalPath)
-              .on("error", (err) => {
-                console.error(`Error al leer el archivo ${physicalPath}:`, err);
-
-                if (!archive.destroyed) {
-                  archive.emit(
-                    "error",
-                    new AppError(
-                      "INTERNAL",
-                      `Error al leer el archivo ${node.name}`,
-                    ),
-                  );
-                }
-              });
-            archive.append(fileStream, { name: relativePath });
-          } else {
-            console.warn(`Archivo físico no encontrado: ${physicalPath}`);
-          }
-        }
-      }
-
-      // Finalizar el ZIP (envía los últimos bytes al cliente)
-      await archive.finalize();
+      // Crear el stream del ZIP
+      await zipStreamDirectory({
+        res,
+        zipName,
+        entries,
+        options: { level: 3 },
+      });
     } catch (err) {
       console.error("Error en downloadDirectory:", err);
       // Si falló antes de enviar headers, enviamos error JSON
-      if (!res.headersSent) {
-        throw new AppError(
-          "INTERNAL",
-          "Error al procesar la descarga del directorio",
-        );
-      }
+      throw err;
     }
   };
 }

@@ -5,7 +5,7 @@ import type { CloudStorage } from "@/services/cloud/CloudStorage";
 import { AppError, pathExists } from "@/utils";
 
 import type { Node } from "../prisma/generated/client";
-import { AncestorRow, DescendantRow } from "../prisma/types";
+import type { AncestorRow, DescendantRow } from "../prisma/types";
 
 /**
  * @description Implementación de almacenamiento en la nube local.

@@ -1,9 +1,9 @@
 import path from "node:path";
 
+import type { UploadedFile } from "@/domain/uploads/uploaded-file";
 import { NodeRepository } from "@/repositories/NodeRepository";
 
 import { CloudStorageService } from "../cloud/CloudStorage.service";
-import { UploadedFile } from "@/domain/uploads/uploaded-file";
 
 /**
  * @description Servicio para persistir nodos en el almacenamiento y la base de datos.

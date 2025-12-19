@@ -1,8 +1,8 @@
 import { DB } from "@/config/db";
 import type { Node } from "@/domain/nodes/node";
+import { fromPrismaNode } from "@/infra/mappers/node.mapper";
 import type { Prisma } from "@/infra/prisma/generated/client";
 import type { PrismaTxClient } from "@/types/prisma";
-import { fromPrismaNode } from "@/mappers/node.mapper";
 
 const prisma = DB.getClient();
 

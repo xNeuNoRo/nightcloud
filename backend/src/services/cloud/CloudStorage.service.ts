@@ -1,6 +1,6 @@
+import type { Node } from "@/domain/nodes/node";
 import { LocalCloudStorage } from "@/infra/cloud/LocalCloudStorage";
-import { Node } from "@/domain/nodes/node";
-import { AncestorRow, DescendantRow } from "@/infra/prisma/types";
+import type { AncestorRow, DescendantRow } from "@/infra/prisma/types";
 
 export class CloudStorageService {
   private static readonly storage: LocalCloudStorage = new LocalCloudStorage();
