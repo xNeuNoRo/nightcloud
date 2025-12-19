@@ -1,10 +1,11 @@
 import type { Request, Response } from "express";
 import path from "node:path";
 
+import { toNodeDTO } from "@/infra/mappers/node.dto-mapper";
 import { CloudStorageService } from "@/services/cloud/CloudStorage.service";
+import { DownloadService } from "@/services/download/Download.service";
 import { NodeService } from "@/services/nodes/Node.service";
 import { AppError, NodeUtils } from "@/utils";
-import { toNodeDTO } from "@/mappers/node.dto-mapper";
 
 export class NodeController {
   // Crear un nuevo nodo (solo directorios por ahora)
@@ -84,38 +85,10 @@ export class NodeController {
   static readonly downloadNode = async (req: Request, res: Response) => {
     const node = req.node!;
 
-    try {
-      // Get the node path
-      const nodePath = CloudStorageService.getFilePath(node);
-
-      // Send the node as a download
-      console.log(`Downloading node: ${node.name} from path: ${nodePath}`);
-
-      // Use a promise to handle the download completion
-      await new Promise<void>((resolve, reject) => {
-        res.download(nodePath, node.name, (err: Error & { code?: string }) => {
-          if (err) {
-            // If headers are already sent, sadly we cannot send an error response
-            if (res.headersSent) resolve();
-
-            // Handle node not found error
-            if (err.code === "ENOENT") {
-              return reject(new AppError("FILE_NOT_FOUND"));
-            }
-
-            // Other errors
-            return reject(
-              new AppError("INTERNAL", "Error interno al descargar el nodo"),
-            );
-          }
-
-          // Download completed successfully
-          resolve();
-        });
-      });
-    } catch (err) {
-      if (err instanceof AppError) throw err;
-      else throw new AppError("INTERNAL", "Error al descargar el nodo");
+    if (node.isDir) {
+      await DownloadService.downloadDirectoryNode(node, res);
+    } else {
+      await DownloadService.downloadFileNode(node, res);
     }
   };
 

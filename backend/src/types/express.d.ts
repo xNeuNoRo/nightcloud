@@ -1,4 +1,4 @@
-import { Node } from "@/domain/nodes/node";
+import type { Node } from "@/domain/nodes/node";
 import "express-serve-static-core";
 
 // Agregar tipos personalizados al Response de Express

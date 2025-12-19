@@ -1,8 +1,8 @@
 import { DB } from "@/config/db";
 import type { Node } from "@/domain/nodes/node";
+import { fromPrismaNode } from "@/infra/mappers/node.mapper";
 import type { Prisma } from "@/infra/prisma/generated/client";
 import type { PrismaTxClient } from "@/types/prisma";
-import { fromPrismaNode } from "@/mappers/node.mapper";
 
 const prisma = DB.getClient();
 
@@ -344,6 +344,47 @@ export class NodeRepository {
    */
   static async getAllNodeAncestors(startNodeId: Node["id"]) {
     return await prisma.getAncestors(startNodeId);
+  }
+
+  /**
+   * @remarks La funcion getAncestors es una queryRaw de una funcion almacenada optimizada
+   * Es la forma mas eficiente de obtener todos los ancestros en una sola consulta.
+   * @description Obtiene todos los ancestros de un nodo
+   * @param tx  Transaccion de Prisma
+   * @param startNodeId ID del nodo desde el cual comenzar a buscar ancestros
+   * @returns Lista de ancestros con sus IDs y parentIds
+   */
+  static async getAllNodeAncestorsTx(
+    tx: PrismaTxClient,
+    startNodeId: Node["id"],
+  ) {
+    return await tx.getAncestors(startNodeId);
+  }
+
+  /**
+   * @remarks La funcion getDescendants es una queryRaw de una funcion almacenada optimizada
+   * Es la forma mas eficiente de obtener todos los descendientes en una sola consulta.
+   * @description Obtiene todos los descendientes de un nodo dado.
+   * @param startNodeId ID del nodo desde el cual comenzar a buscar descendientes
+   * @returns Lista de descendientes
+   */
+  static async getAllNodeDescendants(startNodeId: Node["id"]) {
+    return await prisma.getDescendants(startNodeId);
+  }
+
+  /**
+   * @remarks La funcion getDescendants es una queryRaw de una funcion almacenada optimizada
+   * Es la forma mas eficiente de obtener todos los descendientes en una sola consulta.
+   * @description Obtiene todos los descendientes de un nodo dado dentro de una transaccion.
+   * @param tx Transaccion de Prisma
+   * @param startNodeId ID del nodo desde el cual comenzar a buscar descendientes
+   * @returns Lista de descendientes
+   */
+  static async getAllNodeDescendantsTx(
+    tx: PrismaTxClient,
+    startNodeId: Node["id"],
+  ) {
+    return await tx.getDescendants(startNodeId);
   }
 
   /**

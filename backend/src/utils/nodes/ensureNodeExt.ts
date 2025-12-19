@@ -1,6 +1,6 @@
 import path from "node:path";
 
-import { Node } from "@/domain/nodes/node";
+import type { Node } from "@/domain/nodes/node";
 
 /**
  * @description Asegura que el nuevo nombre de un nodo mantenga su extensión original.

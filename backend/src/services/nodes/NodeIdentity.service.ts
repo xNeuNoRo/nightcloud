@@ -1,8 +1,8 @@
 import { buildConflictRegex } from "@/domain/nodes/conflicts/buildConflictRegex";
 import { getNextName } from "@/domain/nodes/conflicts/getNextName";
 import { computeNodeIdentity } from "@/domain/nodes/identity/computeNodeIdentity";
-import { Node } from "@/domain/nodes/node";
-import { UploadedFile } from "@/domain/uploads/uploaded-file";
+import type { Node } from "@/domain/nodes/node";
+import type { UploadedFile } from "@/domain/uploads/uploaded-file";
 import { NodeRepository } from "@/repositories/NodeRepository";
 import { NodeUtils } from "@/utils";
 

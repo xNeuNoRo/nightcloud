@@ -1,4 +1,4 @@
-import { FileNode, DirectoryNode } from "./node";
+import type { FileNode, DirectoryNode } from "./node";
 
 // Factory para crear nodos de archivo y directorio
 

@@ -1,9 +1,9 @@
-import { Node } from "../domain/nodes/node";
+import type { Node } from "@/domain/nodes/node";
 import {
   createDirectoryNode,
   createFileNode,
-} from "../domain/nodes/node.factory";
-import { Node as PrismaNode } from "@/infra/prisma/generated/client";
+} from "@/domain/nodes/node.factory";
+import type { Node as PrismaNode } from "@/infra/prisma/generated/client";
 
 export function fromPrismaNode(n: PrismaNode): Node {
   return n.isDir

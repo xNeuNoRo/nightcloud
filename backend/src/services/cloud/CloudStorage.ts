@@ -1,4 +1,4 @@
-import { Node } from "@/domain/nodes/node";
+import type { Node } from "@/domain/nodes/node";
 
 /**
  * @description Interfaz para el almacenamiento en la nube.

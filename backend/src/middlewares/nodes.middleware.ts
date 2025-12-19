@@ -1,12 +1,12 @@
 import type { Request, Response, NextFunction } from "express";
 import { MulterError } from "multer";
 
-import { Node } from "@/domain/nodes/node";
+import type { Node } from "@/domain/nodes/node";
+import { fromMulterFile } from "@/infra/upload/multer-file";
+import { multerUpload } from "@/infra/upload/multer.upload";
+import { NodeRepository } from "@/repositories/NodeRepository";
 import { NodeService } from "@/services/nodes/Node.service";
 import { AppError, toAppError } from "@/utils";
-import { NodeRepository } from "@/repositories/NodeRepository";
-import { multerUpload } from "@/infra/upload/multer.upload";
-import { fromMulterFile } from "@/infra/upload/multer-file";
 
 /**
  * @description Middleware para manejar la subida de archivos

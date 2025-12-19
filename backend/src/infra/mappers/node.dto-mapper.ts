@@ -1,5 +1,5 @@
-import { Node } from "@/domain/nodes/node";
-import { NodeDTO } from "@/dtos/node.dto";
+import type { Node } from "@/domain/nodes/node";
+import type { NodeDTO } from "@/dtos/node.dto";
 
 type NodePicked = Pick<
   Node,

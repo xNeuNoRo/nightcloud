@@ -1,5 +1,6 @@
 import { DB } from "@/config/db";
-import { Node } from "@/domain/nodes/node";
+import type { Node } from "@/domain/nodes/node";
+import type { UploadedFile } from "@/domain/uploads/uploaded-file";
 import type { Prisma } from "@/infra/prisma/generated/client";
 import { NodeRepository } from "@/repositories/NodeRepository";
 import type { PrismaTxClient } from "@/types/prisma";
@@ -8,7 +9,6 @@ import { AppError, NodeUtils } from "@/utils";
 import { NodeIdentityService } from "./NodeIdentity.service";
 import { NodePersistenceService } from "./NodePersistence.service";
 import { CloudStorageService } from "../cloud/CloudStorage.service";
-import { UploadedFile } from "@/domain/uploads/uploaded-file";
 
 /**
  * @description Servicio para gestionar nodos (archivos y directorios).

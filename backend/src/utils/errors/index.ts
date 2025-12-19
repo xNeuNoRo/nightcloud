@@ -2,6 +2,7 @@
  * Constantes de errores utilizados en la aplicación
  */
 export const ERRORS = {
+  BAD_REQUEST: { http: 400, msg: "Solicitud no valida" },
   NOT_FOUND: { http: 404, msg: "Ruta no encontrada" },
   INTERNAL: { http: 500, msg: "Error interno del servidor" },
   FILE_UPLOAD: { http: 400, msg: "Error al subir el archivo" },
