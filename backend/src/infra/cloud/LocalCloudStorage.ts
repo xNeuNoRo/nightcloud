@@ -5,6 +5,7 @@ import type { CloudStorage } from "@/services/cloud/CloudStorage";
 import { AppError, pathExists } from "@/utils";
 
 import type { Node } from "../prisma/generated/client";
+import { AncestorRow, DescendantRow } from "../prisma/types";
 
 /**
  * @description Implementación de almacenamiento en la nube local.
@@ -138,12 +139,14 @@ export class LocalCloudStorage implements CloudStorage {
    * @param node Nodo del cual se desea obtener la ruta completa del archivo
    * @returns string ruta completa del archivo en el sistema de archivos
    */
-  getFilePath(file: Node) {
-    console.log(`Getting node path for node: ${file.id}, isDir: ${file.isDir}`);
+  getFilePath(file: Node | AncestorRow | DescendantRow) {
+    console.log(
+      `Getting node file path for node: ${file.id}, isDir: ${file.isDir}`,
+    );
 
-    // Agregar mas logica en un futuro al manejar las carpetas
+    // Las carpetas no tienen ruta de archivo
     if (file.isDir)
-      throw new AppError("INTERNAL", "No soportado para carpetas");
+      throw new AppError("INTERNAL", "Las carpetas no tienen ruta de archivo");
 
     // Construir la ruta completa del archivo
     const cloudRoot = path.resolve(process.cwd(), `${process.env.CLOUD_ROOT}`);

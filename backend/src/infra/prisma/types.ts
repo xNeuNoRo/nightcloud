@@ -2,6 +2,9 @@
 export type AncestorRow = {
   id: string;
   parentId: string | null;
+  name: string;
+  hash: string;
+  isDir: boolean;
   depth: number;
 };
 
