@@ -7,22 +7,31 @@ export class NodeValidators {
   static readonly nodeIdValidator = [
     param("nodeId").isUUID(4).withMessage("Identificador de nodo inválido"),
   ];
-  static readonly nodeNewNameValidator = [
-    ...this.nodeIdValidator,
-    body("newName")
-      .notEmpty()
-      .withMessage("El nuevo nombre no puede estar vacío"),
-  ];
-  static readonly nodeUploadValidator = [
+  static readonly nodeParentIdValidator = [
     body("parentId")
       .optional({ nullable: true })
       .isUUID(4)
       .withMessage("Identificador de nodo padre inválido"),
   ];
+  static readonly nodeNewNameValidator = [
+    ...this.nodeIdValidator,
+    body("newName")
+      .optional()
+      .isString()
+      .trim()
+      .notEmpty()
+      .withMessage("El nuevo nombre no puede ir vacío"),
+  ];
+  static readonly nodeCopyValidator = [
+    ...this.nodeNewNameValidator,
+    ...this.nodeParentIdValidator,
+  ];
   static readonly nodeCreateValidator = [
-    ...this.nodeUploadValidator,
+    ...this.nodeParentIdValidator,
     body("name")
       .optional({ nullable: true })
+      .isString()
+      .trim()
       .isLength({ min: 1 })
       .withMessage("El nombre no puede ir vacio")
       .isLength({ max: 250 })

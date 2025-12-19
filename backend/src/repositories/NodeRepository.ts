@@ -18,6 +18,20 @@ export class NodeRepository {
   }
 
   /**
+   * @description Crea un nuevo nodo en la base de datos dentro de una transaccion
+   * @param tx Transaccion de Prisma
+   * @param data Datos del nodo a crear
+   * @returns Nodo creado
+   */
+  static async createTx(
+    tx: PrismaTxClient,
+    data: Prisma.NodeCreateInput,
+  ): Promise<Node> {
+    const res = await tx.node.create({ data });
+    return fromPrismaNode(res);
+  }
+
+  /**
    * @description Elimina un nodo por su ID
    * @param id ID del nodo a eliminar
    */

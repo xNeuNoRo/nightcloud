@@ -1,8 +1,6 @@
 import type { Request, Response } from "express";
-import path from "node:path";
 
 import { toNodeDTO } from "@/infra/mappers/node.dto-mapper";
-import { CloudStorageService } from "@/services/cloud/CloudStorage.service";
 import { DownloadService } from "@/services/download/Download.service";
 import { NodeService } from "@/services/nodes/Node.service";
 import { AppError, NodeUtils } from "@/utils";
@@ -132,52 +130,22 @@ export class NodeController {
 
   // Copiar un nodo
   static readonly copyNode = async (
-    req: Request<unknown, unknown, { newName: string }>,
+    req: Request<unknown, unknown, { parentId?: string; newName?: string }>,
     res: Response,
   ) => {
+    // TODO: Adaptarlo a carpetas
+    const { parentId, newName: proposedName } = req.body;
     const node = req.node!;
 
-    // Asegurarse de que la extension del nodo se mantenga igual
-    let newName = NodeUtils.ensureNodeExt(req.body.newName, node);
-
-    // Verificar si el nuevo nombre ya existe en el mismo directorio
-    const conflict = await NodeService.detectConflict(node, newName);
-
-    // Detectamos si existe un conflicto
-    if (conflict) {
-      newName = await NodeService.resolveName(
-        node.parentId,
-        node.name,
-        newName,
-      );
-    }
-
-    // Obtener la ruta del archivo original
-    const srcPath = CloudStorageService.getFilePath(node);
-
-    // Obtener hash del nuevo nodo
-    const newHash = await NodeUtils.genFileHash(srcPath, newName);
-
-    // Obtenemos la carpeta root (todavía no hay soporte para carpetas)
-    const cloudRoot = await CloudStorageService.getCloudRootPath();
-    const dest = path.resolve(cloudRoot, newHash);
-
     try {
-      // Copiar el nuevo nodo de forma física y añadir un nueva fila a la base de datos
-      await CloudStorageService.copy(srcPath, dest);
-
-      // Preparamos un resultado para devolver al frontend, ignorando el hash
-      const { hash: _h, ...result } = await NodeService.createNode({
-        name: newName,
-        parent: node.parentId ? { connect: { id: node.parentId } } : undefined,
-        hash: newHash,
-        size: node.size,
-        mime: node.mime,
-        isDir: node.isDir,
-      });
-
-      return res.success(result);
+      const nodeRes = await NodeService.copyNode(
+        node,
+        parentId ?? null,
+        proposedName,
+      );
+      res.success(toNodeDTO(nodeRes));
     } catch (err) {
+      console.log(err);
       if (err instanceof AppError) throw err;
       else throw new AppError("INTERNAL", "Error al copiar el nodo");
     }

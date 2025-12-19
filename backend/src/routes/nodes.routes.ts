@@ -17,7 +17,7 @@ const router = Router();
 // Endpoint para subir nodos (archivos/carpetas)
 router.post(
   "/upload",
-  NodeValidators.nodeUploadValidator,
+  NodeValidators.nodeParentIdValidator,
   validateRequest,
   nodeUpload,
   nodeProcess,
@@ -56,7 +56,6 @@ router.delete(
 // Renombrar nodo por ID
 router.patch(
   "/:nodeId/rename",
-  NodeValidators.nodeIdValidator,
   NodeValidators.nodeNewNameValidator,
   validateRequest,
   nodeExists,
@@ -66,8 +65,7 @@ router.patch(
 // Copiar nodo por ID
 router.post(
   "/:nodeId/copy",
-  NodeValidators.nodeIdValidator,
-  NodeValidators.nodeNewNameValidator,
+  NodeValidators.nodeCopyValidator,
   validateRequest,
   nodeExists,
   NodeController.copyNode,
