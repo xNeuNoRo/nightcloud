@@ -86,17 +86,10 @@ export class NodeController {
     const node = req.node!;
 
     if (node.isDir) {
-      DownloadService.downloadDirectory(node, res);
+      await DownloadService.downloadDirectoryNode(node, res);
     } else {
-      DownloadService.downloadNode(node, res);
+      await DownloadService.downloadFileNode(node, res);
     }
-  };
-
-  // Descargar un directorio
-  static readonly downloadDirectory = async (req: Request, res: Response) => {
-    const root = req.node!;
-
-    res.json(root);
   };
 
   // Renombrar un nodo

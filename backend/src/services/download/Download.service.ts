@@ -2,20 +2,24 @@ import archiver from "archiver";
 import type { Response } from "express";
 import fs from "node:fs";
 
-import { DB } from "@/config/db";
 import { CloudStorageService } from "@/services/cloud/CloudStorage.service";
-import { AppError } from "@/utils";
-import type { Node } from "@/infra/prisma/generated/client";
-
-type NodeMapItem = {
-  id: string;
-  parentId: string | null;
-  name: string;
-  isDir: boolean;
-};
+import { AppError, NodeUtils, pathExists } from "@/utils";
+import { Node } from "@/domain/nodes/node";
+import { NodeRepository } from "@/repositories/NodeRepository";
+import { DescendantRow } from "@/infra/prisma/types";
 
 export class DownloadService {
-  static readonly downloadNode = async (node: Node, res: Response) => {
+  private static readonly repo = NodeRepository;
+
+  static readonly downloadFileNode = async (node: Node, res: Response) => {
+    // Asegurarse de que no sea un directorio
+    if (node.isDir) {
+      throw new AppError(
+        "BAD_REQUEST",
+        "No se puede descargar una carpeta como archivo",
+      );
+    }
+
     // Get the node path
     const nodePath = CloudStorageService.getFilePath(node);
 
@@ -46,8 +50,12 @@ export class DownloadService {
     });
   };
 
-  static readonly downloadDirectory = async (rootNode: Node, res: Response) => {
+  static readonly downloadDirectoryNode = async (
+    rootNode: Node,
+    res: Response,
+  ) => {
     try {
+      console.log("Iniciando descarga de directorio:", rootNode.name);
       // Establecemos los headers
       const zipName = `${rootNode.name}.zip`;
       res.attachment(zipName);
@@ -60,78 +68,71 @@ export class DownloadService {
         },
       });
 
-      // Manejo de errores del stream
-      archive.on("error", (err) => {
-        console.error("Error al generar ZIP:", err);
+      // Manejo de errores del stream (con promesa para que llegue al flujo de Express)
+      await new Promise<void>((resolve, reject) => {
+        archive.on("error", (err) => {
+          console.error("Error al generar ZIP:", err);
 
-        if (res.headersSent) {
-          res.end(); // Cortar la conexión si ya empezó
-        } else {
-          throw new AppError("INTERNAL", "Error generando el archivo ZIP");
-        }
+          // Si ya se enviaron headers, no podemos enviar un error JSON
+          if (res.headersSent) {
+            res.end(); // Cortar la conexión si ya empezó
+            return resolve();
+          }
+
+          // Rechazar la promesa con un AppError
+          reject(new AppError("INTERNAL", "Error al descargar el directorio"));
+        });
       });
 
       // Conectamos el ZIP a la respuesta HTTP
       archive.pipe(res);
+      console.log("Archiver conectado a la respuesta HTTP");
 
       // Obtener todos los archivos y subcarpetas.
-      const prisma = DB.getClient();
-      const descendants = await prisma.getDescendants(rootNode.id);
+      const descendants = await this.repo.getAllNodeDescendants(rootNode.id);
 
       // Hacemos un map que nos ayudará en la construcción de rutas
-      const nodeMap = new Map<string, NodeMapItem>();
+      const descendantMap = new Map<string, DescendantRow>(
+        descendants.map((n) => [n.id, n]),
+      );
+
+      console.log(
+        `mapa de descendientes construido con ${descendantMap.size} nodos`,
+      );
+      console.log(descendantMap);
 
       for (const node of descendants) {
-        nodeMap.set(node.id, {
-          id: node.id,
-          parentId: node.parentId,
-          name: node.name,
-          isDir: node.isDir,
-        });
-      }
-
-      // Función auxiliar para construir la ruta relativa de un nodo
-      const buildRelativePath = (nodeId: string): string => {
-        let current = nodeMap.get(nodeId);
-        const parts: string[] = [];
-
-        while (current) {
-          // Agregamos el nombre actual al inicio de la lista
-          parts.unshift(current.name);
-
-          // Si llegamos al nodo raíz que estamos descargando, terminamos
-          if (current.id === rootNode.id) {
-            break;
-          }
-
-          // Subimos al padre
-          if (current.parentId) {
-            current = nodeMap.get(current.parentId);
-          } else {
-            // Si no tiene padre y no es el root (caso raro de data corrupta), salimos
-            current = undefined;
-          }
-        }
-
-        return parts.join("/");
-      };
-
-      for (const node of descendants) {
-        const relativePath = buildRelativePath(node.id);
-        console.log(relativePath);
+        const relativePath = NodeUtils.buildRelativeNodePath(
+          descendantMap,
+          rootNode.id,
+          node.id,
+        );
+        console.log(`Agregando al ZIP: ${relativePath}`);
 
         if (node.isDir) {
           // Agregamos la carpeta vacía para asegurar que exista en el ZIP
           archive.append(Buffer.from(""), { name: relativePath + "/" });
         } else {
           // Es un archivo: Obtenemos su ubicación física
-          const physicalPath = CloudStorageService.getFilePath(
-            node as unknown as Node,
-          );
+          const physicalPath = CloudStorageService.getFilePath(node);
 
           // Verificamos si existe físicamente antes de intentar leerlo
-          if (fs.existsSync(physicalPath)) {
-            const fileStream = fs.createReadStream(physicalPath);
+          if (await pathExists(physicalPath)) {
+            const fileStream = fs
+              .createReadStream(physicalPath)
+              .on("error", (err) => {
+                console.error(`Error al leer el archivo ${physicalPath}:`, err);
+
+                if (!archive.destroyed) {
+                  archive.emit(
+                    "error",
+                    new AppError(
+                      "INTERNAL",
+                      `Error al leer el archivo ${node.name}`,
+                    ),
+                  );
+                }
+              });
             archive.append(fileStream, { name: relativePath });
           } else {
             console.warn(`Archivo físico no encontrado: ${physicalPath}`);
