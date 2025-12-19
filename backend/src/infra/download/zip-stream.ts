@@ -21,38 +21,62 @@ export async function zipStreamDirectory(
       },
     });
 
+    // Set para rastrear streams de archivos abiertos
+    const openFileStreams = new Set<fs.ReadStream>();
+    let closed = false;
+
     // Establecemos los headers
     res.attachment(zipName); // Nombre del archivo zip
     res.setHeader("Content-Type", "application/zip"); // Tipo de contenido
 
     // Si el cliente cierra la conexión ya sea por que cancelo la descarga o perdida de conexión
     res.on("close", () => {
-      // Abortar la creación del ZIP si no ha finalizado
+      // Limpiar recursos
+      cleanupAll();
+    });
+
+    // Función para limpiar recursos
+    const cleanupAll = () => {
+      // Simple lock
+      if (closed) return;
+      closed = true;
+
+      // Remover listeners
+      archive.removeAllListeners("error");
+      archive.removeAllListeners("end");
+
+      // Cerrar todos los streams abiertos
+      for (const stream of openFileStreams) {
+        stream.destroy();
+      }
+      // Limpiar el set
+      openFileStreams.clear();
+
+      // Destruir el archive si no ha sido destruido
       if (!archive.destroyed) {
         archive.abort();
       }
-    });
+    };
 
     const streamPromise = new Promise<void>((resolve, reject) => {
-      // Funcion de limpieza de listeners
-      const cleanup = () => {
-        archive.off("error", onError);
-        archive.off("end", onEnd);
-      };
-
       // Funcion de manejo de errores
-      const onError = () => {
-        cleanup(); // Limpiar listeners
+      const onError = (err: unknown) => {
+        cleanupAll(); // Limpiar recursos
         if (res.headersSent) {
           res.end();
           return resolve();
         }
-        reject(new AppError("INTERNAL", "Error al descargar el directorio"));
+
+        if (err instanceof AppError) {
+          return reject(err);
+        } else {
+          reject(new AppError("INTERNAL", "Error al descargar el directorio"));
+        }
       };
 
       // Funcion al finalizar el stream
       const onEnd = () => {
-        cleanup(); // Limpiar listeners
+        cleanupAll(); // Limpiar recursos
         resolve(); // Resolver la promesa para salir de la funcion
       };
 
@@ -81,20 +105,28 @@ export async function zipStreamDirectory(
               err,
             );
 
+            // Destruir el stream del archivo
+            fileStream.destroy();
+
             // Si el stream no ha sido destruido, emitimos un error en el archive
-            if (!archive.destroyed) {
-              console.error(
-                `Ocurrio un error leyendo el archivo en la ruta: ${entry.physicalPath}`,
-              );
-              archive.emit(
-                "error",
-                new AppError(
-                  "INTERNAL",
-                  "Ha ocurrido un error al generar el ZIP, posiblemente haya un archivo corrupto.",
-                ),
-              );
-            }
+            console.error(
+              `Ocurrio un error leyendo el archivo en la ruta: ${entry.physicalPath}`,
+            );
+            archive.emit(
+              "error",
+              new AppError(
+                "INTERNAL",
+                "Ha ocurrido un error al generar el ZIP, posiblemente haya un archivo corrupto.",
+              ),
+            );
+          })
+          .on("close", () => {
+            // Cuando el stream se cierra, lo removemos del set de streams abiertos
+            openFileStreams.delete(fileStream);
           });
+
+        // Guardamos el stream abierto para poder limpiarlo en caso de error o cierre
+        openFileStreams.add(fileStream);
 
         // Agregamos el archivo al ZIP con su ruta relativa
         archive.append(fileStream, { name: entry.relativePath });

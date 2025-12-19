@@ -18,7 +18,7 @@ export type ZipEntryType = ZipDirType | ZipFileType;
 export type ZipStreamDirInput = {
   res: Response; // Respuesta HTTP para enviar el stream del zip
   zipName: string; // Nombre del archivo zip a descargar
-  entries: ZipEntryType[];
+  entries: Generator<ZipEntryType>; // Generador de entradas del zip
   options?: {
     level?: number; // Nivel de compresión (0-9)
   };

@@ -13,14 +13,6 @@ export class DownloadService {
   private static readonly repo = NodeRepository;
 
   static readonly downloadFileNode = async (node: FileNode, res: Response) => {
-    // Asegurarse de que no sea un directorio
-    if (node.isDir) {
-      throw new AppError(
-        "BAD_REQUEST",
-        "No se puede descargar una carpeta como archivo",
-      );
-    }
-
     // Get the node path
     const nodePath = CloudStorageService.getFilePath(node);
 
@@ -56,15 +48,7 @@ export class DownloadService {
     res: Response,
   ) => {
     try {
-      if (!rootNode.isDir) {
-        throw new AppError(
-          "BAD_REQUEST",
-          "No se puede descargar un archivo como directorio",
-        );
-      }
-
       console.log("Iniciando descarga de directorio:", rootNode.name);
-
       const zipName = `${rootNode.name}.zip`;
       // Obtener todos los archivos y subcarpetas.
       const descendants = await this.repo.getAllNodeDescendants(rootNode.id);
@@ -75,9 +59,17 @@ export class DownloadService {
       );
 
       // Construir todas las entradas que se agregarán al ZIP
-      const entries = descendants.map((n) =>
-        toZipEntry(n, buildRelativeNodePath(descendantMap, rootNode.id, n.id)),
-      );
+      // Función generadora para las entradas del ZIP
+      const entries = (function* () {
+        // Se itera sobre todos los nodos descendientes
+        for (const n of descendants) {
+          // Se genera una entrada de ZIP cada vez que se solicita
+          yield toZipEntry(
+            n,
+            buildRelativeNodePath(descendantMap, rootNode.id, n.id),
+          );
+        }
+      })();
 
       // Crear el stream del ZIP
       await zipStreamDirectory({
@@ -88,7 +80,6 @@ export class DownloadService {
       });
     } catch (err) {
       console.error("Error en downloadDirectory:", err);
-      // Si falló antes de enviar headers, enviamos error JSON
       throw err;
     }
   };
