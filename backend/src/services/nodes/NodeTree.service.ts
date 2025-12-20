@@ -201,10 +201,75 @@ export class NodeTreeService {
   }
 
   /**
-   * @description Adjunta un archivo como un nuevo nodo en la base de datos y copia el archivo en el almacenamiento en la nube
-   * @param node Archivo nodo a adjuntar
-   * @param parentId ID del nodo padre donde se adjuntará el archivo
-   * @param newName Nuevo nombre propuesto para el archivo (opcional)
+   * @description Mueve el archivo de un nodo a una nueva ubicación en el almacenamiento en la nube
+   * @param node Nodo a mover
+   * @param parentId ID del nodo padre donde se ubicará el archivo movido
+   * @param newName Nuevo nombre propuesto para el archivo movido (opcional)
+   * @returns Nodo movido
+   */
+  static async moveNodeFile(
+    node: FileNode,
+    parentId: string | null,
+    newName?: string,
+  ) {
+    // Si es un archivo y hay un nuevo nombre, asegurarse de que la extension del archivo se mantiene
+    if (newName) newName = NodeUtils.ensureNodeExt(newName, node);
+
+    // Asegurarse de que la extension se mantenga igual si es
+    const { nodeName, nodeHash } = await this.identity.resolve(node, parentId, {
+      newName,
+    });
+
+    // Obtener la ruta raiz de la nube
+    const cloudRoot = await CloudStorageService.getCloudRootPath();
+
+    // Obtenemos la carpeta root (todavía no hay soporte para carpetas)
+    const src = path.resolve(cloudRoot, node.hash); // Ruta actual del nodo
+    const dest = path.resolve(cloudRoot, nodeHash); // Nueva ruta del nodo copiado
+
+    // Copiar el archivo en el almacenamiento en la nube
+    await CloudStorageService.move(src, dest);
+
+    // Transaccion para "copiar" el nodo en la base de datos
+    return await this.prisma.$transaction(async (tx) => {
+      // Preparamos un resultado para devolver al frontend, ignorando el hash
+      const res = await this.repo.updateIdentityAndParentIdByIdTx(
+        tx,
+        node.id,
+        { newName: nodeName, newHash: nodeHash },
+        parentId,
+      );
+
+      // Si el nuevo padre no es null (root) y es diferente al actual, actualizar los tamaños de los ancestros
+      if (parentId && parentId !== node.parentId) {
+        await this.repo.propagateSizeToAncestorsTx(
+          tx,
+          parentId,
+          node.size,
+          "increment",
+        );
+
+        // Decrementar el tamaño de los ancestros del padre antiguo si no es null (root)
+        if (node.parentId) {
+          await this.repo.propagateSizeToAncestorsTx(
+            tx,
+            node.parentId,
+            node.size,
+            "decrement",
+          );
+        }
+      }
+
+      // Retornamos el nodo copiado
+      return res;
+    });
+  }
+
+  /**
+   * @description Adjunta un nodo de archivo existente a una nueva ubicación en la base de datos y en el almacenamiento en la nube
+   * @param node Nodo de archivo a adjuntar
+   * @param parentId ID del nodo padre donde se ubicará el archivo adjuntado
+   * @param newName Nuevo nombre propuesto para el archivo adjuntado (opcional)
    * @returns Nodo adjuntado
    */
   static async attachNodeFile(

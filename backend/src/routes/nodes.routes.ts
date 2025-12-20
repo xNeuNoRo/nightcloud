@@ -71,6 +71,15 @@ router.post(
   NodeController.copyNode,
 );
 
+// Mover nodo por ID
+router.post(
+  "/:nodeId/move",
+  NodeValidators.nodeMoveValidator,
+  validateRequest,
+  nodeExists,
+  NodeController.moveNode,
+);
+
 // Obtener nodos de un directorio en especifico
 router.get(
   "/:nodeId",

@@ -26,6 +26,7 @@ export class NodeValidators {
     ...this.nodeNewNameValidator,
     ...this.nodeParentIdValidator,
   ];
+  static readonly nodeMoveValidator = [...this.nodeCopyValidator];
   static readonly nodeCreateValidator = [
     ...this.nodeParentIdValidator,
     body("name")
