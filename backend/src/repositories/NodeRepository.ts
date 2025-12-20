@@ -67,7 +67,7 @@ export class NodeRepository {
   }
 
   /**
-   * @description Elimina multiples nodos por sus IDs dentro de una transaccion
+   * @description Elimina múltiples nodos por sus IDs dentro de una transacción
    * @param tx Transaccion de Prisma
    * @param ids Lista de IDs de nodos a eliminar
    */

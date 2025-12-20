@@ -225,8 +225,8 @@ export class NodeService {
   }
 
   /**
-   * @description Elimina un nodo
-   * @param node Nodo a eliminar
+   * @description Elimina un nodo de tipo directorio y todos sus nodos descendientes.
+   * @param node Nodo de tipo directorio a eliminar junto con todos sus descendientes.
    */
   static async deleteDirectory(node: Node) {
     try {
@@ -234,22 +234,14 @@ export class NodeService {
         throw new AppError("NODE_IS_NOT_DIRECTORY");
       }
 
-      // Obtenemos los descendientes de la carpeta (incluyendola)
-      const descendants = await this.repo.getAllNodeDescendants(node.id);
-
       // Si solo existe la carpeta, hay un solo descendant.
-      if (descendants.length <= 1) {
+      if (!node.size) {
         await this.repo.deleteById(node.id);
         return;
       }
 
-      // Obtenemos las rutas de los archivos descendientes
-      const nodePaths = descendants
-        .filter((descendant) => !descendant.isDir)
-        .map((node) => this.cloud.getFilePath(node));
-
-      // Eliminamos los archivos
-      await this.cloud.deleteFiles(nodePaths);
+      // Obtenemos los descendientes de la carpeta (incluyéndola)
+      const descendants = await this.repo.getAllNodeDescendants(node.id);
 
       // Usar transacción para actualizar los tamaños
       await this.prisma.$transaction(async (tx) => {
@@ -269,6 +261,14 @@ export class NodeService {
           descendants.map((descendant) => descendant.id),
         );
       });
+
+      // Obtenemos las rutas de los archivos descendientes
+      const nodePaths = descendants
+        .filter((descendant) => !descendant.isDir)
+        .map((descendant) => this.cloud.getFilePath(descendant));
+
+      // Eliminamos los archivos
+      await this.cloud.deleteFiles(nodePaths);
     } catch (err) {
       if (err instanceof AppError) throw err;
       else throw new AppError("INTERNAL", "Error al eliminar el nodo");
