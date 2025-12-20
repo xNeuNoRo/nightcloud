@@ -229,13 +229,6 @@ export class NodeTreeService {
         const src = path.resolve(cloudRoot, childNode.hash); // Ruta actual del nodo
         const dest = path.resolve(cloudRoot, nodeHash); // Nueva ruta del nodo copiado
 
-        // Copiar o mover el archivo en el almacenamiento en la nube
-        if (mode === "move") {
-          await this.cloud.move(src, dest);
-        } else {
-          await this.cloud.copy(src, dest);
-        }
-
         // Transacción para crear o actualizar (mover) el nodo en la base de datos según el modo
         if (mode === "move") {
           console.log(`Moving file node: ${nodeName}`);
@@ -245,6 +238,7 @@ export class NodeTreeService {
             { newName: nodeName, newHash: nodeHash },
             parent.id,
           );
+          await this.cloud.move(src, dest); // Mover el archivo en la nube
           console.log(`Moved file node: ${movedFileNode.name}`);
 
           // Almacenar el nodo movido (en realidad copiado)
@@ -259,6 +253,7 @@ export class NodeTreeService {
             mime: childNode.mime,
             isDir: childNode.isDir,
           });
+          await this.cloud.copy(src, dest); // Copiar el archivo en la nube
           console.log(`Created copied file node: ${newFileNode.name}`);
 
           // Almacenar el nodo copiado
@@ -274,7 +269,7 @@ export class NodeTreeService {
   }
 
   /**
-   * @description Mueve el archivo de un nodo a una nueva ubicación en el almacenamiento en la nube
+   * @description Mueve un archivo a una nueva ubicación en el almacenamiento en la nube
    * @param node Nodo a mover
    * @param parentId ID del nodo padre donde se ubicará el archivo movido
    * @param newName Nuevo nombre propuesto para el archivo movido (opcional)
@@ -299,9 +294,6 @@ export class NodeTreeService {
     // Obtenemos la carpeta root
     const src = path.resolve(cloudRoot, node.hash); // Ruta actual del nodo
     const dest = path.resolve(cloudRoot, nodeHash); // Nueva ruta del nodo a mover
-
-    // Mover el archivo en el almacenamiento en la nube
-    await this.cloud.move(src, dest);
 
     // Transaccion para "mover" el nodo en la base de datos
     return await this.prisma.$transaction(async (tx) => {
@@ -336,6 +328,10 @@ export class NodeTreeService {
         }
       }
 
+      // Despues de actualizar la base de datos, para mantener la consistencia,
+      // Mover el archivo en el almacenamiento en la nube
+      await this.cloud.move(src, dest);
+
       // Retornamos el nodo movido
       return res;
     });
@@ -364,7 +360,7 @@ export class NodeTreeService {
     // Obtener la ruta raiz de la nube
     const cloudRoot = await CloudStorageService.getCloudRootPath();
 
-    // Obtenemos la carpeta root (todavía no hay soporte para carpetas)
+    // Construimos las rutas absoluta de origen y destino del archivo en la nube
     const src = path.resolve(cloudRoot, node.hash); // Ruta actual del nodo
     const dest = path.resolve(cloudRoot, nodeHash); // Nueva ruta del nodo copiado
 
