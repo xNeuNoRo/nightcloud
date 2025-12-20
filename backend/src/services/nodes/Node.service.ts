@@ -198,6 +198,13 @@ export class NodeService {
     }
   }
 
+  /**
+   * @description Mueve un nodo (archivo o directorio) a una nueva ubicación.
+   * @param node Nodo a mover
+   * @param parentId ID del nodo padre destino donde se ubicará el nodo movido
+   * @param newName Nuevo nombre propuesto para el nodo movido (opcional)
+   * @returns Nodo movido o array de nodos movidos
+   */
   static async moveNode(node: Node, parentId: string | null, newName?: string) {
     if (
       (parentId === node.parentId && (!newName || newName === node.name)) ||
@@ -271,9 +278,12 @@ export class NodeService {
         throw new AppError("NODE_IS_NOT_DIRECTORY");
       }
 
-      // Si solo existe la carpeta, hay un solo descendant.
+      // Si la carpeta está vacía (no contiene archivos ni subdirectorios).
       if (!node.size) {
-        await this.repo.deleteById(node.id);
+        await this.prisma.$transaction(async (tx) => {
+          // Eliminar el registro del nodo en la base de datos
+          await this.repo.deleteByIdTx(tx, node.id);
+        });
         return;
       }
 
@@ -282,12 +292,12 @@ export class NodeService {
 
       // Usar transacción para actualizar los tamaños
       await this.prisma.$transaction(async (tx) => {
-        // Si tiene padre, actualizar el tamaño de todos los ancestros que haya
+        // Si tiene padre, actualizar el tamaño del padre (propaga a ancestros)
         if (node.parentId) {
           const parent = await this.repo.findByIdTx(tx, node.parentId);
 
           if (parent) {
-            // Actualizar el tamaño de todos los ancestros
+            // Actualizar el tamaño del padre (propaga a ancestros)
             await this.decrementNodeSizeByIdTx(tx, node.parentId, node.size);
           }
         }
