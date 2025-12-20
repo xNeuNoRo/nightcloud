@@ -208,7 +208,10 @@ export class NodeService {
 
     try {
       if (isDirectoryNode(node)) {
-        return;
+        return await NodeTreeService.moveNodeDir(node, parentId, {
+          newName,
+          concurrency: 5,
+        });
       } else {
         return await NodeTreeService.moveNodeFile(node, parentId, newName);
       }

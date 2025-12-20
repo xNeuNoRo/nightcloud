@@ -26,10 +26,16 @@ export class NodeTreeService {
   static async copyNodeDir(
     node: Node,
     parentId: string | null,
-    options?: { newName?: string; concurrency?: number },
+    options?: {
+      newName?: string;
+      concurrency?: number;
+      mode?: "copy" | "move";
+    },
+    cb?: (tx: PrismaTxClient, descendants: DescendantRow[]) => Promise<void>,
   ) {
     const limit = pLimit(options?.concurrency ?? 5); // Limitar concurrencia
 
+    // Resolver el nuevo nombre y hash para el nodo de directorio
     const { nodeName, nodeHash } = await this.identity.resolve(
       node,
       parentId,
@@ -69,7 +75,13 @@ export class NodeTreeService {
       const files = nodesToCopy.filter((n) => !n.isDir);
 
       // Copiar los archivos dentro de la estructura creada
-      const copiedNodes = await this.copyNodeFileTree(tx, files, limit, dirMap);
+      const copiedNodes = await this.copyNodeFileTree(
+        tx,
+        files,
+        limit,
+        dirMap,
+        options?.mode,
+      );
 
       // Si tiene padre, propagar el tamaño de todos los ancestros que haya
       if (copiedDir.parentId)
@@ -80,8 +92,42 @@ export class NodeTreeService {
           "increment",
         );
 
+      // Callback opcional después de copiar los nodos
+      if (cb) await cb(tx, nodesToCopy);
+
       return copiedNodes;
     });
+  }
+
+  static async moveNodeDir(
+    node: Node,
+    parentId: string | null,
+    options?: { newName?: string; concurrency?: number },
+  ) {
+    return await this.copyNodeDir(
+      node,
+      parentId,
+      { ...options, mode: "move" },
+      async (tx, descendants) => {
+        // Eliminar el árbol original después de copiarlo
+        const nodeDirIds = descendants
+          .filter((n) => n.isDir) // Excluir los archivos
+          .map((n) => n.id); // Obtener solo los IDs
+
+        await this.repo.deleteManyByIdsTx(tx, nodeDirIds);
+
+        // Si el nodo original tenía padre, decrementar el tamaño de sus ancestros
+        if (node.parentId) {
+          // Decrementar el tamaño de los ancestros del padre antiguo
+          await this.repo.propagateSizeToAncestorsTx(
+            tx,
+            node.parentId,
+            node.size,
+            "decrement",
+          );
+        }
+      },
+    );
   }
 
   /**
@@ -145,6 +191,7 @@ export class NodeTreeService {
     files: DescendantRow[],
     limit: LimitFunction,
     dirMap: Map<Node["id"], { id: Node["id"] }>,
+    mode?: "copy" | "move", // default será "copy"
   ) {
     const cloudRoot = await this.cloud.getCloudRootPath();
     const copiedNodes: Node[] = []; // Almacenar los nodos copiados
@@ -174,23 +221,41 @@ export class NodeTreeService {
         const src = path.resolve(cloudRoot, childNode.hash); // Ruta actual del nodo
         const dest = path.resolve(cloudRoot, nodeHash); // Nueva ruta del nodo copiado
 
-        // Si es un archivo, copiar el archivo en el almacenamiento en la nube
-        await CloudStorageService.copy(src, dest);
+        // Copiar o mover el archivo en el almacenamiento en la nube
+        if (mode === "move") {
+          await this.cloud.move(src, dest);
+        } else {
+          await this.cloud.copy(src, dest);
+        }
 
-        console.log(`Copied file in cloud from ${src} to ${dest}`);
-        // Crear el nodo hijo copiado en la base de datos
-        const newFileNode = await this.repo.createTx(tx, {
-          name: nodeName,
-          parent: { connect: { id: parent.id } },
-          hash: nodeHash,
-          size: childNode.size,
-          mime: childNode.mime,
-          isDir: childNode.isDir,
-        });
-        console.log(`Created new file node: ${newFileNode.name}`);
+        // Transaccion para crear o mover el nodo en la base de datos
+        if (mode === "move") {
+          console.log(`Moving file node: ${nodeName}`);
+          const movedFileNode = await this.repo.updateIdentityAndParentIdByIdTx(
+            tx,
+            childNode.id,
+            { newName: nodeName, newHash: nodeHash },
+            parent.id,
+          );
+          console.log(`Moved file node: ${movedFileNode.name}`);
 
-        // Almacenar el nodo copiado
-        copiedNodes.push(newFileNode);
+          // Almacenar el nodo copiado
+          copiedNodes.push(movedFileNode);
+        } else {
+          console.log(`Creating copied file node: ${nodeName}`);
+          const newFileNode = await this.repo.createTx(tx, {
+            name: nodeName,
+            parent: { connect: { id: parent.id } },
+            hash: nodeHash,
+            size: childNode.size,
+            mime: childNode.mime,
+            isDir: childNode.isDir,
+          });
+          console.log(`Created copied file node: ${newFileNode.name}`);
+
+          // Almacenar el nodo copiado
+          copiedNodes.push(newFileNode);
+        }
       });
     });
 
@@ -221,14 +286,14 @@ export class NodeTreeService {
     });
 
     // Obtener la ruta raiz de la nube
-    const cloudRoot = await CloudStorageService.getCloudRootPath();
+    const cloudRoot = await this.cloud.getCloudRootPath();
 
     // Obtenemos la carpeta root (todavía no hay soporte para carpetas)
     const src = path.resolve(cloudRoot, node.hash); // Ruta actual del nodo
     const dest = path.resolve(cloudRoot, nodeHash); // Nueva ruta del nodo copiado
 
     // Copiar el archivo en el almacenamiento en la nube
-    await CloudStorageService.move(src, dest);
+    await this.cloud.move(src, dest);
 
     // Transaccion para "copiar" el nodo en la base de datos
     return await this.prisma.$transaction(async (tx) => {
