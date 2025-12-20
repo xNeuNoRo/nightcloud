@@ -198,6 +198,36 @@ export class NodeService {
     }
   }
 
+  static async moveNode(node: Node, parentId: string | null, newName?: string) {
+    if (
+      (parentId === node.parentId && (!newName || newName === node.name)) ||
+      parentId === node.id
+    ) {
+      throw new AppError(
+        "BAD_REQUEST",
+        `El ${node.isDir ? "directorio" : "archivo"} ya se encuentra en la ubicación destino`,
+      );
+    }
+
+    try {
+      if (isDirectoryNode(node)) {
+        return await NodeTreeService.moveNodeDir(node, parentId, {
+          newName,
+          concurrency: 5,
+        });
+      } else {
+        return await NodeTreeService.moveNodeFile(node, parentId, newName);
+      }
+    } catch (err) {
+      console.log(err);
+      if (err instanceof AppError) {
+        throw err;
+      } else {
+        throw new AppError("INTERNAL", "Error al mover el nodo");
+      }
+    }
+  }
+
   /**
    * @description Mueve un nodo (archivo o directorio) a una nueva ubicación.
    * @param node Nodo a mover

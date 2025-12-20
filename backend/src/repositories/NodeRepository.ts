@@ -55,17 +55,6 @@ export class NodeRepository {
   }
 
   /**
-   * @description Elimina un nodo por su ID dentro de una transaccion
-   * @param tx Transaccion de Prisma
-   * @param id ID del nodo a eliminar
-   */
-  static async deleteByIdTx(tx: PrismaTxClient, id: Node["id"]) {
-    await tx.node.delete({
-      where: { id },
-    });
-  }
-
-  /**
    * @description Elimina multiples nodos por sus IDs
    * @param ids Lista de IDs de nodos a eliminar
    */
@@ -78,7 +67,18 @@ export class NodeRepository {
   }
 
   /**
-   * @description Elimina múltiples nodos por sus IDs dentro de una transacción
+   * @description Elimina un nodo por su ID dentro de una transaccion
+   * @param tx Transaccion de Prisma
+   * @param id ID del nodo a eliminar
+   */
+  static async deleteByIdTx(tx: PrismaTxClient, id: Node["id"]) {
+    await tx.node.delete({
+      where: { id },
+    });
+  }
+
+  /**
+   * @description Elimina multiples nodos por sus IDs dentro de una transaccion
    * @param tx Transaccion de Prisma
    * @param ids Lista de IDs de nodos a eliminar
    */
