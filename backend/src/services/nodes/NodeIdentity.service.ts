@@ -10,6 +10,7 @@ import { NodeRepository } from "@/repositories/NodeRepository";
 import { NodeUtils } from "@/utils";
 
 import { CloudStorageService } from "../cloud/CloudStorage.service";
+import { isDirectoryNode } from "@/infra/guards/node";
 
 /**
  * @description Servicio para resolver identidades únicas de nodos.
@@ -29,58 +30,76 @@ export class NodeIdentityService {
     parentId: string | null,
     params: { newName?: string } = {},
   ) {
-    // TODO: Adaptarlo a nodos existentes y no solo archivos nuevos
-    // TODO: Tambien adaptarlo a directorios
-    // TODO: TESTEAR ESTA FUNCIONALIDAD AHORA ADAPTADA
-    // Almacenamos la referencia al nombre original del nodo
-    const originalNodeName = isUploadedFile(node)
-      ? node.originalname
-      : params.newName || node.name;
+    try {
+      // Almacenamos la referencia al nombre original del nodo
+      const originalNodeName = isUploadedFile(node)
+        ? node.originalname
+        : params.newName || node.name;
 
-    // Ruta completa del nodo en el almacenamiento en la nube
-    const nodePath = isUploadedFile(node)
-      ? node.path
-      : path.resolve(await CloudStorageService.getCloudRootPath(), node.hash);
+      // Ruta completa del nodo en el almacenamiento en la nube
+      const nodePath = isUploadedFile(node)
+        ? node.path
+        : path.resolve(await CloudStorageService.getCloudRootPath(), node.hash);
 
-    // Nombre del nodo resuelto (inicialmente el original)
-    let nodeName = originalNodeName;
+      // Nombre del nodo resuelto (inicialmente el original)
+      let nodeName = originalNodeName;
 
-    // Generamos el hash del nodo basado en su identidad unica
-    let nodeHash = await NodeUtils.genFileHash(
-      nodePath,
-      computeNodeIdentity(nodeName, parentId).identityName,
-    );
+      // Generamos el hash del nodo basado en su identidad unica
+      let nodeHash: string;
+      if (isDirectoryNode(node)) {
+        console.log(
+          `Generating directory hash for: ${nodeName} with parentId: ${parentId}`,
+        );
+        nodeHash = NodeUtils.genDirectoryHash(nodeName, parentId);
+        console.log(`Generated directory hash: ${nodeHash}`);
+      } else {
+        nodeHash = await NodeUtils.genFileHash(
+          nodePath,
+          computeNodeIdentity(nodeName, parentId).identityName,
+        );
+      }
 
-    // Buscamos si ya existe un nodo con el mismo hash en la carpeta destino
-    const conflict = await this.repo.findByHashAndParentId(nodeHash, parentId);
-
-    // Si no hay conflicto, retornamos el nombre y hash resueltos
-    if (!conflict) {
-      return { nodeName, nodeHash };
-    }
-
-    // Si hay conflicto y pertenece a la misma carpeta padre, resolvemos un nuevo nombre
-    if (conflict.parentId === parentId) {
-      // Obtenemos los nombres que ya existen y que generan conflicto
-      const conflictingNames = await this.repo.findConflictingNames(
+      // Buscamos si ya existe un nodo con el mismo hash en la carpeta destino
+      const conflict = await this.repo.findByHashAndParentId(
+        nodeHash,
         parentId,
-        buildConflictRegex(nodeName),
       );
 
-      // Generamos un nuevo nombre unico en base a los nombres conflictivos
-      nodeName = getNextName(nodeName, conflictingNames);
+      // Si no hay conflicto, retornamos el nombre y hash resueltos
+      if (!conflict) {
+        return { nodeName, nodeHash };
+      }
 
-      // Actualizar el nombre en el nodo original
-      if (isUploadedFile(node)) node.originalname = nodeName;
+      // Si hay conflicto y pertenece a la misma carpeta padre, resolvemos un nuevo nombre
+      if (conflict.parentId === parentId) {
+        // Obtenemos los nombres que ya existen y que generan conflicto
+        const conflictingNames = await this.repo.findConflictingNames(
+          parentId,
+          buildConflictRegex(nodeName),
+        );
+
+        // Generamos un nuevo nombre unico en base a los nombres conflictivos
+        nodeName = getNextName(nodeName, conflictingNames);
+
+        // Actualizar el nombre en el nodo original
+        if (isUploadedFile(node)) node.originalname = nodeName;
+      }
+
+      // Generamos un nuevo hash basado en el nuevo nombre unico
+      if (isDirectoryNode(node)) {
+        nodeHash = NodeUtils.genDirectoryHash(nodeName, parentId);
+      } else {
+        nodeHash = await NodeUtils.genFileHash(
+          nodePath,
+          computeNodeIdentity(nodeName, parentId).identityName,
+        );
+      }
+
+      return { nodeName, nodeHash };
+    } catch (err) {
+      console.log(err);
+      return { nodeName: "", nodeHash: "" };
     }
-
-    // Generamos un nuevo hash basado en el nuevo nombre unico
-    nodeHash = await NodeUtils.genFileHash(
-      nodePath,
-      computeNodeIdentity(nodeName, parentId).identityName,
-    );
-
-    return { nodeName, nodeHash };
   }
 
   /**

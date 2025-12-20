@@ -6,6 +6,11 @@ type NodePicked = Pick<
   "id" | "parentId" | "name" | "size" | "mime" | "isDir"
 >;
 
+/**
+ * @description Mapea un nodo de dominio a un NodeDTO.
+ * @param n Nodo de dominio a mapear
+ * @returns NodeDTO mapeado
+ */
 export const toNodeDTO = (n: NodePicked): NodeDTO => ({
   id: n.id,
   parentId: n.parentId,
