@@ -229,43 +229,6 @@ export class NodeService {
   }
 
   /**
-   * @description Mueve un nodo (archivo o directorio) a una nueva ubicación.
-   * @param node Nodo a mover
-   * @param parentId ID del nodo padre destino donde se ubicará el nodo movido
-   * @param newName Nuevo nombre propuesto para el nodo movido (opcional)
-   * @returns Nodo movido o array de nodos movidos
-   */
-  static async moveNode(node: Node, parentId: string | null, newName?: string) {
-    if (
-      (parentId === node.parentId && (!newName || newName === node.name)) ||
-      parentId === node.id
-    ) {
-      throw new AppError(
-        "BAD_REQUEST",
-        `El ${node.isDir ? "directorio" : "archivo"} ya se encuentra en la ubicación destino`,
-      );
-    }
-
-    try {
-      if (isDirectoryNode(node)) {
-        return await NodeTreeService.moveNodeDir(node, parentId, {
-          newName,
-          concurrency: 5,
-        });
-      } else {
-        return await NodeTreeService.moveNodeFile(node, parentId, newName);
-      }
-    } catch (err) {
-      console.log(err);
-      if (err instanceof AppError) {
-        throw err;
-      } else {
-        throw new AppError("INTERNAL", "Error al mover el nodo");
-      }
-    }
-  }
-
-  /**
    * @description Elimina un nodo.
    * @param node Nodo a eliminar
    */
