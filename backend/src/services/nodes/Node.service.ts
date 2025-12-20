@@ -198,6 +198,13 @@ export class NodeService {
     }
   }
 
+  /**
+   * @description Mueve un nodo (archivo o directorio) a una nueva ubicación.
+   * @param node Nodo a mover
+   * @param parentId ID del nodo padre donde se ubicará el nodo movido
+   * @param newName Nuevo nombre propuesto para el nodo movido (opcional)
+   * @returns Nodo movido
+   */
   static async moveNode(node: Node, parentId: string | null, newName?: string) {
     if (
       (parentId === node.parentId && (!newName || newName === node.name)) ||
