@@ -177,16 +177,23 @@ export class NodeController {
     >,
     res: Response,
   ) => {
-    const { parentId, newName } = req.body;
+    const { parentId, newName: proposedName } = req.body;
     const node = req.node!;
 
     try {
-      const movedNode = await NodeService.moveNode(
+      // Realizar el movimiento del nodo
+      const result = await NodeService.moveNode(
         node,
         parentId ?? null,
-        newName,
+        proposedName,
       );
-      res.success(toNodeDTO(movedNode!));
+
+      // Mapear a DTO y enviar la respuesta
+      res.success(
+        Array.isArray(result)
+          ? result.map((n) => toNodeDTO(n))
+          : toNodeDTO(result),
+      );
     } catch (err) {
       console.error(err);
       if (err instanceof AppError) throw err;
