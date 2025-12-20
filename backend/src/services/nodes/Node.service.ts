@@ -199,7 +199,10 @@ export class NodeService {
   }
 
   static async moveNode(node: Node, parentId: string | null, newName?: string) {
-    if (parentId === node.parentId && !newName) {
+    if (
+      (parentId === node.parentId && (!newName || newName === node.name)) ||
+      parentId === node.id
+    ) {
       throw new AppError(
         "BAD_REQUEST",
         `El ${node.isDir ? "directorio" : "archivo"} ya se encuentra en la ubicación destino`,
