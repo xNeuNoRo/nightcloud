@@ -2,8 +2,8 @@
   "compilerOptions": {
     // Para compilar a versiones mas recientes
     "target": "esnext",
-    "module": "nodenext",
-    "moduleResolution": "NodeNext",
+    "module": "esnext",
+    "moduleResolution": "bundler",
     // Para que jest quiera funcionar
     "isolatedModules": true,
     // Otros parametros
@@ -32,6 +32,11 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["src/**/*.ts"], //  src/emails/**/*.tsx En caso de usar react-email incluir la carpeta /emails 
-  "exclude": ["node_modules", "dist", "src/**/*.test.ts"] // Excluir los tests y node_modules de la compilacion
+  "include": ["src/**/*.ts"], //  src/emails/**/*.tsx En caso de usar react-email incluir la carpeta /emails
+  "exclude": [
+    "node_modules",
+    "dist",
+    "src/infra/prisma/extensions/**/*",
+    "src/**/*.test.ts"
+  ] // Excluir los tests y node_modules de la compilacion
 }

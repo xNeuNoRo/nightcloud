@@ -7,10 +7,40 @@ export class NodeValidators {
   static readonly nodeIdValidator = [
     param("nodeId").isUUID(4).withMessage("Identificador de nodo inválido"),
   ];
+  static readonly nodeParentIdValidator = [
+    body("parentId")
+      .optional({ nullable: true })
+      .isUUID(4)
+      .withMessage("Identificador de nodo padre inválido"),
+  ];
   static readonly nodeNewNameValidator = [
     ...this.nodeIdValidator,
     body("newName")
+      .optional()
+      .isString()
+      .trim()
       .notEmpty()
-      .withMessage("El nuevo nombre no puede estar vacío"),
+      .withMessage("El nuevo nombre no puede ir vacío"),
+  ];
+  static readonly nodeCopyValidator = [
+    ...this.nodeNewNameValidator,
+    ...this.nodeParentIdValidator,
+  ];
+  static readonly nodeMoveValidator = [...this.nodeCopyValidator];
+  static readonly nodeCreateValidator = [
+    ...this.nodeParentIdValidator,
+    body("name")
+      .optional({ nullable: true })
+      .isString()
+      .trim()
+      .isLength({ min: 1 })
+      .withMessage("El nombre no puede ir vacio")
+      .isLength({ max: 250 })
+      .withMessage("El nombre no puede exceder los 250 carácteres"),
+    body("isDir")
+      .notEmpty()
+      .withMessage("Se debe especificar si es un archivo o una carpeta")
+      .isBoolean()
+      .withMessage("El valor tiene que ser true o false"),
   ];
 }

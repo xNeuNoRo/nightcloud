@@ -1,65 +1,83 @@
-import { DB } from "@/config/db";
-import { AppError, NodeUtils } from "@/utils";
-import { Request, Response } from "express";
-import path from "node:path";
-import fs from "node:fs/promises";
-import { genNodeHash } from "@/utils/nodes/genNodeHash";
+import type { Request, Response } from "express";
 
-const prisma = DB.getClient();
+import { toNodeDTO } from "@/infra/mappers/node.dto-mapper";
+import { DownloadService } from "@/services/download/Download.service";
+import { NodeService } from "@/services/nodes/Node.service";
+import { AppError, NodeUtils } from "@/utils";
 
 export class NodeController {
-  static readonly uploadNodes = async (req: Request, res: Response) => {
-    const nodes = req.nodes;
-    res.success(
-      nodes?.map((n) => {
-        return {
-          id: n.id,
-          parentId: n.parentId,
-          name: n.name,
-          size: n.size,
-          mime: n.mime,
-          isDir: n.isDir,
-        };
-      }),
-      201,
-    );
+  // Crear un nuevo nodo (solo directorios por ahora)
+  static readonly createNode = async (
+    req: Request<
+      unknown,
+      unknown,
+      {
+        parentId: string | null;
+        name: string | null;
+        isDir: boolean;
+      }
+    >,
+    res: Response,
+  ) => {
+    const { parentId, name, isDir } = req.body;
+
+    if (!isDir) {
+      throw new AppError(
+        "INTERNAL",
+        "La creación de archivos no está implementada",
+      );
+    }
+
+    const node = await NodeService.createDirectory(parentId, name);
+    res.success(toNodeDTO(node), 201);
   };
 
+  static readonly uploadNodes = (req: Request, res: Response) => {
+    const nodes = req.nodes;
+    res.success(nodes?.map((n) => toNodeDTO(n)) ?? [], 201);
+  };
+
+  // Obtener todos los nodos desde la raiz
   static readonly getNodesFromRoot = async (req: Request, res: Response) => {
     try {
-      const nodes = await NodeUtils.getAllNodes(null);
-      res.success(
-        nodes.map((n) => {
-          return {
-            id: n.id,
-            parentId: n.parentId,
-            name: n.name,
-            size: n.size,
-            mime: n.mime,
-            isDir: n.isDir,
-          };
-        }),
-      );
+      const nodes = await NodeService.getAllNodes(null);
+      res.success(nodes.map((n) => toNodeDTO(n)));
     } catch (err) {
-      console.log(err);
+      console.error(err);
       throw new AppError("INTERNAL", "Error al obtener los nodos");
     }
   };
 
+  // Obtener todos los nodos de un directorio
+  static readonly getNodesFromDirectory = async (
+    req: Request,
+    res: Response,
+  ) => {
+    // Asegurarse de que el nodo sea un directorio, puesto que un archivo no puede contener nodos hijos
+    if (!req.node!.isDir) throw new AppError("NODE_IS_NOT_DIRECTORY");
+
+    try {
+      const nodes = await NodeService.getAllNodes(req.node!.id);
+      res.success(nodes.map((n) => toNodeDTO(n)));
+    } catch (err) {
+      console.error(err);
+      throw new AppError(
+        "INTERNAL",
+        `Error al obtener los nodos de ${req.node!.name}`,
+      );
+    }
+  };
+
+  // Eliminar un nodo
   static readonly deleteNode = async (req: Request, res: Response) => {
     const node = req.node!;
 
     try {
-      // Obtener la ruta del nodo
-      const nodePath = await NodeUtils.getNodePath(node);
-
-      // Eliminar el nodo del sistema de nodos
-      await NodeUtils.deleteNodes([nodePath]);
-
-      // Eliminar el registro del nodo en la base de datos
-      await prisma.node.delete({
-        where: { id: node.id },
-      });
+      if (node.isDir) {
+        await NodeService.deleteDirectory(node);
+      } else {
+        await NodeService.deleteNode(node); // NOSONAR
+      }
 
       res.success(undefined, 204);
     } catch (err) {
@@ -68,141 +86,122 @@ export class NodeController {
     }
   };
 
+  // Descargar un nodo
   static readonly downloadNode = async (req: Request, res: Response) => {
     const node = req.node!;
 
-    try {
-      // Get the node path
-      const nodePath = await NodeUtils.getNodePath(node);
-
-      // Send the node as a download
-      console.log(`Downloading node: ${node.name} from path: ${nodePath}`);
-
-      // Use a promise to handle the download completion
-      await new Promise<void>((resolve, reject) => {
-        res.download(nodePath, node.name, (err: Error & { code?: string }) => {
-          if (err) {
-            // If headers are already sent, sadly we cannot send an error response
-            if (res.headersSent) resolve();
-
-            // Handle node not found error
-            if (err.code === "ENOENT") {
-              return reject(new AppError("FILE_NOT_FOUND"));
-            }
-
-            // Other errors
-            return reject(
-              new AppError("INTERNAL", "Error interno al descargar el nodo"),
-            );
-          }
-
-          // Download completed successfully
-          resolve();
-        });
-      });
-    } catch (err) {
-      if (err instanceof AppError) throw err;
-      else throw new AppError("INTERNAL", "Error al descargar el nodo");
+    if (node.isDir) {
+      await DownloadService.downloadDirectoryNode(node, res);
+    } else {
+      await DownloadService.downloadFileNode(node, res);
     }
   };
 
+  // Renombrar un nodo
   static readonly renameNode = async (
-    req: Request<{}, {}, { newName: string }>,
+    req: Request<unknown, unknown, { newName: string }>,
     res: Response,
   ) => {
-    let { newName } = req.body;
     const node = req.node!;
 
     // Asegurarse de que la extension del nodo se mantenga igual
-    const nodeExt = path.extname(newName);
-    if (
-      !nodeExt ||
-      nodeExt.length === 0 ||
-      nodeExt !== path.extname(node.name)
-    ) {
-      newName += path.extname(node.name);
-    }
+    let newName = NodeUtils.ensureNodeExt(req.body.newName, node);
 
     // Verificar si el nuevo nombre ya existe en el mismo directorio
-    const conflict = await NodeUtils.nameConflicts.detectConflict(
-      node,
-      newName,
-      true
-    );
+    const conflict = await NodeService.detectConflict(node, newName, true);
 
     // Si hay conflicto, obtener un nombre unico
     if (conflict) {
-      const uniqueName = await NodeUtils.nameConflicts.getNextName(
-        node,
-        newName
+      const uniqueName = await NodeService.resolveName(
+        node.parentId,
+        node.name,
+        newName,
       );
       console.log("Resolved name conflict, new unique name:", uniqueName);
       newName = uniqueName;
     }
 
     try {
-      const { hash, ...updatedNode } = await prisma.node.update({
-        where: { id: node.id },
-        data: { name: newName },
-      });
+      // Actualizar el nombre del nodo
+      const { hash: _h, ...updatedNode } = await NodeService.updateNodeName(
+        node.id,
+        newName,
+      );
 
       res.success(updatedNode);
     } catch (err) {
-      console.log(err);
+      console.error(err);
       throw new AppError("INTERNAL", "Error al renombrar el nodo");
     }
   };
 
-  static readonly copyNode = async (req: Request, res: Response) => {
+  // Copiar un nodo
+  static readonly copyNode = async (
+    req: Request<unknown, unknown, { parentId?: string; newName?: string }>,
+    res: Response,
+  ) => {
+    const { parentId, newName: proposedName } = req.body;
     const node = req.node!;
-    let newName = req.body.newName;
-
-    // Asegurarse de que la extension del nodo se mantenga igual
-    const nodeExt = path.extname(newName);
-    if (
-      !nodeExt ||
-      nodeExt.length === 0 ||
-      nodeExt !== path.extname(node.name)
-    ) {
-      newName += path.extname(node.name);
-    }
-
-    const conflict = await NodeUtils.nameConflicts.detectConflict(node, newName);
-
-    // Detectamos si existe un conflicto
-    if (conflict) {
-      newName = await NodeUtils.nameConflicts.getNextName(node, newName);
-    }
-
-    const srcPath = await NodeUtils.getNodePath(node);
-
-    // Obtener hash del nuevo nodo
-    const newHash = await genNodeHash(srcPath, newName);
-
-    // Obtenemos la carpeta root (todavía no hay soporte para carpetas)
-    const cloudRoot = path.resolve(process.cwd(), `${process.env.CLOUD_ROOT}`);
-    const dest = path.resolve(cloudRoot, newHash);
 
     try {
-      // Copiar el nuevo nodo de forma física y añadir un nueva fila a la base de datos
-      await fs.copyFile(srcPath, dest);
-      
-      // Preparamos un resultado para devolver al frontend, ignorando el hash
-      const { hash: _h, ...result } = await prisma.node.create({
-        data: {
-          name: newName,
-          parentId: node.parentId,
-          hash: newHash,
-          size: node.size,
-          mime: node.mime,
-          isDir: node.isDir,
-        }
-      });
+      // Realizar la copia del nodo
+      const result = await NodeService.copyNode(
+        node,
+        parentId ?? null,
+        proposedName,
+      );
 
-      return res.success(result);
+      // Mapear a DTO y enviar la respuesta
+      res.success(
+        Array.isArray(result)
+          ? result.map((n) => toNodeDTO(n))
+          : toNodeDTO(result),
+      );
     } catch (err) {
+      console.log(err);
       if (err instanceof AppError) throw err;
-      else throw new AppError("INTERNAL", "Error al copiar el nodo");
+      else
+        throw new AppError(
+          "INTERNAL",
+          `No se pudo copiar el ${node.isDir ? "directorio" : "archivo"}`,
+        );
+    }
+  };
+
+  // Mover un nodo
+  static readonly moveNode = async (
+    req: Request<
+      unknown,
+      unknown,
+      { parentId: string | null; newName?: string }
+    >,
+    res: Response,
+  ) => {
+    const { parentId, newName: proposedName } = req.body;
+    const node = req.node!;
+
+    try {
+      // Realizar el movimiento del nodo
+      const result = await NodeService.moveNode(
+        node,
+        parentId ?? null,
+        proposedName,
+      );
+
+      // Mapear a DTO y enviar la respuesta
+      res.success(
+        Array.isArray(result)
+          ? result.map((n) => toNodeDTO(n))
+          : toNodeDTO(result),
+      );
+    } catch (err) {
+      console.error(err);
+      if (err instanceof AppError) throw err;
+      else
+        throw new AppError(
+          "INTERNAL",
+          `No se pudo mover el ${node.isDir ? "directorio" : "archivo"}`,
+        );
     }
   };
 }

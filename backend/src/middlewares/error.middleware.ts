@@ -3,7 +3,7 @@ import type { Request, Response, NextFunction } from "express";
 import { toAppError } from "@/utils";
 
 /**
- * Middleware para manejar errores de la aplicación y enviar respuestas de error apropiadas.
+ * @description Middleware para manejar errores de la aplicación y enviar respuestas de error apropiadas.
  * @param err Error lanzado en la aplicación
  * @param _req Request
  * @param res Response

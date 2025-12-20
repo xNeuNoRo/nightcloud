@@ -1,16 +1,13 @@
-import getAllNodes from "./getAllNodes";
-import processNode from "./processNode";
-import getNodePath from "./getNodePath";
-import deleteNodes from "./deleteNodes";
-import { detectConflict, getNextName } from "./nameConflicts";
+import buildRelativeNodePath from "./buildRelativePath";
+import ensureNodeExt from "./ensureNodeExt";
+import forEachDepthLevel from "./forEachDepthLevel";
+import genDirectoryHash from "./genDirectoryHash";
+import genFileHash from "./genFileHash";
 
 export class NodeUtils {
-  static readonly getAllNodes = getAllNodes;
-  static readonly processNode = processNode;
-  static readonly getNodePath = getNodePath;
-  static readonly deleteNodes = deleteNodes;
-  static readonly nameConflicts = {
-    detectConflict,
-    getNextName,
-  };
+  static readonly genFileHash = genFileHash;
+  static readonly genDirectoryHash = genDirectoryHash;
+  static readonly ensureNodeExt = ensureNodeExt;
+  static readonly buildRelativeNodePath = buildRelativeNodePath;
+  static readonly forEachDepthLevel = forEachDepthLevel;
 }

@@ -24,7 +24,7 @@ module.exports = [
     languageOptions: {
       parser: tsParser,
       parserOptions: {
-        project: "./tsconfig.json",
+        project: "./tsconfig.eslint.json",
         tsconfigRootDir: __dirname,
         sourceType: "module",
         ecmaVersion: "latest",
@@ -35,7 +35,7 @@ module.exports = [
       // Hace que eslint-plugin-import entienda tus paths/aliases de TS
       "import/resolver": {
         typescript: {
-          project: "./tsconfig.json",
+          project: "./tsconfig.eslint.json",
         },
       },
     },
@@ -58,7 +58,7 @@ module.exports = [
       "no-unused-vars": "off",
       "@typescript-eslint/no-unused-vars": [
         "warn",
-        { argsIgnorePattern: "^_" },
+        { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
       ],
 
       // ⬇️ INSERTA ESTAS REGLAS (consistencia y orden de imports)

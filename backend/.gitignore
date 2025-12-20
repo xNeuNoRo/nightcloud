@@ -8,7 +8,7 @@ pnpm-lock.yaml
 pnpm-workspace.yaml
 
 # prisma
-/src/prisma/generated/
+/src/infra/prisma/generated/
 
 # SonarQube
 sonar-project.properties

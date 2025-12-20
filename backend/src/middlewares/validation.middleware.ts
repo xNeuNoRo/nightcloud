@@ -2,7 +2,7 @@ import type { Request, Response, NextFunction } from "express";
 import { validationResult } from "express-validator";
 
 /**
- * Middleware para validar las solicitudes entrantes
+ * @description Middleware para validar las solicitudes entrantes
  * @param req Request
  * @param res Response
  * @param next NextFunction

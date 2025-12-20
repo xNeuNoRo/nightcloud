@@ -1,16 +1,7 @@
 import type { Request, Response, NextFunction } from "express";
 
-// Declaracion global para extender la interfaz Response de Express
-declare global {
-  namespace Express {
-    interface Response {
-      success: (data?: unknown, http?: number) => void;
-    }
-  }
-}
-
 /**
- * Middleware para agregar el método success a la respuesta
+ * @description Middleware para agregar el método success a la respuesta
  * @param _req Request
  * @param res Response
  * @param next NextFunction
