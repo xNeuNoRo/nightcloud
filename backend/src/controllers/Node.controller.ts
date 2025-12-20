@@ -167,4 +167,34 @@ export class NodeController {
         );
     }
   };
+
+  // Mover un nodo
+  static readonly moveNode = async (
+    req: Request<
+      unknown,
+      unknown,
+      { parentId: string | null; newName?: string }
+    >,
+    res: Response,
+  ) => {
+    const { parentId, newName } = req.body;
+    const node = req.node!;
+
+    try {
+      const movedNode = await NodeService.moveNode(
+        node,
+        parentId ?? null,
+        newName,
+      );
+      res.success(toNodeDTO(movedNode!));
+    } catch (err) {
+      console.error(err);
+      if (err instanceof AppError) throw err;
+      else
+        throw new AppError(
+          "INTERNAL",
+          `No se pudo mover el ${node.isDir ? "directorio" : "archivo"}`,
+        );
+    }
+  };
 }

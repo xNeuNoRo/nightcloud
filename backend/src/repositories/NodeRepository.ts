@@ -133,6 +133,41 @@ export class NodeRepository {
     return fromPrismaNode(res);
   }
 
+  static async updateIdentityAndParentIdById(
+    id: Node["id"],
+    identity: { newName: string; newHash: string },
+    newParentId: string | null,
+  ) {
+    const res = await prisma.node.update({
+      where: { id },
+      data: {
+        name: identity.newName,
+        hash: identity.newHash,
+        parentId: newParentId,
+      },
+    });
+
+    return fromPrismaNode(res);
+  }
+
+  static async updateIdentityAndParentIdByIdTx(
+    tx: PrismaTxClient,
+    id: Node["id"],
+    identity: { newName: string; newHash: string },
+    newParentId: string | null,
+  ) {
+    const res = await tx.node.update({
+      where: { id },
+      data: {
+        name: identity.newName,
+        hash: identity.newHash,
+        parentId: newParentId,
+      },
+    });
+
+    return fromPrismaNode(res);
+  }
+
   /**
    * @description Encuentra un nodo por su ID
    * @param id ID del nodo a buscar
