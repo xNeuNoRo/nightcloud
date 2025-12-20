@@ -13,7 +13,7 @@ export function isFileNode(node: unknown): node is FileNode {
     (typeof nodeRecord.parentId === "string" || nodeRecord.parentId === null) &&
     typeof nodeRecord.name === "string" &&
     typeof nodeRecord.hash === "string" &&
-    typeof nodeRecord.size === "number" &&
+    typeof nodeRecord.size === "bigint" &&
     typeof nodeRecord.mime === "string" &&
     nodeRecord.mime !== "inode/directory" &&
     nodeRecord.isDir === false
@@ -33,7 +33,7 @@ export function isDirectoryNode(node: unknown): node is DirectoryNode {
     (typeof nodeRecord.parentId === "string" || nodeRecord.parentId === null) &&
     typeof nodeRecord.name === "string" &&
     typeof nodeRecord.hash === "string" &&
-    typeof nodeRecord.size === "number" &&
+    typeof nodeRecord.size === "bigint" &&
     nodeRecord.mime === "inode/directory" &&
     nodeRecord.isDir === true
   );

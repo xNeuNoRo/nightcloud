@@ -133,21 +133,31 @@ export class NodeController {
     req: Request<unknown, unknown, { parentId?: string; newName?: string }>,
     res: Response,
   ) => {
-    // TODO: Adaptarlo a carpetas
     const { parentId, newName: proposedName } = req.body;
     const node = req.node!;
 
     try {
-      const nodeRes = await NodeService.copyNode(
+      // Realizar la copia del nodo
+      const result = await NodeService.copyNode(
         node,
         parentId ?? null,
         proposedName,
       );
-      res.success(toNodeDTO(nodeRes));
+
+      // Mapear a DTO y enviar la respuesta
+      res.success(
+        Array.isArray(result)
+          ? result.map((n) => toNodeDTO(n))
+          : toNodeDTO(result),
+      );
     } catch (err) {
       console.log(err);
       if (err instanceof AppError) throw err;
-      else throw new AppError("INTERNAL", "Error al copiar el nodo");
+      else
+        throw new AppError(
+          "INTERNAL",
+          `No se pudo copiar el ${node.isDir ? "directorio" : "archivo"}`,
+        );
     }
   };
 }

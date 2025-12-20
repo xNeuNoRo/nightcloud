@@ -32,6 +32,19 @@ export class NodeRepository {
   }
 
   /**
+   * @description Crea multiples nodos en la base de datos dentro de una transaccion
+   * @param tx Transaccion de Prisma
+   * @param data Lista de datos de nodos a crear
+   * @returns BatchPayload con el resultado de la operacion
+   */
+  static async createManyTx(
+    tx: PrismaTxClient,
+    data: Prisma.NodeCreateManyInput[],
+  ): Promise<Prisma.BatchPayload> {
+    return await tx.node.createMany({ data });
+  }
+
+  /**
    * @description Elimina un nodo por su ID
    * @param id ID del nodo a eliminar
    */

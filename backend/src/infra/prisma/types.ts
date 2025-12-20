@@ -4,6 +4,8 @@ export type AncestorRow = {
   parentId: string | null;
   name: string;
   hash: string;
+  size: bigint;
+  mime: string;
   isDir: boolean;
   depth: number;
 };
@@ -13,6 +15,8 @@ export type DescendantRow = {
   parentId: string | null;
   name: string;
   hash: string;
+  size: bigint;
+  mime: string;
   isDir: boolean;
   depth: number;
 };
