@@ -7,7 +7,7 @@ type NodeDepthTree = (AncestorRow | DescendantRow)[];
  * @param nodes Árbol de nodos con profundidad
  * @param callback Callback a ejecutar por cada nivel de profundidad
  */
-export async function forEachDepthLevel(
+export default async function forEachDepthLevel(
   nodes: NodeDepthTree,
   callback: (depthNodes: NodeDepthTree) => Promise<void>,
 ) {

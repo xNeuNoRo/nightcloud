@@ -1,7 +1,5 @@
-import path from "node:path";
-
 import { DB } from "@/config/db";
-import type { DirectoryNode, Node } from "@/domain/nodes/node";
+import type { Node } from "@/domain/nodes/node";
 import type { UploadedFile } from "@/domain/uploads/uploaded-file";
 import type { Prisma } from "@/infra/prisma/generated/client";
 import { NodeRepository } from "@/repositories/NodeRepository";
@@ -12,11 +10,7 @@ import { NodeIdentityService } from "./NodeIdentity.service";
 import { NodePersistenceService } from "./NodePersistence.service";
 import { CloudStorageService } from "../cloud/CloudStorage.service";
 import { isDirectoryNode } from "@/infra/guards/node";
-import pLimit from "p-limit";
-import { fromDescendantRow } from "@/infra/mappers/node.mapper";
-import genDirectoryHash from "@/utils/nodes/genDirectoryHash";
-import { forEachDepthLevel } from "@/utils/nodes/forEachDepthLevel";
-import { DescendantRow } from "@/infra/prisma/types";
+import { NodeTreeService } from "./NodeTree.service";
 
 /**
  * @description Servicio para gestionar nodos (archivos y directorios).
@@ -90,7 +84,7 @@ export class NodeService {
     return await this.repo.findById(nodeId);
   }
 
-  /*
+  /**
    * @description Crea un nuevo directorio (nodo) en la base de datos
    * @param parentId ID del nodo padre donde se creara la carpeta
    * @param name Nombre de la carpeta (opcional)
@@ -176,172 +170,24 @@ export class NodeService {
     node: Node,
     parentId: string | null,
     newName?: string,
-  ): Promise<Node | Node[] | undefined> {
-    // Si es un archivo y hay un nuevo nombre, asegurarse de que la extension del archivo se mantiene
-    if (!isDirectoryNode(node) && newName)
-      newName = NodeUtils.ensureNodeExt(newName, node);
-
-    const { nodeName, nodeHash } = await this.identity.resolve(node, parentId, {
-      newName,
-    });
-    console.log(`Copying node: ${nodeName} with hash: ${nodeHash}`);
-
-    // Obtener la ruta raiz de la nube
-    const cloudRoot = await CloudStorageService.getCloudRootPath();
-
+  ): Promise<Node | Node[]> {
     try {
       // Copiar el nuevo nodo de forma física y añadir un nueva fila a la base de datos
       if (isDirectoryNode(node)) {
-        const limit = pLimit(5); // Limitar a 5 operaciones concurrentes
-        const copiedNodes: Node[] = []; // Almacenar los nodos copiados
-
-        // Transaccion para "copiar" el nodo en la base de datos
-
-        return await this.prisma.$transaction(async (tx) => {
-          // Crear el nodo de la carpeta copiada
-          const copiedDir = await this.repo.createTx(tx, {
-            name: nodeName,
-            parent: parentId ? { connect: { id: parentId } } : undefined,
-            hash: nodeHash,
-            size: node.size,
-            mime: node.mime,
-            isDir: node.isDir,
-          });
-
-          // Almacenar el nodo copiado
-          const nodesToCopy = await this.repo.getAllNodeDescendantsTx(
-            tx,
-            node.id,
-          );
-
-          // Preparar las carpetas a crear
-          const directories = nodesToCopy.filter((n) => n.isDir && n.depth > 0); // Excluir la raiz
-
-          // Mapa para rastrear los IDs de las carpetas copiadas
-          const dirMap = new Map<
-            DescendantRow["id"],
-            Pick<DescendantRow, "id" | "depth" | "parentId">
-          >([[node.id, { id: copiedDir.id, depth: 0, parentId }]]);
-
-          await forEachDepthLevel(directories, async (depthNodes) => {
-            const nodesToCreate: DirectoryNode[] = [];
-            // Procesar todos los nodos en este nivel de profundidad
-            for (const dirNode of depthNodes) {
-              const id = crypto.randomUUID() as string;
-              const parent = dirMap.get(dirNode.parentId!);
-              dirMap.set(dirNode.id, {
-                id,
-                depth: dirNode.depth,
-                parentId: parent ? parent.id : null,
-              });
-              nodesToCreate.push({
-                id,
-                parentId: parent ? parent.id : null,
-                name: dirNode.name,
-                hash: genDirectoryHash(dirNode.name, parent ? parent.id : null),
-                size: dirNode.size,
-                mime: "inode/directory",
-                isDir: true,
-              });
-            }
-
-            await this.repo.createManyTx(tx, nodesToCreate);
-          });
-
-          // Filtrar solo los archivos para copiarlos
-          const files = nodesToCopy.filter((n) => !n.isDir);
-
-          // Ahora copiar todos los nodos (archivos) concurrentemente
-          const copyPromises = files.map((n) => {
-            return limit(async () => {
-              // Mapear el nodo hijo
-              const childNode = fromDescendantRow(n);
-              const parent = dirMap.get(childNode.parentId!)!;
-              console.log(
-                `Copying child node: ${childNode.name} under parent: ${parent.id}`,
-              );
-
-              // Resolver el nuevo nombre y hash para el nodo hijo
-              const { nodeName, nodeHash } = await this.identity.resolve(
-                childNode,
-                parent.id,
-              );
-              console.log(
-                `Child node resolved name: ${nodeName} and hash: ${nodeHash}`,
-              );
-
-              console.log(
-                `Copying child node: ${childNode.name} to ${nodeName}`,
-              );
-              console.log(`Child node hash: ${childNode.hash} to ${nodeHash}`);
-
-              const src = path.resolve(cloudRoot, childNode.hash); // Ruta actual del nodo
-              const dest = path.resolve(cloudRoot, nodeHash); // Nueva ruta del nodo copiado
-
-              // Si es un archivo, copiar el archivo en el almacenamiento en la nube
-              await CloudStorageService.copy(src, dest);
-
-              console.log(`Copied file in cloud from ${src} to ${dest}`);
-              // Crear el nodo hijo copiado en la base de datos
-              const newFileNode = await this.repo.createTx(tx, {
-                name: nodeName,
-                parent: { connect: { id: parent.id } },
-                hash: nodeHash,
-                size: childNode.size,
-                mime: childNode.mime,
-                isDir: childNode.isDir,
-              });
-              console.log(`Created new file node: ${newFileNode.name}`);
-
-              // Almacenar el nodo copiado
-              copiedNodes.push(newFileNode);
-            });
-          });
-
-          // Esperar a que todas las copias terminen
-          await Promise.all(copyPromises);
-
-          // Si tiene padre, actualizar el tamaño de todos los ancestros que haya
-          if (copiedDir.parentId)
-            await this.incrementNodeSizeByIdTx(
-              tx,
-              copiedDir.parentId,
-              copiedDir.size,
-            );
-
-          return copiedNodes;
+        return await NodeTreeService.copyNodeDir(node, parentId, {
+          newName,
+          concurrency: 5,
         });
       } else {
-        // Obtenemos la carpeta root (todavía no hay soporte para carpetas)
-        const src = path.resolve(cloudRoot, node.hash); // Ruta actual del nodo
-        const dest = path.resolve(cloudRoot, nodeHash); // Nueva ruta del nodo copiado
-
-        await CloudStorageService.copy(src, dest);
-
-        // Transaccion para "copiar" el nodo en la base de datos
-        return await this.prisma.$transaction(async (tx) => {
-          // Preparamos un resultado para devolver al frontend, ignorando el hash
-          const res = await this.repo.createTx(tx, {
-            name: nodeName,
-            parent: parentId ? { connect: { id: parentId } } : undefined,
-            hash: nodeHash,
-            size: node.size,
-            mime: node.mime,
-            isDir: node.isDir,
-          });
-
-          // Si tiene padre, actualizar el tamaño de todos los ancestros que haya
-          if (parentId)
-            await this.incrementNodeSizeByIdTx(tx, parentId, node.size);
-
-          // Retornamos el nodo copiado
-          return res;
-        });
+        return await NodeTreeService.attachNodeFile(node, parentId, newName);
       }
     } catch (err) {
       console.log(err);
-      if (err instanceof AppError) throw err;
-      else throw new AppError("INTERNAL", "Error al copiar el nodo");
+      if (err instanceof AppError) {
+        throw err;
+      } else {
+        throw new AppError("INTERNAL", "Error al copiar el nodo");
+      }
     }
   }
 

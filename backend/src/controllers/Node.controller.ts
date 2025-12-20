@@ -135,7 +135,6 @@ export class NodeController {
   ) => {
     const { parentId, newName: proposedName } = req.body;
     const node = req.node!;
-    const nodeType = node.isDir ? "directorio" : "archivo";
 
     try {
       // Realizar la copia del nodo
@@ -144,10 +143,6 @@ export class NodeController {
         parentId ?? null,
         proposedName,
       );
-
-      // Responder con el/los nodo(s) copiado(s)
-      if (!result)
-        throw new AppError("INTERNAL", `No se pudo copiar el ${nodeType}`);
 
       // Mapear a DTO y enviar la respuesta
       res.success(
@@ -161,7 +156,7 @@ export class NodeController {
       else
         throw new AppError(
           "INTERNAL",
-          `Ocurrio un error interno al copiar el ${nodeType}`,
+          `No se pudo copiar el ${node.isDir ? "directorio" : "archivo"}`,
         );
     }
   };

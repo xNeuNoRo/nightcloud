@@ -1,5 +1,6 @@
 import buildRelativeNodePath from "./buildRelativePath";
 import ensureNodeExt from "./ensureNodeExt";
+import forEachDepthLevel from "./forEachDepthLevel";
 import genDirectoryHash from "./genDirectoryHash";
 import genFileHash from "./genFileHash";
 
@@ -8,4 +9,5 @@ export class NodeUtils {
   static readonly genDirectoryHash = genDirectoryHash;
   static readonly ensureNodeExt = ensureNodeExt;
   static readonly buildRelativeNodePath = buildRelativeNodePath;
+  static readonly forEachDepthLevel = forEachDepthLevel;
 }
