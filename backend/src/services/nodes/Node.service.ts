@@ -192,8 +192,8 @@ export class NodeService {
   }
 
   /**
-   * @description Elimina un nodo por su ID.
-   * @param nodeId ID del nodo a eliminar
+   * @description Elimina un nodo.
+   * @param node Nodo a eliminar
    */
   static async deleteNode(node: Node) {
     try {
@@ -218,6 +218,57 @@ export class NodeService {
 
       // Eliminar el nodo del sistema de nodos
       await this.cloud.delete(nodePath);
+    } catch (err) {
+      if (err instanceof AppError) throw err;
+      else throw new AppError("INTERNAL", "Error al eliminar el nodo");
+    }
+  }
+
+  /**
+   * @description Elimina un nodo
+   * @param node Nodo a eliminar
+   */
+  static async deleteDirectory(node: Node) {
+    try {
+      if (!node.isDir) {
+        throw new AppError("NODE_IS_NOT_DIRECTORY");
+      }
+
+      // Obtenemos los descendientes de la carpeta (incluyendola)
+      const descendants = await this.repo.getAllNodeDescendants(node.id);
+
+      // Si solo existe la carpeta, hay un solo descendant.
+      if (descendants.length <= 1) {
+        await this.repo.deleteById(node.id);
+        return;
+      }
+
+      // Obtenemos las rutas de los archivos descendientes
+      const nodePaths = descendants
+        .filter((descendant) => !descendant.isDir)
+        .map((node) => this.cloud.getFilePath(node));
+
+      // Eliminamos los archivos
+      await this.cloud.deleteFiles(nodePaths);
+
+      // Usar transacción para actualizar los tamaños
+      await this.prisma.$transaction(async (tx) => {
+        // Si tiene padre, actualizar el tamaño de todos los ancestros que haya
+        if (node.parentId) {
+          const parent = await this.repo.findByIdTx(tx, node.parentId);
+
+          if (parent) {
+            // Actualizar el tamaño de todos los ancestros
+            await this.decrementNodeSizeByIdTx(tx, node.parentId, node.size);
+          }
+        }
+
+        // Eliminamos los archivos y carpetas de la base de datos
+        await this.repo.deleteManyByIdsTx(
+          tx,
+          descendants.map((descendant) => descendant.id),
+        );
+      });
     } catch (err) {
       if (err instanceof AppError) throw err;
       else throw new AppError("INTERNAL", "Error al eliminar el nodo");
