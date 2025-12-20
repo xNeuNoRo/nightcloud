@@ -160,4 +160,41 @@ export class NodeController {
         );
     }
   };
+
+  // Mover un nodo
+  static readonly moveNode = async (
+    req: Request<
+      unknown,
+      unknown,
+      { parentId: string | null; newName?: string }
+    >,
+    res: Response,
+  ) => {
+    const { parentId, newName: proposedName } = req.body;
+    const node = req.node!;
+
+    try {
+      // Realizar el movimiento del nodo
+      const result = await NodeService.moveNode(
+        node,
+        parentId ?? null,
+        proposedName,
+      );
+
+      // Mapear a DTO y enviar la respuesta
+      res.success(
+        Array.isArray(result)
+          ? result.map((n) => toNodeDTO(n))
+          : toNodeDTO(result),
+      );
+    } catch (err) {
+      console.error(err);
+      if (err instanceof AppError) throw err;
+      else
+        throw new AppError(
+          "INTERNAL",
+          `No se pudo mover el ${node.isDir ? "directorio" : "archivo"}`,
+        );
+    }
+  };
 }
