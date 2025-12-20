@@ -146,6 +146,13 @@ export class NodeRepository {
     return fromPrismaNode(res);
   }
 
+  /**
+   * @description Actualiza el nombre de un nodo por su ID dentro de una transaccion
+   * @param id ID del nodo a actualizar
+   * @param identity Nuevo nombre y hash para el nodo
+   * @param newParentId Nuevo ID del nodo padre
+   * @returns Nodo actualizado
+   */
   static async updateIdentityAndParentIdById(
     id: Node["id"],
     identity: { newName: string; newHash: string },
@@ -163,6 +170,14 @@ export class NodeRepository {
     return fromPrismaNode(res);
   }
 
+  /**
+   * @description Actualiza el nombre y hash de un nodo por su ID dentro de una transaccion
+   * @param tx Transaccion de Prisma
+   * @param id ID del nodo a actualizar
+   * @param identity Nuevo nombre y hash para el nodo
+   * @param newParentId Nuevo ID del nodo padre
+   * @returns
+   */
   static async updateIdentityAndParentIdByIdTx(
     tx: PrismaTxClient,
     id: Node["id"],
