@@ -46,7 +46,7 @@ export class NodeTreeService {
         : undefined,
     );
 
-    // Transaccion para "copiar" el nodo en la base de datos
+    // Transacción para "copiar" el nodo en la base de datos
 
     return await this.prisma.$transaction(async (tx) => {
       // Almacenar el nodo copiado
@@ -295,7 +295,7 @@ export class NodeTreeService {
     const src = path.resolve(cloudRoot, node.hash); // Ruta actual del nodo
     const dest = path.resolve(cloudRoot, nodeHash); // Nueva ruta del nodo a mover
 
-    // Transaccion para "mover" el nodo en la base de datos
+    // Transacción para "mover" el nodo en la base de datos
     return await this.prisma.$transaction(async (tx) => {
       // Preparamos un resultado para devolver al frontend, ignorando el hash
       const res = await this.repo.updateIdentityAndParentIdByIdTx(

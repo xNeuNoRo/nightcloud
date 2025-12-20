@@ -70,8 +70,15 @@ export class NodeController {
 
   // Eliminar un nodo
   static readonly deleteNode = async (req: Request, res: Response) => {
+    const node = req.node!;
+
     try {
-      await NodeService.deleteNode(req.node!); // NOSONAR
+      if (node.isDir) {
+        await NodeService.deleteDirectory(node);
+      } else {
+        await NodeService.deleteNode(node); // NOSONAR
+      }
+
       res.success(undefined, 204);
     } catch (err) {
       if (err instanceof AppError) throw err;
