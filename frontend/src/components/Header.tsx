@@ -2,7 +2,7 @@ import { FiSearch } from "react-icons/fi";
 
 export default function Header() {
   return (
-    <header className="flex justify-between items-center p-6 gap-3 bg-transparent border-b border-night-border z-10">
+    <header className="flex justify-between items-center p-8 gap-3 bg-transparent border-b border-night-border z-10">
       <form className="relative w-full">
         <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-night-muted" />
         <input

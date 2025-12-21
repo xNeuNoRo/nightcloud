@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
-import { FaFolder, FaFile, FaHeart, FaArrowUp } from 'react-icons/fa6';
-import { BsCheckLg, BsThreeDots } from 'react-icons/bs';
+import { useState } from 'react';
+import { FaArrowUp } from 'react-icons/fa6';
+import type { NodeType } from '@/types';
+import FileItem from './FileItem';
 
 type FileData = {
   id: number;
@@ -27,10 +28,14 @@ const mockData: FileData[] = [
   { id: 13, name: 'notes.txt', type: 'file', isFavorite: true, synced: true, lastModified: '2024-12-22' },
 ];
 
-const FileTable: React.FC = () => {
-  const [selectedRows, setSelectedRows] = useState<number[]>([]);
+type FileTableProps = {
+  nodes: NodeType[]
+}
 
-  const toggleSelect = (id: number) => {
+export default function FileTable({ nodes }: Readonly<FileTableProps>) {
+  const [selectedRows, setSelectedRows] = useState<string[]>([]);
+
+  const toggleSelect = (id: string) => {
     if (selectedRows.includes(id)) {
       setSelectedRows(selectedRows.filter(rowId => rowId !== id));
     } else {
@@ -39,21 +44,21 @@ const FileTable: React.FC = () => {
   };
 
   const toggleSelectAll = () => {
-    if (selectedRows.length === mockData.length) {
+    if (selectedRows.length === nodes.length) {
       setSelectedRows([]);
     } else {
-      setSelectedRows(mockData.map(item => item.id));
+      setSelectedRows(nodes.map(item => item.id));
     }
   };
 
   return (
     <div className="flex flex-col w-full h-full">
       {/* Header Tabla - shrink-0 para que no se encoja al hacer scroll */}
-      <div className="shrink-0 grid grid-cols-[50px_1fr_100px_100px_180px_50px] items-center px-4 py-3 text-xs font-semibold text-night-muted uppercase tracking-wider border-b border-night-border z-10">
+      <div className="shrink-0 grid grid-cols-[50px_1fr_100px_100px_180px_50px] gap-3 items-center px-4 py-3 text-xs font-semibold text-night-muted uppercase tracking-wider border-b border-night-border z-10">
         <div className="flex justify-center">
           <input 
             type="checkbox" 
-            checked={selectedRows.length === mockData.length && mockData.length > 0}
+            checked={selectedRows.length === nodes.length && nodes.length > 0}
             onChange={toggleSelectAll}
             className="w-4 h-4 rounded border-night-border bg-night-surface text-night-primary focus:ring-offset-night-main cursor-pointer" 
           />
@@ -62,80 +67,23 @@ const FileTable: React.FC = () => {
           Name 
           <FaArrowUp className="opacity-0 group-hover:opacity-100 transition-opacity text-[10px]" />
         </div>
-        <div className="text-center">Status</div>
-        <div className="text-center">Synced</div>
-        <div className="text-center">Last Modified</div>
+        <div className="">Date added</div>
+        <div className="">Type</div>
+        <div className="">Size</div>
         <div></div>
       </div>
 
-      {/* Filas - CAMBIO: Aquí aplicamos el overflow-y-auto */}
+      {/* Filas */}
       <div className="flex-1 overflow-y-auto mt-2 space-y-1 scrollbar-thin scrollbar-thumb-night-border scrollbar-track-transparent pb-2">
-        {mockData.map((item) => {
-          const isSelected = selectedRows.includes(item.id);
-          
-          return (
-            <div 
-              key={item.id} 
-              className={`
-                grid grid-cols-[50px_1fr_100px_100px_180px_50px] items-center px-4 py-3 rounded-lg transition-all duration-200 group border border-transparent
-                ${isSelected ? 'bg-night-primary/10 border-night-primary/20' : 'hover:bg-night-surface hover:border-night-border/50'}
-              `}
-            >
-              {/* Checkbox */}
-              <div className="flex justify-center">
-                <input 
-                  type="checkbox" 
-                  checked={isSelected}
-                  onChange={() => toggleSelect(item.id)}
-                  className="w-4 h-4 rounded border-night-border bg-night-surface text-night-primary focus:ring-offset-night-main cursor-pointer" 
-                />
-              </div>
-              
-              {/* Nombre e Icono */}
-              <div className="flex items-center gap-3 overflow-hidden">
-                {item.type === 'folder' ? (
-                  <FaFolder className="text-xl text-night-primary" />
-                ) : (
-                  <FaFile className="text-xl text-night-muted" />
-                )}
-                <span className={`truncate font-medium ${isSelected ? 'text-white' : 'text-night-text'}`}>
-                  {item.name}
-                </span>
-              </div>
-
-              {/* Status (Heart) */}
-              <div className="flex justify-center">
-                <FaHeart 
-                  className={`text-sm transition-colors ${item.isFavorite ? 'text-night-primary' : 'text-night-border group-hover:text-night-muted'}`} 
-                />
-              </div>
-
-              {/* Synced */}
-              <div className="flex justify-center">
-                {item.synced ? (
-                  <BsCheckLg className="text-lg text-night-success drop-shadow-[0_0_8px_rgba(16,185,129,0.4)]" />
-                ) : (
-                  <span className="text-night-muted">-</span>
-                )}
-              </div>
-
-              {/* Date */}
-              <div className="text-night-muted text-xs font-mono">
-                {item.lastModified}
-              </div>
-
-              {/* Actions */}
-              <div className="flex justify-end">
-                <button className="p-1.5 rounded-full cursor-pointer hover:bg-white/10 text-night-muted hover:text-white transition-colors">
-                  <BsThreeDots className="text-lg" />
-                </button>
-              </div>
-            </div>
-          );
-        })}
+        {nodes.map((node) => (
+          <FileItem 
+            key={node.id}
+            node={node}
+            selectedRows={selectedRows}
+            toggleSelect={toggleSelect}
+          />
+        ))}
       </div>
     </div>
   );
 };
-
-export default FileTable;
