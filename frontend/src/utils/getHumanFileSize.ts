@@ -8,7 +8,7 @@ export default function getHumanFileSize(bytes: number | string | bigint, decima
 
   // Validaciones básicas
   if (value <= 0 || Number.isNaN(value)) {
-    return '0 Bytes';
+    return '—';
   }
 
   const k = 1024;
