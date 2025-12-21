@@ -4,7 +4,8 @@ import {
   createFileNode,
 } from "@/domain/nodes/node.factory";
 import type { Node as PrismaNode } from "@/infra/prisma/generated/client";
-import { AncestorRow, DescendantRow } from "../prisma/types";
+
+import type { AncestorRow, DescendantRow } from "../prisma/types";
 
 /**
  * @description Mapea un nodo Prisma a un nodo de dominio.

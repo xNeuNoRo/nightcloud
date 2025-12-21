@@ -1,13 +1,16 @@
-import pLimit, { LimitFunction } from "p-limit";
 import path from "node:path";
+import type { LimitFunction } from "p-limit";
+import pLimit from "p-limit";
+
 import { DB } from "@/config/db";
-import { AppError, NodeUtils } from "@/utils";
-import { DirectoryNode, FileNode, Node } from "@/domain/nodes/node";
-import { DescendantRow } from "@/infra/prisma/types";
-import { NodeRepository } from "@/repositories/NodeRepository";
-import { NodeIdentityService } from "./NodeIdentity.service";
-import { PrismaTxClient } from "@/types/prisma";
+import type { DirectoryNode, FileNode, Node } from "@/domain/nodes/node";
 import { fromDescendantRow } from "@/infra/mappers/node.mapper";
+import type { DescendantRow } from "@/infra/prisma/types";
+import { NodeRepository } from "@/repositories/NodeRepository";
+import type { PrismaTxClient } from "@/types/prisma";
+import { AppError, NodeUtils } from "@/utils";
+
+import { NodeIdentityService } from "./NodeIdentity.service";
 import { CloudStorageService } from "../cloud/CloudStorage.service";
 
 export class NodeTreeService {
