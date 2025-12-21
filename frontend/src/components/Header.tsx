@@ -8,6 +8,7 @@ export default function Header() {
         <input
           type="text"
           className="bg-night-surface border border-night-border rounded-lg py-2 pl-10 pr-3 focus:outline-none focus:ring-2 focus:ring-night-primary focus:border-transparent w-120 text-night-text placeholder-night-muted"
+          placeholder="Search..."
         />
       </form>
 
