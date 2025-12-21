@@ -1,30 +1,23 @@
-import { useState } from "react";
 import { FaArrowUp } from "react-icons/fa6";
 import type { NodeType } from "@/types";
-import FileItem from "./FileItem";
+import { useAppStore } from "@/stores/useAppStore";
+import NodeDir from "@/components/NodeDir";
+import NodeFile from "@/components/NodeFile";
 
 // TODO: Adaptar el backend para los favoritos, fecha de creacion y modificacion.
 
-type FileTableProps = {
+type NodeTableProps = {
   nodes: NodeType[];
 };
 
-export default function FileTable({ nodes }: Readonly<FileTableProps>) {
-  const [selectedRows, setSelectedRows] = useState<string[]>([]);
-
-  const toggleSelect = (id: string) => {
-    if (selectedRows.includes(id)) {
-      setSelectedRows(selectedRows.filter((rowId) => rowId !== id));
-    } else {
-      setSelectedRows([...selectedRows, id]);
-    }
-  };
+export default function NodeTable({ nodes }: Readonly<NodeTableProps>) {
+  const { selectedNodes, setSelectedNodes, clearSelectedNodes } = useAppStore();
 
   const toggleSelectAll = () => {
-    if (selectedRows.length === nodes.length) {
-      setSelectedRows([]);
+    if (selectedNodes.length === nodes.length) {
+      clearSelectedNodes();
     } else {
-      setSelectedRows(nodes.map((item) => item.id));
+      setSelectedNodes(nodes);
     }
   };
 
@@ -35,7 +28,7 @@ export default function FileTable({ nodes }: Readonly<FileTableProps>) {
         <div className="flex justify-center">
           <input
             type="checkbox"
-            checked={selectedRows.length === nodes.length && nodes.length > 0}
+            checked={selectedNodes.length === nodes.length && nodes.length > 0}
             onChange={toggleSelectAll}
             className="w-4 h-4 rounded border-night-border bg-night-surface text-night-primary focus:ring-offset-night-main cursor-pointer"
           />
@@ -47,19 +40,23 @@ export default function FileTable({ nodes }: Readonly<FileTableProps>) {
         <div>Date added</div>
         <div>Type</div>
         <div>Size</div>
-        <div></div>
       </div>
 
       {/* Filas */}
       <div className="flex-1 overflow-y-auto mt-2 space-y-1 scrollbar-thin scrollbar-thumb-night-border scrollbar-track-transparent pb-2">
-        {nodes.map((node) => (
-          <FileItem
-            key={node.id}
-            node={node}
-            selectedRows={selectedRows}
-            toggleSelect={toggleSelect}
-          />
-        ))}
+        {nodes.length > 0 ? (
+          nodes.map((node) => {
+            return node.isDir ? (
+              <NodeDir key={node.id} node={node} />
+            ) : (
+              <NodeFile key={node.id} node={node} />
+            );
+          })
+        ) : (
+          <div className="text-center text-night-muted text-xl mt-20">
+            No files found
+          </div>
+        )}
       </div>
     </div>
   );

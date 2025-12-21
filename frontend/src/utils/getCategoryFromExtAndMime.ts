@@ -3,6 +3,11 @@ import { FileCategory } from "@/data/fileCategories";
 import { extToCategory } from "@/data/extCategories";
 import { extCatOverride } from "@/data/extCategoriesOverrides";
 
+/**
+ * @description Obtiene la categoría de archivo basada en el MIME proporcionado.
+ * @param mime - El tipo MIME del archivo.
+ * @returns La categoría de archivo correspondiente.
+ */
 export function getCategoryFromMime(mime: string): FileCategory {
   if (!mime) return FileCategory.Unknown;
 
