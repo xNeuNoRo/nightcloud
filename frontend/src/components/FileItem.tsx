@@ -1,6 +1,8 @@
-import type { NodeType } from "@/types";
 import { BsThreeDots } from 'react-icons/bs';
 import { FaFolder, FaFile } from 'react-icons/fa6';
+import type { NodeType } from "@/types";
+import getHumanFileType from '@/utils/getHumanFileType';
+import getHumanFileSize from '@/utils/getHumanFileSize';
 
 type FileItemProps = {
   node: NodeType,
@@ -45,11 +47,11 @@ export default function FileItem({ node, selectedRows, toggleSelect }: Readonly<
       </div>
 
       <div className="flex">
-        <span className="text-night-muted font-mono text-sm">{node.mime}</span>
+        <span className="text-night-muted font-mono text-sm">{getHumanFileType(node.mime)}</span>
       </div>
 
       <div className="flex">
-        <span className="text-night-muted font-mono text-sm">{node.size}</span>
+        <span className="text-night-muted font-mono text-sm">{getHumanFileSize(node.size)}</span>
       </div>
       
       {/* Actions */}
