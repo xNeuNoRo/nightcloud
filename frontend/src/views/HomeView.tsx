@@ -1,7 +1,20 @@
-import FileTable from "@/components/FileTable";
+import { useEffect, useState } from "react";
 import { FaFolderPlus } from "react-icons/fa";
+import type { NodeType } from "@/types";
+import FileTable from "@/components/FileTable";
+import { getNodesFromRoot } from "@/api/NodeAPI";
 
 export default function HomeView() {
+  const [nodes, setNodes] = useState<NodeType[]>([]);
+
+  useEffect(() => {
+    const getNodes = async () => {
+      setNodes(await getNodesFromRoot())
+    }
+
+    getNodes();
+  }, []);
+
   return (
     <>
       <div className="flex flex-col gap-4">
@@ -19,7 +32,7 @@ export default function HomeView() {
 
       {/* El contenedor de la tabla crece para ocupar el resto del espacio */}
       <div className="flex-1 min-h-0">
-        <FileTable />
+        <FileTable nodes={nodes}/>
       </div>
     </>
   );
