@@ -1,16 +1,17 @@
 import { DB } from "@/config/db";
 import type { Node } from "@/domain/nodes/node";
 import type { UploadedFile } from "@/domain/uploads/uploaded-file";
+import { isDirectoryNode } from "@/infra/guards/node";
 import type { Prisma } from "@/infra/prisma/generated/client";
+import type { AncestorRow } from "@/infra/prisma/types";
 import { NodeRepository } from "@/repositories/NodeRepository";
 import type { PrismaTxClient } from "@/types/prisma";
 import { AppError, NodeUtils } from "@/utils";
 
 import { NodeIdentityService } from "./NodeIdentity.service";
 import { NodePersistenceService } from "./NodePersistence.service";
-import { CloudStorageService } from "../cloud/CloudStorage.service";
-import { isDirectoryNode } from "@/infra/guards/node";
 import { NodeTreeService } from "./NodeTree.service";
+import { CloudStorageService } from "../cloud/CloudStorage.service";
 
 /**
  * @description Servicio para gestionar nodos (archivos y directorios).
@@ -82,6 +83,17 @@ export class NodeService {
    */
   static async getNodeById(nodeId: Node["id"]): Promise<Node | null> {
     return await this.repo.findById(nodeId);
+  }
+
+  /**
+   * @description Obtiene todos los ancestros de un nodo dado.
+   * @param startNodeId ID del nodo desde el cual comenzar a buscar ancestros
+   * @returns Array de ancestros del nodo
+   */
+  static async getNodeAncestors(
+    startNodeId: Node["id"],
+  ): Promise<AncestorRow[]> {
+    return await this.repo.getAllNodeAncestors(startNodeId);
   }
 
   /**

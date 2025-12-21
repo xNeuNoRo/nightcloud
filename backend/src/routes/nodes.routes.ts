@@ -80,6 +80,14 @@ router.post(
   NodeController.moveNode,
 );
 
+router.get(
+  "/:nodeId/ancestors",
+  NodeValidators.nodeIdValidator,
+  validateRequest,
+  nodeExists,
+  NodeController.getNodeAncestors,
+);
+
 // Obtener nodos de un directorio en especifico
 router.get(
   "/:nodeId",

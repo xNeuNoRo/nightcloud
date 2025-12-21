@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
 
-import { toNodeDTO } from "@/infra/mappers/node.dto-mapper";
+import { toAncestorDTO, toNodeDTO } from "@/infra/mappers/node.dto-mapper";
 import { DownloadService } from "@/services/download/Download.service";
 import { NodeService } from "@/services/nodes/Node.service";
 import { AppError, NodeUtils } from "@/utils";
@@ -65,6 +65,22 @@ export class NodeController {
         "INTERNAL",
         `Error al obtener los nodos de ${req.node!.name}`,
       );
+    }
+  };
+
+  static readonly getNodeAncestors = async (req: Request, res: Response) => {
+    const node = req.node!;
+
+    try {
+      const ancestors = await NodeService.getNodeAncestors(node.id);
+      res.success(ancestors.map((n) => toAncestorDTO(n)));
+    } catch (err) {
+      if (err instanceof AppError) throw err;
+      else
+        throw new AppError(
+          "INTERNAL",
+          `Error al obtener todo lo relacionado a ${node.name}`,
+        );
     }
   };
 
