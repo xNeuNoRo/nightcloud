@@ -1,19 +1,21 @@
 import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 import { FaFolderPlus } from "react-icons/fa";
 import type { NodeType } from "@/types";
 import FileTable from "@/components/FileTable";
-import { getNodesFromRoot } from "@/api/NodeAPI";
+import { getNodesFromDir, getNodesFromRoot } from "@/api/NodeAPI";
 
 export default function HomeView() {
   const [nodes, setNodes] = useState<NodeType[]>([]);
+  const { nodeId } = useParams();
 
   useEffect(() => {
     const getNodes = async () => {
-      setNodes(await getNodesFromRoot())
+      setNodes(nodeId ? await getNodesFromDir(nodeId) : await getNodesFromRoot());
     }
 
     getNodes();
-  }, []);
+  }, [nodeId]);
 
   return (
     <>
