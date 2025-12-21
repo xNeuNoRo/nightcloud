@@ -23,7 +23,7 @@ export default function Sidebar() {
       </div>
 
       {/* Upload Button */}
-      <button className="flex items-center justify-center gap-2 bg-night-primary hover:bg-night-primary-hover hover:cursor-pointer transition-all duration-200 rounded-lg py-3 px-4 mt-8 w-full text-night-text font-semibold shadow-[0_0_15px_rgba(99,102,241,0.3)]">
+      <button className="flex items-center justify-center gap-2 bg-night-primary hover:bg-night-primary-hover hover:cursor-pointer transition-all duration-200 rounded-lg py-3 px-4 mt-8 w-full text-night-text font-semibold">
         <FiUpload size={18} />
         Upload Files
       </button>

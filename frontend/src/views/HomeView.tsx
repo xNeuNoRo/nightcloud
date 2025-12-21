@@ -4,8 +4,8 @@ import { FaFolderPlus } from "react-icons/fa";
 export default function HomeView() {
   return (
     <>
-      <div className="flex flex-col h-full gap-4">
-        <div className="flex items-center justify-between h-14 px-4 shrink-0">
+      <div className="flex flex-col gap-4">
+        <div className="flex items-center justify-between h-14 px-4 shrink-0 mb-4">
           <h1 className="text-xl font-bold leading-none">My Files</h1>
 
           <div className="flex items-center gap-3">
@@ -15,16 +15,6 @@ export default function HomeView() {
             </button>
           </div>
         </div>
-      </div>
-
-      {/* El contenedor de la tabla crece para ocupar el resto del espacio */}
-      <div className="flex-1 min-h-0">
-        <FileTable />
-      </div>
-
-      {/* El contenedor de la tabla crece para ocupar el resto del espacio */}
-      <div className="flex-1 min-h-0">
-        <FileTable />
       </div>
 
       {/* El contenedor de la tabla crece para ocupar el resto del espacio */}
