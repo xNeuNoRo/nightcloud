@@ -54,7 +54,7 @@ export default function FileTable({ nodes }: Readonly<FileTableProps>) {
   return (
     <div className="flex flex-col w-full h-full">
       {/* Header Tabla - shrink-0 para que no se encoja al hacer scroll */}
-      <div className="shrink-0 grid grid-cols-[50px_1fr_100px_100px_180px_50px] gap-3 items-center px-4 py-3 text-xs font-semibold text-night-muted uppercase tracking-wider border-b border-night-border z-10">
+      <div className="shrink-0 grid grid-cols-[50px_1fr_100px_100px_180px_50px] gap-4 items-center px-4 py-3 text-xs font-semibold text-night-muted uppercase tracking-wider border-b border-night-border z-10">
         <div className="flex justify-center">
           <input 
             type="checkbox" 

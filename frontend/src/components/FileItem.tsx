@@ -16,7 +16,7 @@ export default function FileItem({ node, selectedRows, toggleSelect }: Readonly<
   return (
     <div 
       className={`
-      grid grid-cols-[50px_1fr_100px_100px_180px_50px] gap-3 items-center px-4 py-3 rounded-lg transition-all duration-200 group border border-transparent
+      grid grid-cols-[50px_1fr_100px_100px_180px_50px] gap-4 items-center px-4 py-3 rounded-lg transition-all duration-200 group border border-transparent
       ${isSelected ? 'bg-night-primary/10 border-night-primary/20' : 'hover:bg-night-surface hover:border-night-border/50'}
       `}
     >
