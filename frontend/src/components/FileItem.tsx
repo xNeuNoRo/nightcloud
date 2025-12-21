@@ -3,6 +3,7 @@ import { FaFolder, FaFile } from 'react-icons/fa6';
 import type { NodeType } from "@/types";
 import getHumanFileType from '@/utils/getHumanFileType';
 import getHumanFileSize from '@/utils/getHumanFileSize';
+import { Link } from 'react-router-dom';
 
 type FileItemProps = {
   node: NodeType,
@@ -33,13 +34,20 @@ export default function FileItem({ node, selectedRows, toggleSelect }: Readonly<
       {/* Nombre e Icono */}
       <div className="flex items-center gap-3 overflow-hidden">
         {node.isDir ? (
+          <>
             <FaFolder className="text-xl text-night-primary" />
+            <Link to={`/${node.id}`} className={`truncate font-medium ${isSelected ? 'text-white' : 'text-night-text'}`}>
+                {node.name}
+            </Link>
+          </>
         ) : (
+          <>
             <FaFile className="text-xl text-night-muted" />
+            <span className={`truncate font-medium ${isSelected ? 'text-white' : 'text-night-text'}`}>
+              {node.name}
+            </span>
+          </>
         )}
-        <span className={`truncate font-medium ${isSelected ? 'text-white' : 'text-night-text'}`}>
-            {node.name}
-        </span>
       </div>
 
       <div className="flex">

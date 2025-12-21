@@ -67,9 +67,9 @@ export default function FileTable({ nodes }: Readonly<FileTableProps>) {
           Name 
           <FaArrowUp className="opacity-0 group-hover:opacity-100 transition-opacity text-[10px]" />
         </div>
-        <div className="">Date added</div>
-        <div className="">Type</div>
-        <div className="">Size</div>
+        <div>Date added</div>
+        <div>Type</div>
+        <div>Size</div>
         <div></div>
       </div>
 
