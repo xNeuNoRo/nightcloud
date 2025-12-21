@@ -1,8 +1,7 @@
 import { FiUpload } from "react-icons/fi";
 import { FaFolder, FaTrash } from "react-icons/fa6"; // Iconos para el menú
 import Logo from "./Logo";
-import { NavLink } from "react-router-dom";
-import classNames from "@/utils/classNames";
+import SidebarItem from "./SidebarItem";
 
 const menuItems = [
   { icon: FaFolder, label: "My Files", url: "/" },
@@ -29,22 +28,7 @@ export default function Sidebar() {
         </h3>
         <ul className="space-y-2">
           {menuItems.map((item) => (
-            <li key={item.label}>
-              <NavLink
-                to={item.url}
-                className={({ isActive }) =>
-                  classNames(
-                    isActive
-                      ? "bg-night-primary/10 text-night-primary border border-night-primary/20"
-                      : "text-night-muted hover:text-night-text hover:bg-white/5",
-                    "flex items-center gap-3 px-4 py-3 rounded-lg transition-colors duration-200 font-medium"
-                  )
-                }
-              >
-                <item.icon size={18} />
-                {item.label}
-              </NavLink>
-            </li>
+            <SidebarItem key={item.label} item={item} />
           ))}
         </ul>
       </nav>
