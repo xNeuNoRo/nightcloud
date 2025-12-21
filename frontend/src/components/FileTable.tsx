@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { FaFolder, FaFile, FaHeart, FaArrowUp } from 'react-icons/fa6';
 import { BsCheckLg, BsThreeDots } from 'react-icons/bs';
 
-interface FileData {
+type FileData = {
   id: number;
   name: string;
   type: 'folder' | 'file';
@@ -23,6 +23,8 @@ const mockData: FileData[] = [
   { id: 9, name: 'presupuesto_2025.pdf', type: 'file', isFavorite: false, synced: true, lastModified: '2024-12-20' },
   { id: 10, name: 'presupuesto_2025.pdf', type: 'file', isFavorite: false, synced: true, lastModified: '2024-12-20' },
   { id: 11, name: 'presupuesto_2025.pdf', type: 'file', isFavorite: false, synced: true, lastModified: '2024-12-20' },
+  { id: 12, name: 'backend_v2.zip', type: 'file', isFavorite: false, synced: true, lastModified: '2024-12-21' },
+  { id: 13, name: 'notes.txt', type: 'file', isFavorite: true, synced: true, lastModified: '2024-12-22' },
 ];
 
 const FileTable: React.FC = () => {
@@ -45,9 +47,9 @@ const FileTable: React.FC = () => {
   };
 
   return (
-    <div className="w-full">
-      {/* Header Tabla */}
-      <div className="grid grid-cols-[50px_1fr_100px_100px_180px_50px] items-center px-4 py-3 text-xs font-semibold text-night-muted uppercase tracking-wider border-b border-night-border">
+    <div className="flex flex-col w-full h-full">
+      {/* Header Tabla - shrink-0 para que no se encoja al hacer scroll */}
+      <div className="shrink-0 grid grid-cols-[50px_1fr_100px_100px_180px_50px] items-center px-4 py-3 text-xs font-semibold text-night-muted uppercase tracking-wider border-b border-night-border z-10">
         <div className="flex justify-center">
           <input 
             type="checkbox" 
@@ -66,8 +68,8 @@ const FileTable: React.FC = () => {
         <div></div>
       </div>
 
-      {/* Filas */}
-      <div className="mt-2 space-y-1">
+      {/* Filas - CAMBIO: Aquí aplicamos el overflow-y-auto */}
+      <div className="flex-1 overflow-y-auto mt-2 space-y-1 scrollbar-thin scrollbar-thumb-night-border scrollbar-track-transparent pb-2">
         {mockData.map((item) => {
           const isSelected = selectedRows.includes(item.id);
           
@@ -117,14 +119,14 @@ const FileTable: React.FC = () => {
                 )}
               </div>
 
-              {/* Date - Usando font-mono (JetBrains Mono) */}
+              {/* Date */}
               <div className="text-night-muted text-xs font-mono">
                 {item.lastModified}
               </div>
 
               {/* Actions */}
               <div className="flex justify-end">
-                <button className="p-1.5 rounded-ful cursor-pointer hover:bg-white/10 text-night-muted hover:text-white transition-colors">
+                <button className="p-1.5 rounded-full cursor-pointer hover:bg-white/10 text-night-muted hover:text-white transition-colors">
                   <BsThreeDots className="text-lg" />
                 </button>
               </div>
