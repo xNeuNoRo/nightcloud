@@ -42,10 +42,10 @@ export default function Modal({
           <div className="flex items-center justify-center min-h-full p-4 text-center">
             <TransitionChild
               as={Fragment}
-              enter="ease-out duration-300"
+              enter="ease-out duration-150"
               enterFrom="opacity-0 scale-5"
               enterTo="opacity-100 scale-100"
-              leave="ease-in duration-200"
+              leave="ease-in duration-150"
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-5"
             >
