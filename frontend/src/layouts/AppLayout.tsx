@@ -23,7 +23,7 @@ export default function AppLayout() {
         <Header />
         
         <div className="flex-1 flex flex-col overflow-hidden p-8">
-          <div className="w-full h-full max-w-7xl mx-auto flex flex-col">
+          <div className="w-full h-full mx-auto flex flex-col">
             <Outlet />
           </div>
         </div>

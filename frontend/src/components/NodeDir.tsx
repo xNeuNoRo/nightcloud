@@ -14,7 +14,7 @@ type FileItemProps = {
 };
 
 export default function FileItem({ node }: Readonly<FileItemProps>) {
-  const { selectedNodes, addSelectedNodes, removeSelectedNode } = useAppStore();
+  const { selectedNodes, setSelectedNodes, addSelectedNodes, removeSelectedNode } = useAppStore();
   const isSelected = useMemo(() => {
     return selectedNodes.some((n) => n.id === node.id);
   }, [selectedNodes, node.id]);
@@ -43,7 +43,7 @@ export default function FileItem({ node }: Readonly<FileItemProps>) {
             : "hover:bg-night-surface hover:border-night-border/50"
         }
       `}
-      onClick={() => toggleSelect(node)}
+      onClick={() => setSelectedNodes([node])}
       onDoubleClick={() => navigate(`/directory/${node.id}`)}
     >
       {/* Checkbox */}
@@ -51,7 +51,10 @@ export default function FileItem({ node }: Readonly<FileItemProps>) {
         <input
           type="checkbox"
           checked={isSelected}
-          onChange={() => toggleSelect(node)}
+          onClick={(e) => {
+            e.stopPropagation();
+            toggleSelect(node)
+          }}
           className="w-4 h-4 rounded border-night-border bg-night-surface text-night-primary focus:ring-offset-night-main cursor-pointer"
         />
       </div>
