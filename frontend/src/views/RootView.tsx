@@ -1,19 +1,33 @@
-import { useEffect, useState } from "react";
 import { FaFolderPlus } from "react-icons/fa";
-import type { NodeType } from "@/types";
-import FileTable from "@/components/FileTable";
+import FileTable from "@/components/NodeTable";
 import { getNodesFromRoot } from "@/api/NodeAPI";
+import { useQuery } from "@tanstack/react-query";
 
-export default function HomeView() {
-  const [nodes, setNodes] = useState<NodeType[]>([]);
+export default function DirectoryView() {
+  const { data, isLoading, error } = useQuery({
+    queryFn: getNodesFromRoot,
+    queryKey: ["nodes", "root"],
+    retry: 1,
+  });
 
-  useEffect(() => {
-    const getNodes = async () => {
-      setNodes(await getNodesFromRoot())
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>Error loading files.</div>;
+  }
+
+  if (!data) {
+    return;
+  }
+
+  const sortedData = Array.from(data).sort((a, b) => {
+    if (a.isDir === b.isDir) {
+      return a.name.localeCompare(b.name);
     }
-
-    getNodes();
-  }, []);
+    return a.isDir ? -1 : 1;
+  });
 
   return (
     <>
@@ -32,8 +46,8 @@ export default function HomeView() {
 
       {/* El contenedor de la tabla crece para ocupar el resto del espacio */}
       <div className="flex-1 min-h-0">
-        <FileTable nodes={nodes}/>
+        <FileTable nodes={sortedData} />
       </div>
     </>
-  );
+  )
 }

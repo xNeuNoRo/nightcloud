@@ -1,8 +1,17 @@
+import { useEffect } from "react";
+import { Outlet, useParams } from "react-router-dom";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
-import { Outlet } from "react-router-dom";
+import { useAppStore } from "@/stores/useAppStore";
 
 export default function AppLayout() {
+  const params = useParams();
+  const { setSelectedNodes } = useAppStore();
+
+  useEffect(() => {
+    setSelectedNodes([]);
+  }, [params, setSelectedNodes])
+
   return (
     // bg-night-main usa tu variable --color-night-main
     <div className="flex h-screen w-full bg-night-main text-night-text overflow-hidden relative font-sans">
@@ -23,7 +32,7 @@ export default function AppLayout() {
         <Header />
         
         <div className="flex-1 flex flex-col overflow-hidden p-8">
-          <div className="w-full h-full max-w-7xl mx-auto flex flex-col">
+          <div className="w-full h-full mx-auto flex flex-col">
             <Outlet />
           </div>
         </div>

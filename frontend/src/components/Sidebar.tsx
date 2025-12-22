@@ -1,26 +1,19 @@
-import { CiCloudOn } from "react-icons/ci";
 import { FiUpload } from "react-icons/fi";
 import { FaFolder, FaTrash } from "react-icons/fa6"; // Iconos para el menú
+import Logo from "./Logo";
+import SidebarItem from "./SidebarItem";
+
+const menuItems = [
+  { icon: FaFolder, label: "My Files", url: "/" },
+  { icon: FaTrash, label: "Trash", url: "/trash" },
+];
 
 export default function Sidebar() {
-  const menuItems = [
-    { icon: FaFolder, label: "My Files", active: true },
-    { icon: FaTrash, label: "Trash", active: false },
-  ];
-
   return (
     // Usamos h-full para que ocupe toda la altura del contenedor padre en AppLayout
     <aside className="w-64 h-full bg-night-surface/90 backdrop-blur-md border-r border-night-border p-6 flex flex-col">
       {/* Logo */}
-      <div className="flex items-center gap-2">
-        <CiCloudOn
-          size={40}
-          className="text-night-primary drop-shadow-[0_0_8px_var(--color-night-primary)]"
-        />
-        <span className="text-2xl font-bold text-night-text font-display tracking-tight">
-          NightCloud
-        </span>
-      </div>
+      <Logo />
 
       {/* Upload Button */}
       <button className="flex items-center justify-center gap-2 bg-night-primary hover:bg-night-primary-hover hover:cursor-pointer transition-all duration-200 rounded-lg py-3 px-4 mt-8 w-full text-night-text font-semibold">
@@ -35,19 +28,7 @@ export default function Sidebar() {
         </h3>
         <ul className="space-y-2">
           {menuItems.map((item) => (
-            <li key={item.label}>
-              <a
-                href="#"
-                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors duration-200 font-medium ${
-                  item.active
-                    ? "bg-night-primary/10 text-night-primary border border-night-primary/20"
-                    : "text-night-muted hover:text-night-text hover:bg-white/5"
-                }`}
-              >
-                <item.icon size={18} />
-                {item.label}
-              </a>
-            </li>
+            <SidebarItem key={item.label} item={item} />
           ))}
         </ul>
       </nav>
