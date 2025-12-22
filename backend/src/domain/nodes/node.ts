@@ -30,7 +30,7 @@ export interface FileNode extends NodeBase {
 }
 
 /**
- * @description Versión ligera de FileNode para evitar importar Date
+ * @description Versión ligera de FileNode para evitar importar metadatos timestamp
  */
 export interface FileNodeLite extends Pick<
   FileNode,
@@ -48,7 +48,7 @@ export interface DirectoryNode extends NodeBase {
 }
 
 /**
- * @description Versión ligera de DirectoryNode para evitar importar Date
+ * @description Versión ligera de DirectoryNode para evitar importar metadatos timestamp
  */
 export interface DirectoryNodeLite extends Pick<
   DirectoryNode,

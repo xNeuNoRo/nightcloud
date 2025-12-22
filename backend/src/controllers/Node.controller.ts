@@ -38,7 +38,7 @@ export class NodeController {
   };
 
   // Obtener todos los nodos desde la raiz
-  static readonly getNodesFromRoot = async (req: Request, res: Response) => {
+  static readonly getNodesFromRoot = async (_req: Request, res: Response) => {
     try {
       const nodes = await NodeService.getAllNodes(null);
       res.success(nodes.map((n) => toNodeDTO(n)));
@@ -79,7 +79,7 @@ export class NodeController {
       else
         throw new AppError(
           "INTERNAL",
-          `Error al obtener todo lo relacionado a ${node.name}`,
+          `Error al obtener los ancestros de ${node.name}`,
         );
     }
   };
