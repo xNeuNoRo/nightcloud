@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { BsThreeDots } from "react-icons/bs";
 import { FaFolder } from "react-icons/fa6";
 import type { NodeType } from "@/types";
@@ -6,7 +7,6 @@ import getHumanFileSize from "@/utils/getHumanFileSize";
 import { getCategoryFromMime } from "@/utils/getCategoryFromExtAndMime";
 import { FileCategoryIcons } from "@/data/fileCategoryIcons";
 import { useAppStore } from "@/stores/useAppStore";
-import { useMemo } from "react";
 
 type FileItemProps = {
   node: NodeType;
