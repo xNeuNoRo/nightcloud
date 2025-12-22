@@ -1,12 +1,16 @@
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { FaFolderPlus } from "react-icons/fa";
-import FileTable from "@/components/NodeTable";
+import FileTable from "@/components/node/NodeTable";
 import buildBreadcrumbs from "@/utils/buildBreadcrumbs";
 import { useNode } from "@/hooks/useNode";
 import Breadcrumb from "@/components/Breadcrumb";
+import CreateFolderModal from "@/components/node/CreateFolderModal";
 
 export default function DirectoryView() {
   const { nodeId } = useParams();
+  const navigate = useNavigate();
+  const openModal = () => navigate(location.pathname + "?createFolder=true");
+
   const {
     nodeData,
     nodeLoading,
@@ -46,7 +50,10 @@ export default function DirectoryView() {
           </div>
 
           <div className="flex items-center gap-3">
-            <button className="flex items-center gap-3 bg-night-primary hover:bg-night-primary-hover hover:cursor-pointer transition duration-200 rounded-lg py-2 px-4 text-night-text font-semibold">
+            <button
+              className="flex items-center gap-3 bg-night-primary hover:bg-night-primary-hover hover:cursor-pointer transition duration-200 rounded-lg py-2 px-4 text-night-text font-semibold"
+              onClick={openModal}
+            >
               <FaFolderPlus size={18} />
               Create Folder
             </button>
@@ -58,6 +65,8 @@ export default function DirectoryView() {
       <div className="flex-1 min-h-0">
         <FileTable nodes={nodeData} />
       </div>
+
+      <CreateFolderModal />
     </>
   );
 }

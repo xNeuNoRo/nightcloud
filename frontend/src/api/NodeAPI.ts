@@ -2,11 +2,17 @@ import { isAxiosError } from "axios";
 import { api } from "@/lib/axios";
 import {
   ancestorsSchema,
+  nodeSchema,
   nodesSchema,
   type AncestorType,
+  type NodeFolderFormData,
   type NodeType,
 } from "@/types";
 import validateApiRes from "@/utils/validateApiRes";
+
+type NodeAPIType = {
+  folderFormData: NodeFolderFormData & { parentId?: NodeType["id"] };
+};
 
 /**
  * @description Obtener los nodos desde la raíz
@@ -69,6 +75,32 @@ export async function getAncestorsOfNodeById(
       return apiRes.data;
     } else {
       throw new Error("Error al obtener los ancestros del nodo");
+    }
+  } catch (err) {
+    if (isAxiosError(err) && err.response) {
+      throw new Error(err.response.data.error.message);
+    } else throw err;
+  }
+}
+
+export async function createNodeFolder({
+  parentId,
+  name,
+}: NodeAPIType["folderFormData"]): Promise<NodeType> {
+  try {
+    const { data } = await api.post("/nodes", {
+      parentId,
+      name,
+      isDir: true,
+    });
+    console.log(data)
+    console.log(validateApiRes(data))
+    const apiRes = nodeSchema.safeParse(validateApiRes(data).data);
+
+    if (apiRes.success) {
+      return apiRes.data;
+    } else {
+      throw new Error("Error al crear la carpeta");
     }
   } catch (err) {
     if (isAxiosError(err) && err.response) {

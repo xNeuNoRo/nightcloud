@@ -3,7 +3,9 @@ import { z } from "zod";
 // Schema para respuestas estandarizadas de la API
 export const apiResponseSchema = z.object({
   ok: z.boolean(),
-  data: z.object().or(z.array(z.any())).optional(),
+  data: z
+    .union([z.record(z.any(), z.any()), z.array(z.record(z.any(), z.any()))])
+    .optional(),
   error: z
     .object({
       code: z.string(),
@@ -51,3 +53,6 @@ export const nodesSchema = z.array(nodeSchema);
 export type ApiResponseType = z.infer<typeof apiResponseSchema>;
 export type NodeType = z.infer<typeof nodeSchema>;
 export type AncestorType = z.infer<typeof ancestorSchema>;
+
+// Tipo para el formulario de creación de carpetas
+export type NodeFolderFormData = Pick<NodeType, "name">;

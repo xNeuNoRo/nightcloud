@@ -1,8 +1,8 @@
 import { FaArrowUp } from "react-icons/fa6";
 import type { NodeType } from "@/types";
 import { useAppStore } from "@/stores/useAppStore";
-import NodeDir from "@/components/NodeDir";
-import NodeFile from "@/components/NodeFile";
+import NodeDir from "@/components/node/NodeDir";
+import NodeFile from "@/components/node/NodeFile";
 
 // TODO: Adaptar el backend para los favoritos, fecha de creacion y modificacion.
 
