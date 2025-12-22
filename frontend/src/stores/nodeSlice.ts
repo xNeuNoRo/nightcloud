@@ -3,6 +3,7 @@ import type { NodeType } from "@/types/index";
 
 export type NodeSliceType = {
   selectedNodes: NodeType[];
+  addSelectedNodes: (nodes: NodeType[]) => void;
   setSelectedNodes: (nodes: NodeType[]) => void;
   removeSelectedNode: (nodeId: NodeType["id"]) => void;
   clearSelectedNodes: () => void;
@@ -10,8 +11,11 @@ export type NodeSliceType = {
 
 export const createNodeSlice: StateCreator<NodeSliceType> = (set) => ({
   selectedNodes: [],
-  setSelectedNodes: (nodes) => {
+  addSelectedNodes: (nodes) => {
     set((prev) => ({ selectedNodes: [...prev.selectedNodes, ...nodes] }));
+  },
+  setSelectedNodes: (nodes) => {
+    set(() => ({ selectedNodes: nodes }));
   },
   removeSelectedNode: (nodeId: NodeType["id"]) => {
     set((prev) => ({
@@ -21,4 +25,5 @@ export const createNodeSlice: StateCreator<NodeSliceType> = (set) => ({
   clearSelectedNodes: () => {
     set(() => ({ selectedNodes: [] }));
   },
+  
 });

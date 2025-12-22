@@ -3,7 +3,6 @@ import { FaFolder } from "react-icons/fa6";
 import type { NodeType } from "@/types";
 import getHumanFileType from "@/utils/getHumanFileType";
 import getHumanFileSize from "@/utils/getHumanFileSize";
-import { Link } from "react-router-dom";
 import { getCategoryFromMime } from "@/utils/getCategoryFromExtAndMime";
 import { FileCategoryIcons } from "@/data/fileCategoryIcons";
 import { useAppStore } from "@/stores/useAppStore";
@@ -14,7 +13,7 @@ type FileItemProps = {
 };
 
 export default function FileItem({ node }: Readonly<FileItemProps>) {
-  const { selectedNodes, setSelectedNodes, removeSelectedNode } = useAppStore();
+  const { selectedNodes, addSelectedNodes, removeSelectedNode } = useAppStore();
   const isSelected = useMemo(() => {
     return selectedNodes.some((n) => n.id === node.id);
   }, [selectedNodes, node.id]);
@@ -27,20 +26,21 @@ export default function FileItem({ node }: Readonly<FileItemProps>) {
     if (selectedNodes.some((node) => node.id === selectedNode.id)) {
       removeSelectedNode(selectedNode.id);
     } else {
-      setSelectedNodes([selectedNode]);
+      addSelectedNodes([selectedNode]);
     }
   };
 
   return (
-    <div
+    <button
       className={`
-      grid grid-cols-[50px_1fr_100px_100px_180px_50px] gap-4 items-center px-4 py-3 rounded-lg transition-all duration-200 group border border-transparent hover:cursor-pointer
-      ${
-        isSelected
-          ? "bg-night-primary/10 border-night-primary/20"
-          : "hover:bg-night-surface hover:border-night-border/50"
-      }
+        grid grid-cols-[50px_1fr_100px_100px_140px_50px] gap-4 items-center px-4 py-3 rounded-lg transition-all duration-200 group border border-transparent select-none w-full
+        ${
+          isSelected
+            ? "bg-night-primary/10 border-night-primary/20"
+            : "hover:bg-night-surface hover:border-night-border/50"
+        }
       `}
+      onClick={() => toggleSelect(node)}
     >
       {/* Checkbox */}
       <div className="flex justify-center">
@@ -54,39 +54,10 @@ export default function FileItem({ node }: Readonly<FileItemProps>) {
 
       {/* Nombre e Icono */}
       <div className="flex items-center gap-3 overflow-hidden">
-        {node.isDir ? (
-          <>
-            <Icon className="text-xl text-night-primary" />
-            <Link
-              to={`/${node.id}`}
-              className={`truncate font-medium ${
-                isSelected ? "text-white" : "text-night-text"
-              }`}
-            >
-              {node.name}
-            </Link>
-          </>
-        ) : (
-          <>
-            <Icon className="text-xl text-night-muted" />
-            <span
-              className={`truncate font-medium ${
-                isSelected ? "text-white" : "text-night-text"
-              }`}
-            >
-              {node.name}
-            </span>
-          </>
-        )}
-      </div>
-
-      <div className="flex">
-        <span className="text-night-muted font-mono text-sm">2025-12-20</span>
-      </div>
-
-      <div className="flex">
-        <span className="text-night-muted font-mono text-sm">
-          {getHumanFileType(node.mime)}
+        <Icon className="text-xl text-night-muted" />
+        <span
+          className={`truncate font-medium ${isSelected ? "text-white" : "text-night-text"}`}>
+          {node.name}
         </span>
       </div>
 
@@ -96,12 +67,22 @@ export default function FileItem({ node }: Readonly<FileItemProps>) {
         </span>
       </div>
 
+      <div className="flex">
+        <span className="text-night-muted font-mono text-sm">
+          {getHumanFileType(node.mime)}
+        </span>
+      </div>
+
+      <div className="flex">
+        <span className="text-night-muted font-mono text-sm">2025-12-20</span>
+      </div>
+
       {/* Actions */}
       <div className="flex justify-end">
         <button className="p-1.5 rounded-full cursor-pointer hover:bg-white/10 text-night-muted hover:text-white transition-colors">
           <BsThreeDots className="text-lg" />
         </button>
       </div>
-    </div>
+    </button>
   );
 }

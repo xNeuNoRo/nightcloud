@@ -3,7 +3,7 @@ import { FaFolder } from "react-icons/fa6";
 import type { NodeType } from "@/types";
 import getHumanFileType from "@/utils/getHumanFileType";
 import getHumanFileSize from "@/utils/getHumanFileSize";
-import { Link } from "react-router-dom";
+import { useNavigate} from "react-router-dom";
 import { getCategoryFromMime } from "@/utils/getCategoryFromExtAndMime";
 import { FileCategoryIcons } from "@/data/fileCategoryIcons";
 import { useAppStore } from "@/stores/useAppStore";
@@ -14,7 +14,7 @@ type FileItemProps = {
 };
 
 export default function FileItem({ node }: Readonly<FileItemProps>) {
-  const { selectedNodes, setSelectedNodes, removeSelectedNode } = useAppStore();
+  const { selectedNodes, addSelectedNodes, removeSelectedNode } = useAppStore();
   const isSelected = useMemo(() => {
     return selectedNodes.some((n) => n.id === node.id);
   }, [selectedNodes, node.id]);
@@ -27,21 +27,24 @@ export default function FileItem({ node }: Readonly<FileItemProps>) {
     if (selectedNodes.some((node) => node.id === selectedNode.id)) {
       removeSelectedNode(selectedNode.id);
     } else {
-      setSelectedNodes([selectedNode]);
+      addSelectedNodes([selectedNode]);
     }
   };
 
+  const navigate = useNavigate();
+
   return (
-    <Link
-      to={`/directory/${node.id}`}
+    <button
       className={`
-      grid grid-cols-[50px_1fr_100px_100px_180px_50px] gap-4 items-center px-4 py-3 rounded-lg transition-all duration-200 group border border-transparent hover:cursor-pointer
-      ${
-        isSelected
-          ? "bg-night-primary/10 border-night-primary/20"
-          : "hover:bg-night-surface hover:border-night-border/50"
-      }
+        grid grid-cols-[50px_1fr_100px_100px_140px_50px] gap-4 items-center px-4 py-3 rounded-lg transition-all duration-200 group border border-transparent cursor-default w-full
+        ${
+          isSelected
+            ? "bg-night-primary/10 border-night-primary/20"
+            : "hover:bg-night-surface hover:border-night-border/50"
+        }
       `}
+      onClick={() => toggleSelect(node)}
+      onDoubleClick={() => navigate(`/directory/${node.id}`)}
     >
       {/* Checkbox */}
       <div className="flex justify-center">
@@ -66,7 +69,9 @@ export default function FileItem({ node }: Readonly<FileItemProps>) {
       </div>
 
       <div className="flex">
-        <span className="text-night-muted font-mono text-sm">2025-12-20</span>
+        <span className="text-night-muted font-mono text-sm">
+          {getHumanFileSize(node.size)}
+        </span>
       </div>
 
       <div className="flex">
@@ -76,9 +81,7 @@ export default function FileItem({ node }: Readonly<FileItemProps>) {
       </div>
 
       <div className="flex">
-        <span className="text-night-muted font-mono text-sm">
-          {getHumanFileSize(node.size)}
-        </span>
+        <span className="text-night-muted font-mono text-sm">2025-12-20</span>
       </div>
 
       {/* Actions */}
@@ -87,6 +90,6 @@ export default function FileItem({ node }: Readonly<FileItemProps>) {
           <BsThreeDots className="text-lg" />
         </button>
       </div>
-    </Link>
+    </button>
   );
 }
