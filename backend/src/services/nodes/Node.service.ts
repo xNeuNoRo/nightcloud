@@ -167,6 +167,30 @@ export class NodeService {
   }
 
   /**
+   * @description Renombra un nodo existente.
+   * @param node Nodo a renombrar
+   * @param newName Nuevo nombre para el nodo
+   * @returns Nodo renombrado
+   */
+  static async renameNode(node: Node, newName: string) {
+    // Asegurarse de que la extension del nodo se mantenga igual
+    newName = NodeUtils.ensureNodeExt(newName, node);
+
+    // Resolver nombre y hash unicos
+    const { nodeName, nodeHash } = await this.identity.resolve(
+      node,
+      node.parentId,
+      { newName },
+    );
+
+    // Actualizar el nodo en la base de datos
+    return await this.repo.updateIdentityById(node.id, {
+      newName: nodeName,
+      newHash: nodeHash,
+    });
+  }
+
+  /**
    * @description Obtiene todos los nodos bajo un nodo padre especifico.
    * @param id ID del nodo padre (null para la raiz)
    * @returns Array de nodos hijos
