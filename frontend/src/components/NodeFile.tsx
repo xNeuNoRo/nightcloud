@@ -8,12 +8,17 @@ import { getCategoryFromMime } from "@/utils/getCategoryFromExtAndMime";
 import { FileCategoryIcons } from "@/data/fileCategoryIcons";
 import { useAppStore } from "@/stores/useAppStore";
 
-type FileItemProps = {
+type NodeFileProps = {
   node: NodeType;
 };
 
-export default function FileItem({ node }: Readonly<FileItemProps>) {
-  const { selectedNodes, setSelectedNodes, addSelectedNodes, removeSelectedNode } = useAppStore();
+export default function NodeFile({ node }: Readonly<NodeFileProps>) {
+  const {
+    selectedNodes,
+    setSelectedNodes,
+    addSelectedNodes,
+    removeSelectedNode,
+  } = useAppStore();
   const isSelected = useMemo(() => {
     return selectedNodes.some((n) => n.id === node.id);
   }, [selectedNodes, node.id]);
@@ -59,7 +64,10 @@ export default function FileItem({ node }: Readonly<FileItemProps>) {
       <div className="flex items-center gap-3 overflow-hidden">
         <Icon className="text-xl text-night-muted" />
         <span
-          className={`truncate font-medium ${isSelected ? "text-white" : "text-night-text"}`}>
+          className={`truncate font-medium ${
+            isSelected ? "text-white" : "text-night-text"
+          }`}
+        >
           {node.name}
         </span>
       </div>

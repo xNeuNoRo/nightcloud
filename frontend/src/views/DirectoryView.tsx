@@ -17,6 +17,10 @@ export default function DirectoryView() {
     retry: 1,
   });
 
+  if (!nodeId) {
+    return <div>No directory specified.</div>;
+  }
+
   if (isLoading) {
     return <div>Loading...</div>;
   }
@@ -26,7 +30,7 @@ export default function DirectoryView() {
   }
 
   if (!data) {
-    return;
+    return <div>No files found.</div>;
   }
 
   // TODO: Implementar breadcrumbs correctamente, actualmente este enfoque solo usaria los cacheados.
@@ -37,7 +41,7 @@ export default function DirectoryView() {
     })
     .flatMap(([, data]) => data)
     .filter((d) => d !== undefined);
-    
+
   if (nodes.length) {
     const test = buildBreadcrumbs(nodeId!, nodes);
     console.log("Built breadcrumbs:", test);

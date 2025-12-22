@@ -1,5 +1,11 @@
 import type { NodeType } from "@/types";
 
+/**
+ * @description Construye una lista de breadcrumbs desde un nodo dado hasta la raíz.
+ * @param startNodeId ID del nodo desde el cual comenzar a construir los breadcrumbs.
+ * @param nodes Lista de nodos disponibles para construir la ruta.
+ * @returns Lista de nodos representando la ruta de breadcrumbs.
+ */
 export default function buildBreadcrumbs(
   startNodeId: NodeType["id"],
   nodes: NodeType[]

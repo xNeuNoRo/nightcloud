@@ -9,11 +9,11 @@ import { getCategoryFromMime } from "@/utils/getCategoryFromExtAndMime";
 import { FileCategoryIcons } from "@/data/fileCategoryIcons";
 import { useAppStore } from "@/stores/useAppStore";
 
-type FileItemProps = {
+type NodeDirProps = {
   node: NodeType;
 };
 
-export default function FileItem({ node }: Readonly<FileItemProps>) {
+export default function NodeDir({ node }: Readonly<NodeDirProps>) {
   const { selectedNodes, setSelectedNodes, addSelectedNodes, removeSelectedNode } = useAppStore();
   const isSelected = useMemo(() => {
     return selectedNodes.some((n) => n.id === node.id);
