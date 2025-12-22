@@ -5,7 +5,14 @@ import type { AncestorRow } from "../prisma/types";
 
 type NodePicked = Pick<
   Node,
-  "id" | "parentId" | "name" | "size" | "mime" | "isDir"
+  | "id"
+  | "parentId"
+  | "name"
+  | "size"
+  | "mime"
+  | "isDir"
+  | "createdAt"
+  | "updatedAt"
 >;
 
 type AncestorPicked = Pick<
@@ -25,6 +32,8 @@ export const toNodeDTO = (n: NodePicked): NodeDTO => ({
   size: n.size.toString(), // Convertir bigint a string por temas de incompatibilidad con JSON
   mime: n.mime,
   isDir: n.isDir,
+  createdAt: n.createdAt,
+  updatedAt: n.updatedAt,
 });
 
 /**
