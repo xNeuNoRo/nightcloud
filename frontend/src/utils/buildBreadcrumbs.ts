@@ -1,4 +1,4 @@
-import type { NodeType } from "@/types";
+import type { AncestorType, NodeType } from "@/types";
 
 /**
  * @description Construye una lista de breadcrumbs desde un nodo dado hasta la raíz.
@@ -8,13 +8,15 @@ import type { NodeType } from "@/types";
  */
 export default function buildBreadcrumbs(
   startNodeId: NodeType["id"],
-  nodes: NodeType[]
-): Readonly<NodeType[]> {
+  nodes: AncestorType[]
+): Readonly<AncestorType[]> {
   console.log("Building breadcrumbs for node ID:", startNodeId);
   console.log("Available nodes:", nodes);
 
   // Crear un mapa de nodos para acceso rápido
-  const map = Object.fromEntries(nodes.map((n) => [n.id, n]));
+  const map = Object.fromEntries(
+    nodes.filter((n) => n.isDir).map((n) => [n.id, n])
+  );
 
   console.log("Map of nodes:", map);
 

@@ -4,17 +4,19 @@ import { FaFolder } from "react-icons/fa6";
 import type { NodeType } from "@/types";
 import getHumanFileType from "@/utils/getHumanFileType";
 import getHumanFileSize from "@/utils/getHumanFileSize";
-import { useNavigate} from "react-router-dom";
+import { Link } from "react-router-dom";
 import { getCategoryFromMime } from "@/utils/getCategoryFromExtAndMime";
 import { FileCategoryIcons } from "@/data/fileCategoryIcons";
 import { useAppStore } from "@/stores/useAppStore";
+import formatDate from "@/utils/formatDate";
+import classNames from "@/utils/classNames";
 
 type NodeDirProps = {
   node: NodeType;
 };
 
 export default function NodeDir({ node }: Readonly<NodeDirProps>) {
-  const { selectedNodes, setSelectedNodes, addSelectedNodes, removeSelectedNode } = useAppStore();
+  const { selectedNodes, addSelectedNodes, removeSelectedNode } = useAppStore();
   const isSelected = useMemo(() => {
     return selectedNodes.some((n) => n.id === node.id);
   }, [selectedNodes, node.id]);
@@ -31,30 +33,27 @@ export default function NodeDir({ node }: Readonly<NodeDirProps>) {
     }
   };
 
-  const navigate = useNavigate();
+  const handleOnClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    toggleSelect(node);
+  };
 
   return (
-    <button
-      className={`
-        grid grid-cols-[50px_1fr_100px_100px_140px_50px] gap-4 items-center px-4 py-3 rounded-lg transition-all duration-200 group border border-transparent cursor-default w-full
-        ${
-          isSelected
-            ? "bg-night-primary/10 border-night-primary/20"
-            : "hover:bg-night-surface hover:border-night-border/50"
-        }
-      `}
-      onClick={() => setSelectedNodes([node])}
-      onDoubleClick={() => navigate(`/directory/${node.id}`)}
+    <Link
+      to={`/directory/${node.id}`}
+      className={classNames(
+        isSelected
+          ? "bg-night-primary/10 border-night-primary/20"
+          : "hover:bg-night-surface hover:border-night-border/50",
+        "grid grid-cols-[50px_1fr_100px_100px_140px_50px] gap-4 items-center px-4 py-3 rounded-lg transition-all duration-200 group border border-transparent cursor-default w-full hover:cursor-pointer"
+      )}
     >
       {/* Checkbox */}
       <div className="flex justify-center">
         <input
           type="checkbox"
-          checked={isSelected}
-          onClick={(e) => {
-            e.stopPropagation();
-            toggleSelect(node)
-          }}
+          defaultChecked={isSelected}
+          onClick={handleOnClick}
           className="w-4 h-4 rounded border-night-border bg-night-surface text-night-primary focus:ring-offset-night-main cursor-pointer"
         />
       </div>
@@ -84,7 +83,9 @@ export default function NodeDir({ node }: Readonly<NodeDirProps>) {
       </div>
 
       <div className="flex">
-        <span className="text-night-muted font-mono text-sm">2025-12-20</span>
+        <span className="text-night-muted font-mono text-sm">
+          {formatDate(node.updatedAt)}
+        </span>
       </div>
 
       {/* Actions */}
@@ -93,6 +94,6 @@ export default function NodeDir({ node }: Readonly<NodeDirProps>) {
           <BsThreeDots className="text-lg" />
         </button>
       </div>
-    </button>
+    </Link>
   );
 }

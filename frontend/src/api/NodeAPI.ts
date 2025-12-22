@@ -1,6 +1,11 @@
 import { isAxiosError } from "axios";
 import { api } from "@/lib/axios";
-import { nodesSchema, type NodeType } from "@/types";
+import {
+  ancestorsSchema,
+  nodesSchema,
+  type AncestorType,
+  type NodeType,
+} from "@/types";
 import validateApiRes from "@/utils/validateApiRes";
 
 /**
@@ -40,6 +45,30 @@ export async function getNodesFromDir(
       return apiRes.data;
     } else {
       throw new Error("Error al obtener el contenido de la carpeta");
+    }
+  } catch (err) {
+    if (isAxiosError(err) && err.response) {
+      throw new Error(err.response.data.error.message);
+    } else throw err;
+  }
+}
+
+/**
+ * @description Obtener los ancestros de un nodo específico
+ * @param nodeId ID del nodo
+ * @returns {Promise<AncestorType[]>} Lista de ancestros
+ */
+export async function getAncestorsOfNodeById(
+  nodeId: NodeType["id"]
+): Promise<AncestorType[]> {
+  try {
+    const { data } = await api.get(`/nodes/${nodeId}/ancestors`);
+    const apiRes = ancestorsSchema.safeParse(validateApiRes(data).data);
+
+    if (apiRes.success) {
+      return apiRes.data;
+    } else {
+      throw new Error("Error al obtener los ancestros del nodo");
     }
   } catch (err) {
     if (isAxiosError(err) && err.response) {
