@@ -39,7 +39,7 @@ export default function AppLayout() {
         </main>
       </div>
 
-      <ToastContainer pauseOnHover={false} pauseOnFocusLoss={false} />
+      <ToastContainer pauseOnHover={false} pauseOnFocusLoss={false} theme="dark" />
     </>
   );
 }
