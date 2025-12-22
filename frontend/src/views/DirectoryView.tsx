@@ -45,7 +45,7 @@ export default function DirectoryView() {
     console.log("No nodes found in queryClient for breadcrumbs.");
   }
 
-  data.sort((a, b) => {
+  const sortedData = Array.from(data).sort((a, b) => {
     if (a.isDir === b.isDir) {
       return a.name.localeCompare(b.name);
     }
@@ -74,7 +74,7 @@ export default function DirectoryView() {
 
       {/* El contenedor de la tabla crece para ocupar el resto del espacio */}
       <div className="flex-1 min-h-0">
-        <FileTable nodes={data} />
+        <FileTable nodes={sortedData} />
       </div>
     </>
   );

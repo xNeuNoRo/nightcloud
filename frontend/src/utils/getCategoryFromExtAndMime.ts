@@ -26,7 +26,6 @@ export function getCategoryFromMime(mime: string): FileCategory {
   // Comprobamos si hay una anulación específica para esta extensión y MIME
   const override = extCatOverride[normalizedExt];
 
-  console.log(mime);
   // Devolvemos la categoría anulada si existe, o la base en caso contrario
   return override?.[mime] ?? base;
 }

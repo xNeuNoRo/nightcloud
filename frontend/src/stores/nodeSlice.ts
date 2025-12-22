@@ -24,6 +24,5 @@ export const createNodeSlice: StateCreator<NodeSliceType> = (set) => ({
   },
   clearSelectedNodes: () => {
     set(() => ({ selectedNodes: [] }));
-  },
-  
+  }
 });
