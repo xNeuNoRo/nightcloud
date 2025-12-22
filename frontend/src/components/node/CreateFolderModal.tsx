@@ -30,7 +30,7 @@ export default function CreateNodeModal() {
   const { mutate } = useMutation({
     mutationFn: (data: NodeFolderFormData) => createNodeFolder(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["nodes", parentId] });
+      queryClient.invalidateQueries({ queryKey: ["nodes", parentId ?? "root"] });
       closeModal();
       toast.success("Folder created successfully");
       reset();
