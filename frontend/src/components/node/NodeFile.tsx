@@ -51,9 +51,10 @@ export default function NodeFile({ node }: Readonly<NodeFileProps>) {
       <div className="flex justify-center">
         <input
           type="checkbox"
-          defaultChecked={isSelected}
+          checked={isSelected}
           onClick={handleOnClick}
           className="w-4 h-4 rounded border-night-border bg-night-surface text-night-primary focus:ring-offset-night-main cursor-pointer"
+          readOnly
         />
       </div>
 
