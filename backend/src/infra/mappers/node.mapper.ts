@@ -1,10 +1,13 @@
-import type { Node } from "@/domain/nodes/node";
+import type { Node, NodeLite } from "@/domain/nodes/node";
 import {
   createDirectoryNode,
+  createDirectoryNodeLite,
   createFileNode,
+  createFileNodeLite,
 } from "@/domain/nodes/node.factory";
 import type { Node as PrismaNode } from "@/infra/prisma/generated/client";
-import { AncestorRow, DescendantRow } from "../prisma/types";
+
+import type { AncestorRow, DescendantRow } from "../prisma/types";
 
 /**
  * @description Mapea un nodo Prisma a un nodo de dominio.
@@ -13,8 +16,14 @@ import { AncestorRow, DescendantRow } from "../prisma/types";
  */
 export function fromPrismaNode(n: PrismaNode): Node {
   return n.isDir
-    ? createDirectoryNode(n.id, n.parentId, n.name, n.hash, n.size)
-    : createFileNode(n.id, n.parentId, n.name, n.hash, n.size, n.mime);
+    ? createDirectoryNode(n.id, n.parentId, n.name, n.hash, n.size, {
+        createdAt: n.createdAt,
+        updatedAt: n.updatedAt,
+      })
+    : createFileNode(n.id, n.parentId, n.name, n.hash, n.size, n.mime, {
+        createdAt: n.createdAt,
+        updatedAt: n.updatedAt,
+      });
 }
 
 /**
@@ -22,8 +31,10 @@ export function fromPrismaNode(n: PrismaNode): Node {
  * @param r Fila de ancestro a mapear
  * @returns Nodo de dominio mapeado
  */
-export function fromAncestorRow(r: AncestorRow): Node {
-  return fromPrismaNode(r);
+export function fromAncestorRow(r: AncestorRow): NodeLite {
+  return r.isDir
+    ? createDirectoryNodeLite(r.id, r.parentId, r.name, r.hash, r.size)
+    : createFileNodeLite(r.id, r.parentId, r.name, r.hash, r.size, r.mime);
 }
 
 /**
@@ -31,6 +42,6 @@ export function fromAncestorRow(r: AncestorRow): Node {
  * @param r Fila de descendiente a mapear
  * @returns Nodo de dominio mapeado
  */
-export function fromDescendantRow(r: DescendantRow): Node {
-  return fromPrismaNode(r);
+export function fromDescendantRow(r: DescendantRow): NodeLite {
+  return fromAncestorRow(r);
 }

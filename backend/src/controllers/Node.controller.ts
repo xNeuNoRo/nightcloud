@@ -1,9 +1,9 @@
 import type { Request, Response } from "express";
 
-import { toNodeDTO } from "@/infra/mappers/node.dto-mapper";
+import { toAncestorDTO, toNodeDTO } from "@/infra/mappers/node.dto-mapper";
 import { DownloadService } from "@/services/download/Download.service";
 import { NodeService } from "@/services/nodes/Node.service";
-import { AppError, NodeUtils } from "@/utils";
+import { AppError } from "@/utils";
 
 export class NodeController {
   // Crear un nuevo nodo (solo directorios por ahora)
@@ -38,7 +38,7 @@ export class NodeController {
   };
 
   // Obtener todos los nodos desde la raiz
-  static readonly getNodesFromRoot = async (req: Request, res: Response) => {
+  static readonly getNodesFromRoot = async (_req: Request, res: Response) => {
     try {
       const nodes = await NodeService.getAllNodes(null);
       res.success(nodes.map((n) => toNodeDTO(n)));
@@ -65,6 +65,22 @@ export class NodeController {
         "INTERNAL",
         `Error al obtener los nodos de ${req.node!.name}`,
       );
+    }
+  };
+
+  static readonly getNodeAncestors = async (req: Request, res: Response) => {
+    const node = req.node!;
+
+    try {
+      const ancestors = await NodeService.getNodeAncestors(node.id);
+      res.success(ancestors.map((n) => toAncestorDTO(n)));
+    } catch (err) {
+      if (err instanceof AppError) throw err;
+      else
+        throw new AppError(
+          "INTERNAL",
+          `Error al obtener los ancestros de ${node.name}`,
+        );
     }
   };
 
@@ -102,36 +118,19 @@ export class NodeController {
     req: Request<unknown, unknown, { newName: string }>,
     res: Response,
   ) => {
+    const { newName } = req.body;
     const node = req.node!;
 
-    // Asegurarse de que la extension del nodo se mantenga igual
-    let newName = NodeUtils.ensureNodeExt(req.body.newName, node);
-
-    // Verificar si el nuevo nombre ya existe en el mismo directorio
-    const conflict = await NodeService.detectConflict(node, newName, true);
-
-    // Si hay conflicto, obtener un nombre unico
-    if (conflict) {
-      const uniqueName = await NodeService.resolveName(
-        node.parentId,
-        node.name,
-        newName,
-      );
-      console.log("Resolved name conflict, new unique name:", uniqueName);
-      newName = uniqueName;
-    }
-
     try {
-      // Actualizar el nombre del nodo
-      const { hash: _h, ...updatedNode } = await NodeService.updateNodeName(
-        node.id,
-        newName,
-      );
-
-      res.success(updatedNode);
+      const renamedNode = await NodeService.renameNode(node, newName);
+      res.success(toNodeDTO(renamedNode));
     } catch (err) {
-      console.error(err);
-      throw new AppError("INTERNAL", "Error al renombrar el nodo");
+      if (err instanceof AppError) throw err;
+      else
+        throw new AppError(
+          "INTERNAL",
+          `No se pudo renombrar el ${node.isDir ? "directorio" : "archivo"}`,
+        );
     }
   };
 

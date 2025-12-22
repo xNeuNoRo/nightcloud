@@ -1,16 +1,17 @@
 import { DB } from "@/config/db";
 import type { Node } from "@/domain/nodes/node";
 import type { UploadedFile } from "@/domain/uploads/uploaded-file";
+import { isDirectoryNode } from "@/infra/guards/node";
 import type { Prisma } from "@/infra/prisma/generated/client";
+import type { AncestorRow } from "@/infra/prisma/types";
 import { NodeRepository } from "@/repositories/NodeRepository";
 import type { PrismaTxClient } from "@/types/prisma";
 import { AppError, NodeUtils } from "@/utils";
 
 import { NodeIdentityService } from "./NodeIdentity.service";
 import { NodePersistenceService } from "./NodePersistence.service";
-import { CloudStorageService } from "../cloud/CloudStorage.service";
-import { isDirectoryNode } from "@/infra/guards/node";
 import { NodeTreeService } from "./NodeTree.service";
+import { CloudStorageService } from "../cloud/CloudStorage.service";
 
 /**
  * @description Servicio para gestionar nodos (archivos y directorios).
@@ -85,6 +86,17 @@ export class NodeService {
   }
 
   /**
+   * @description Obtiene todos los ancestros de un nodo dado.
+   * @param startNodeId ID del nodo desde el cual comenzar a buscar ancestros
+   * @returns Array de ancestros del nodo
+   */
+  static async getNodeAncestors(
+    startNodeId: Node["id"],
+  ): Promise<AncestorRow[]> {
+    return await this.repo.getAllNodeAncestors(startNodeId);
+  }
+
+  /**
    * @description Crea un nuevo directorio (nodo) en la base de datos
    * @param parentId ID del nodo padre donde se creara la carpeta
    * @param name Nombre de la carpeta (opcional)
@@ -110,10 +122,37 @@ export class NodeService {
       const mime = "inode/directory";
 
       // Tratamos de crear el directorio (nodo al fin)
+
+      if (parentId) {
+        return await this.prisma.$transaction(async (tx) => {
+          const { hash: _h, ...node } = await this.repo.createTx(tx, {
+            name: finalName,
+            hash,
+            parent: { connect: { id: parentId } },
+            size: 0,
+            mime,
+            isDir: true,
+          });
+
+          // Buscamos todos los ancestros y actualizamos su updatedAt
+          const ancestors = await this.repo.getAllNodeAncestors(parentId);
+
+          // Actualizamos el updatedAt de todos los ancestros
+          await this.repo.touchUpdatedAtByIdsTx(
+            tx,
+            ancestors.map((a) => a.id),
+          );
+
+          // Si sale bien, devolvemos el directorio creado en el parentId correspondiente
+          return node;
+        });
+      }
+
+      // Crear el directorio sin padre (raiz)
       const { hash: _h, ...node } = await this.createNode({
         name: finalName,
         hash,
-        parent: parentId ? { connect: { id: parentId } } : undefined,
+        parent: undefined,
         size: 0,
         mime,
         isDir: true,
@@ -125,6 +164,30 @@ export class NodeService {
       console.error(err);
       throw new AppError("INTERNAL", "Error al crear el directorio (nodo)");
     }
+  }
+
+  /**
+   * @description Renombra un nodo existente.
+   * @param node Nodo a renombrar
+   * @param newName Nuevo nombre para el nodo
+   * @returns Nodo renombrado
+   */
+  static async renameNode(node: Node, newName: string) {
+    // Asegurarse de que la extension del nodo se mantenga igual
+    newName = NodeUtils.ensureNodeExt(newName, node);
+
+    // Resolver nombre y hash unicos
+    const { nodeName, nodeHash } = await this.identity.resolve(
+      node,
+      node.parentId,
+      { newName },
+    );
+
+    // Actualizar el nodo en la base de datos
+    return await this.repo.updateIdentityById(node.id, {
+      newName: nodeName,
+      newHash: nodeHash,
+    });
   }
 
   /**

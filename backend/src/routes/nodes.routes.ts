@@ -44,13 +44,13 @@ router.get(
   NodeController.downloadNode,
 );
 
-// Borrar nodo por ID
-router.delete(
-  "/:nodeId",
-  NodeValidators.nodeIdValidator, // Validation chain
-  validateRequest, // Validate any errors from express-validator
+// Obtener ancestros de un nodo por ID
+router.get(
+  "/:nodeId/ancestors",
+  NodeValidators.nodeIdValidator,
+  validateRequest,
   nodeExists,
-  NodeController.deleteNode,
+  NodeController.getNodeAncestors,
 );
 
 // Renombrar nodo por ID
@@ -87,6 +87,15 @@ router.get(
   validateRequest, // Validate any errors from express-validator
   nodeExists,
   NodeController.getNodesFromDirectory,
+);
+
+// Borrar nodo por ID
+router.delete(
+  "/:nodeId",
+  NodeValidators.nodeIdValidator, // Validation chain
+  validateRequest, // Validate any errors from express-validator
+  nodeExists,
+  NodeController.deleteNode,
 );
 
 export default router;
