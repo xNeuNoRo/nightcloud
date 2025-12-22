@@ -39,7 +39,14 @@ export default function AppLayout() {
         </main>
       </div>
 
-      <ToastContainer pauseOnHover={false} pauseOnFocusLoss={false} theme="dark" />
+      <ToastContainer
+        pauseOnHover={true}
+        pauseOnFocusLoss={false}
+        theme="dark"
+        toastClassName={() =>
+          "relative grid grid-cols-[auto_1fr_auto] items-center w-full overflow-hidden cursor-pointer rounded-md shadow-lg pr-16 pl-4 py-5 mb-4 bg-night-surface text-night-text border border-night-border"
+        }
+      />
     </>
   );
 }
