@@ -120,6 +120,35 @@ export class NodeRepository {
   }
 
   /**
+   * @description Actualiza el campo updatedAt de un nodo por su ID dentro de una transaccion
+   * @param tx Transaccion de Prisma
+   * @param id ID del nodo a actualizar
+   */
+  static async touchUpdatedAtByIdTx(tx: PrismaTxClient, id: Node["id"]) {
+    await tx.node.update({
+      where: { id },
+      data: {
+        updatedAt: new Date(),
+      },
+    });
+  }
+
+  /**
+   * @description Actualiza el campo updatedAt de multiples nodos por sus IDs dentro de una transaccion
+   * @param tx Transaccion de Prisma
+   * @param ids Lista de IDs de nodos a actualizar
+   */
+  static async touchUpdatedAtByIdsTx(tx: PrismaTxClient, ids: Node["id"][]) {
+    if (ids.length === 0) return;
+    await tx.node.updateMany({
+      where: { id: { in: ids } },
+      data: {
+        updatedAt: new Date(),
+      },
+    });
+  }
+
+  /**
    * @description Actualiza el nombre de un nodo por su ID
    * @param id ID del nodo a actualizar
    * @param newName Nuevo nombre para el nodo

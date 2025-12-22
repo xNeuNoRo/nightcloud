@@ -5,12 +5,12 @@ import { getNextName } from "@/domain/nodes/conflicts/getNextName";
 import { computeNodeIdentity } from "@/domain/nodes/identity/computeNodeIdentity";
 import type { DirectoryNode, FileNode, Node } from "@/domain/nodes/node";
 import type { UploadedFile } from "@/domain/uploads/uploaded-file";
+import { isDirectoryNode } from "@/infra/guards/node";
 import { isUploadedFile } from "@/infra/guards/uploaded-file";
 import { NodeRepository } from "@/repositories/NodeRepository";
 import { NodeUtils } from "@/utils";
 
 import { CloudStorageService } from "../cloud/CloudStorage.service";
-import { isDirectoryNode } from "@/infra/guards/node";
 
 /**
  * @description Servicio para resolver identidades únicas de nodos.
