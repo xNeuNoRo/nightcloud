@@ -27,6 +27,11 @@ export const toNodeDTO = (n: NodePicked): NodeDTO => ({
   isDir: n.isDir,
 });
 
+/**
+ * @description Mapea un nodo de dominio a un AncestorDTO.
+ * @param n Nodo de dominio a mapear
+ * @returns AncestorDTO mapeado
+ */
 export const toAncestorDTO = (n: AncestorPicked): AncestorDTO => ({
   id: n.id,
   parentId: n.parentId,

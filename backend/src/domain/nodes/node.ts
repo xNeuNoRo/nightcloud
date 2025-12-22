@@ -15,6 +15,8 @@ export interface NodeBase {
   hash: string;
   isDir: boolean;
   size: bigint;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 // Nodo que representa un archivo
@@ -27,6 +29,14 @@ export interface FileNode extends NodeBase {
   mime: string;
 }
 
+/**
+ * @description Versión ligera de FileNode para evitar importar Date
+ */
+export interface FileNodeLite extends Pick<
+  FileNode,
+  "id" | "parentId" | "name" | "hash" | "size" | "mime" | "isDir"
+> {}
+
 // Nodo que representa un directorio
 /**
  * @property isDir Siempre true para directorios
@@ -37,5 +47,14 @@ export interface DirectoryNode extends NodeBase {
   mime: "inode/directory";
 }
 
+/**
+ * @description Versión ligera de DirectoryNode para evitar importar Date
+ */
+export interface DirectoryNodeLite extends Pick<
+  DirectoryNode,
+  "id" | "parentId" | "name" | "hash" | "size" | "mime" | "isDir"
+> {}
+
 // Tipo union de nodo, puede ser archivo o directorio
 export type Node = FileNode | DirectoryNode;
+export type NodeLite = FileNodeLite | DirectoryNodeLite;

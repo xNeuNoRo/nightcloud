@@ -122,10 +122,37 @@ export class NodeService {
       const mime = "inode/directory";
 
       // Tratamos de crear el directorio (nodo al fin)
+
+      if (parentId) {
+        return await this.prisma.$transaction(async (tx) => {
+          const { hash: _h, ...node } = await this.repo.createTx(tx, {
+            name: finalName,
+            hash,
+            parent: { connect: { id: parentId } },
+            size: 0,
+            mime,
+            isDir: true,
+          });
+
+          // Buscamos todos los ancestros y actualizamos su updatedAt
+          const ancestors = await this.repo.getAllNodeAncestors(parentId);
+
+          // Actualizamos el updatedAt de todos los ancestros
+          await this.repo.touchUpdatedAtByIdsTx(
+            tx,
+            ancestors.map((a) => a.id),
+          );
+
+          // Si sale bien, devolvemos el directorio creado en el parentId correspondiente
+          return node;
+        });
+      }
+
+      // Crear el directorio sin padre (raiz)
       const { hash: _h, ...node } = await this.createNode({
         name: finalName,
         hash,
-        parent: parentId ? { connect: { id: parentId } } : undefined,
+        parent: undefined,
         size: 0,
         mime,
         isDir: true,
