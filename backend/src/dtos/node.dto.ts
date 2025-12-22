@@ -6,6 +6,8 @@ export interface NodeDTO {
   size: string;
   mime: string;
   isDir: boolean;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 // Data Transfer Object de un ancestro de nodo
