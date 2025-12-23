@@ -1,15 +1,13 @@
 import { useMemo } from "react";
-import { BsThreeDots } from "react-icons/bs";
 import { FaFolder } from "react-icons/fa6";
 import type { NodeType } from "@/types";
 import getHumanFileType from "@/utils/files/getHumanFileType";
 import getHumanFileSize from "@/utils/files/getHumanFileSize";
 import { Link } from "react-router-dom";
-import { getCategoryFromMime } from "@/utils/files/getCategoryFromExtAndMime";
-import { FileCategoryIcons } from "@/data/fileCategoryIcons";
 import { useAppStore } from "@/stores/useAppStore";
 import formatDate from "@/utils/formatDate";
 import classNames from "@/utils/classNames";
+import NodeActions from "./NodeActions";
 
 type NodeDirProps = {
   node: NodeType;
@@ -20,10 +18,6 @@ export default function NodeDir({ node }: Readonly<NodeDirProps>) {
   const isSelected = useMemo(() => {
     return selectedNodes.some((n) => n.id === node.id);
   }, [selectedNodes, node.id]);
-
-  // Determinar el icono del nodo
-  const category = getCategoryFromMime(node.mime);
-  const Icon = node.isDir ? FaFolder : FileCategoryIcons[category];
 
   const toggleSelect = (selectedNode: NodeType) => {
     if (selectedNodes.some((node) => node.id === selectedNode.id)) {
@@ -39,29 +33,33 @@ export default function NodeDir({ node }: Readonly<NodeDirProps>) {
   };
 
   return (
-    <Link
-      to={`/directory/${node.id}`}
+    <div
       className={classNames(
         isSelected
           ? "bg-night-primary/10 border-night-primary/20"
           : "hover:bg-night-surface hover:border-night-border/50",
-        "grid grid-cols-[50px_1fr_100px_100px_180px_50px] gap-4 items-center px-4 py-3 rounded-lg transition-all duration-200 group border border-transparent cursor-default w-full hover:cursor-pointer"
+        "relative z-10 grid grid-cols-[50px_1fr_100px_100px_180px_50px] gap-4 items-center px-4 py-3 rounded-lg transition-all duration-200 group border border-transparent cursor-default w-full hover:cursor-pointer"
       )}
     >
+      <Link
+        to={`/directory/${node.id}`}
+        className="absolute inset-0 z-20"
+        aria-label={`Open ${node.name}`}
+      />
       {/* Checkbox */}
       <div className="flex justify-center">
         <input
           type="checkbox"
           checked={isSelected}
           onClick={handleOnClick}
-          className="w-4 h-4 rounded border-night-border bg-night-surface text-night-primary focus:ring-offset-night-main cursor-pointer"
+          className="z-30 w-4 h-4 rounded border-night-border bg-night-surface text-night-primary focus:ring-offset-night-main cursor-pointer"
           readOnly
         />
       </div>
 
       {/* Nombre e Icono */}
       <div className="flex items-center gap-3 overflow-hidden">
-        <Icon className="text-xl text-night-primary" />
+        <FaFolder className="text-xl text-night-primary" />
         <span
           className={`truncate font-medium ${
             isSelected ? "text-white" : "text-night-text"
@@ -90,11 +88,9 @@ export default function NodeDir({ node }: Readonly<NodeDirProps>) {
       </div>
 
       {/* Actions */}
-      <div className="flex justify-end">
-        <button className="p-1.5 rounded-full cursor-pointer hover:bg-white/10 text-night-muted hover:text-white transition-colors">
-          <BsThreeDots className="text-lg" />
-        </button>
+      <div className="flex z-30 justify-end">
+        <NodeActions node={node} />
       </div>
-    </Link>
+    </div>
   );
 }

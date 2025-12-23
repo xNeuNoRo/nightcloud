@@ -4,22 +4,26 @@ import CreateFolderModal from "@/components/node/CreateFolderModal";
 import { useNavigate } from "react-router-dom";
 import UploadModal from "@/components/upload/UploadModal";
 import { useNode } from "@/hooks/useNode";
+import RenameNodeModal from "@/components/node/RenameNodeModal";
 
 export default function DirectoryView() {
   const navigate = useNavigate();
   const openModal = () => navigate(location.pathname + "?createFolder=true");
 
-  const { nodeData, nodeLoading, nodeError } = useNode(undefined);
+  const { nodeChildrenData, nodeChildrenLoading, nodeChildrenError } = useNode(
+    undefined,
+    "children"
+  );
 
-  if (nodeLoading) {
+  if (nodeChildrenLoading) {
     return <div>Loading...</div>;
   }
 
-  if (nodeError) {
+  if (nodeChildrenError) {
     return <div>Error loading files.</div>;
   }
 
-  if (!nodeData) {
+  if (!nodeChildrenData) {
     return;
   }
 
@@ -43,11 +47,12 @@ export default function DirectoryView() {
 
       {/* El contenedor de la tabla crece para ocupar el resto del espacio */}
       <div className="flex-1 min-h-0">
-        <FileTable nodes={nodeData} />
+        <FileTable nodes={nodeChildrenData} />
       </div>
 
       <CreateFolderModal />
       <UploadModal />
+      <RenameNodeModal />
     </>
   );
 }

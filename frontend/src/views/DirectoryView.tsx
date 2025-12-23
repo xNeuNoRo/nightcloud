@@ -6,6 +6,7 @@ import { useNode } from "@/hooks/useNode";
 import Breadcrumb from "@/components/Breadcrumb";
 import CreateFolderModal from "@/components/node/CreateFolderModal";
 import UploadModal from "@/components/upload/UploadModal";
+import RenameNodeModal from "@/components/node/RenameNodeModal";
 
 export default function DirectoryView() {
   const { nodeId } = useParams();
@@ -13,23 +14,28 @@ export default function DirectoryView() {
   const openModal = () => navigate(location.pathname + "?createFolder=true");
 
   const {
-    nodeData,
-    nodeLoading,
-    nodeError,
+    nodeChildrenData,
+    nodeChildrenLoading,
+    nodeChildrenError,
     ancestorsData,
     ancestorsLoading,
     ancestorsError,
-  } = useNode(nodeId, { includeAncestors: true });
+  } = useNode(nodeId, "ancestors+children");
 
   if (!nodeId) {
     return <div>No directory specified</div>;
   }
 
-  if (nodeLoading || ancestorsLoading) {
+  if (nodeChildrenLoading || ancestorsLoading) {
     return <div>Loading...</div>;
   }
 
-  if (nodeError || ancestorsError || !nodeData || !ancestorsData) {
+  if (
+    nodeChildrenError ||
+    ancestorsError ||
+    !nodeChildrenData ||
+    !ancestorsData
+  ) {
     return <div>Error loading files</div>;
   }
 
@@ -64,11 +70,12 @@ export default function DirectoryView() {
 
       {/* El contenedor de la tabla crece para ocupar el resto del espacio */}
       <div className="flex-1 min-h-0">
-        <FileTable nodes={nodeData} />
+        <FileTable nodes={nodeChildrenData} />
       </div>
 
       <CreateFolderModal />
       <UploadModal />
+      <RenameNodeModal />
     </>
   );
 }

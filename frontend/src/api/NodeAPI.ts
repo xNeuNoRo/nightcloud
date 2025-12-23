@@ -6,6 +6,7 @@ import {
   nodesSchema,
   type AncestorType,
   type NodeFolderFormData,
+  type NodeRenameFormData,
   type NodeType,
   type UploadProgress,
 } from "@/types";
@@ -14,6 +15,7 @@ import validateApiRes from "@/utils/validateApiRes";
 
 export type NodeAPIType = {
   folderFormData: NodeFolderFormData & { parentId?: NodeType["id"] };
+  renameFormData: NodeRenameFormData & { nodeId: NodeType["id"] };
   uploadFiles: {
     files: FileWithPath[];
   };
@@ -117,6 +119,13 @@ export async function createNodeFolder({
   }
 }
 
+/**
+ * @description Subir archivos al servidor
+ * @param formData Datos del formulario (archivos)
+ * @param signal AbortSignal para cancelar la petición
+ * @param cb Callback para el progreso de la subida
+ * @returns {Promise<NodeType[]>} Lista de nodos creados
+ */
 export async function uploadFiles(
   formData: FormData,
   signal: AbortSignal,
@@ -149,6 +158,57 @@ export async function uploadFiles(
       return apiRes.data;
     } else {
       throw new Error("Error al crear la carpeta");
+    }
+  } catch (err) {
+    if (isAxiosError(err) && err.response) {
+      throw new Error(err.response.data.error.message);
+    } else throw err;
+  }
+}
+
+/**
+ * @description Renombrar un nodo
+ * @param param0 Datos del formulario de renombrado
+ * @returns {Promise<NodeType>} Nodo renombrado
+ */
+export async function renameNode({
+  name,
+  nodeId,
+}: NodeAPIType["renameFormData"]): Promise<NodeType> {
+  try {
+    const { data } = await api.patch(`/nodes/${nodeId}/rename`, {
+      newName: name,
+    });
+    const apiRes = nodeSchema.safeParse(validateApiRes(data).data);
+
+    if (apiRes.success) {
+      return apiRes.data;
+    } else {
+      throw new Error("Error al crear la carpeta");
+    }
+  } catch (err) {
+    if (isAxiosError(err) && err.response) {
+      throw new Error(err.response.data.error.message);
+    } else throw err;
+  }
+}
+
+/**
+ * @description Obtener los detalles de un nodo
+ * @param nodeId ID del nodo
+ * @returns {Promise<NodeType>} Detalles del nodo
+ */
+export async function getNodeDetails(
+  nodeId: NodeType["id"]
+): Promise<NodeType> {
+  try {
+    const { data } = await api.get(`/nodes/${nodeId}/details`);
+    const apiRes = nodeSchema.safeParse(validateApiRes(data).data);
+
+    if (apiRes.success) {
+      return apiRes.data;
+    } else {
+      throw new Error("Error al obtener los detalles del nodo");
     }
   } catch (err) {
     if (isAxiosError(err) && err.response) {

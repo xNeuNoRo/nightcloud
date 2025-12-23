@@ -1,6 +1,4 @@
 import { useMemo } from "react";
-import { BsThreeDots } from "react-icons/bs";
-import { FaFolder } from "react-icons/fa6";
 import type { NodeType } from "@/types";
 import getHumanFileType from "@/utils/files/getHumanFileType";
 import getHumanFileSize from "@/utils/files/getHumanFileSize";
@@ -8,6 +6,7 @@ import { getCategoryFromMime } from "@/utils/files/getCategoryFromExtAndMime";
 import { FileCategoryIcons } from "@/data/fileCategoryIcons";
 import { useAppStore } from "@/stores/useAppStore";
 import formatDate from "@/utils/formatDate";
+import NodeActions from "./NodeActions";
 
 type NodeFileProps = {
   node: NodeType;
@@ -21,7 +20,7 @@ export default function NodeFile({ node }: Readonly<NodeFileProps>) {
 
   // Determinar el icono del nodo
   const category = getCategoryFromMime(node.mime);
-  const Icon = node.isDir ? FaFolder : FileCategoryIcons[category];
+  const Icon = FileCategoryIcons[category];
 
   const toggleSelect = (selectedNode: NodeType) => {
     if (selectedNodes.some((node) => node.id === selectedNode.id)) {
@@ -90,9 +89,7 @@ export default function NodeFile({ node }: Readonly<NodeFileProps>) {
 
       {/* Actions */}
       <div className="flex justify-end">
-        <button className="p-1.5 rounded-full cursor-pointer hover:bg-white/10 text-night-muted hover:text-white transition-colors">
-          <BsThreeDots className="text-lg" />
-        </button>
+        <NodeActions node={node} />
       </div>
     </div>
   );
