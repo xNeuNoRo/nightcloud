@@ -84,6 +84,22 @@ export class NodeController {
     }
   };
 
+  static readonly getNodeDetails = async (req: Request, res: Response) => {
+    const node = req.node!;
+
+    try {
+      const details = await NodeService.getNodeDetails(node.id);
+      res.success(toNodeDTO(details!));
+    } catch (err) {
+      if (err instanceof AppError) throw err;
+      else
+        throw new AppError(
+          "INTERNAL",
+          `Error al obtener los detalles de ${node.name}`,
+        );
+    }
+  };
+
   // Eliminar un nodo
   static readonly deleteNode = async (req: Request, res: Response) => {
     const node = req.node!;
