@@ -156,13 +156,10 @@ export const nodeExists = async (
     const { nodeId } = req.params;
 
     // Buscar el nodo en la base de datos
-    const node = await NodeService.getNodeById(nodeId);
-
-    // Si no existe, lanzar un error
-    if (!node) throw new AppError("NODE_NOT_FOUND");
+    const node = await NodeService.getNodeDetails(nodeId); // Si no existe, getNodeDetails lanzará un error que será capturado abajo
 
     // Adjuntar el nodo a la request para uso posterior
-    req.node = node;
+    req.node = node!;
 
     next();
   } catch (err) {

@@ -77,12 +77,23 @@ export class NodeService {
   }
 
   /**
-   * @description Obtiene un nodo por su ID.
+   * @description Obtiene los detalles de un nodo por su ID.
    * @param nodeId ID del nodo a obtener
-   * @returns Nodo obtenido o null si no existe
+   * @returns Nodo con sus detalles
    */
-  static async getNodeById(nodeId: Node["id"]): Promise<Node | null> {
-    return await this.repo.findById(nodeId);
+  static async getNodeDetails(nodeId: Node["id"]): Promise<Node | null> {
+    try {
+      const details = await this.repo.findById(nodeId);
+      if (!details) throw new AppError("NODE_NOT_FOUND");
+      return details;
+    } catch (err) {
+      if (err instanceof AppError) throw err;
+      else
+        throw new AppError(
+          "INTERNAL",
+          `Error al obtener los detalles del nodo`,
+        );
+    }
   }
 
   /**

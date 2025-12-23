@@ -80,6 +80,15 @@ router.post(
   NodeController.moveNode,
 );
 
+// Obtener detalles de un nodo por ID
+router.get(
+  "/:nodeId/details",
+  NodeValidators.nodeCopyValidator,
+  validateRequest,
+  nodeExists,
+  NodeController.getNodeDetails,
+);
+
 // Obtener nodos de un directorio en especifico
 router.get(
   "/:nodeId",
