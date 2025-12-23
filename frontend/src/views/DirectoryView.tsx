@@ -1,10 +1,11 @@
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { FaFolderPlus } from "react-icons/fa";
 import FileTable from "@/components/node/NodeTable";
-import buildBreadcrumbs from "@/utils/buildBreadcrumbs";
+import buildBreadcrumbs from "@/utils/build/buildBreadcrumbs";
 import { useNode } from "@/hooks/useNode";
 import Breadcrumb from "@/components/Breadcrumb";
 import CreateFolderModal from "@/components/node/CreateFolderModal";
+import UploadModal from "@/components/upload/UploadModal";
 
 export default function DirectoryView() {
   const { nodeId } = useParams();
@@ -67,6 +68,7 @@ export default function DirectoryView() {
       </div>
 
       <CreateFolderModal />
+      <UploadModal />
     </>
   );
 }

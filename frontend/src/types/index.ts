@@ -56,3 +56,9 @@ export type AncestorType = z.infer<typeof ancestorSchema>;
 
 // Tipo para el formulario de creación de carpetas
 export type NodeFolderFormData = Pick<NodeType, "name">;
+
+export type UploadProgress = {
+  loaded: number;
+  total: number;
+  percent: number;
+};

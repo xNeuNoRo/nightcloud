@@ -2,9 +2,9 @@ import { useMemo } from "react";
 import { BsThreeDots } from "react-icons/bs";
 import { FaFolder } from "react-icons/fa6";
 import type { NodeType } from "@/types";
-import getHumanFileType from "@/utils/getHumanFileType";
-import getHumanFileSize from "@/utils/getHumanFileSize";
-import { getCategoryFromMime } from "@/utils/getCategoryFromExtAndMime";
+import getHumanFileType from "@/utils/files/getHumanFileType";
+import getHumanFileSize from "@/utils/files/getHumanFileSize";
+import { getCategoryFromMime } from "@/utils/files/getCategoryFromExtAndMime";
 import { FileCategoryIcons } from "@/data/fileCategoryIcons";
 import { useAppStore } from "@/stores/useAppStore";
 import formatDate from "@/utils/formatDate";
@@ -39,7 +39,7 @@ export default function NodeFile({ node }: Readonly<NodeFileProps>) {
   return (
     <div
       className={`
-        grid grid-cols-[50px_1fr_100px_100px_140px_50px] gap-4 items-center px-4 py-3 rounded-lg transition-all duration-200 group border border-transparent select-none w-full
+        grid grid-cols-[50px_1fr_100px_100px_180px_50px] gap-4 items-center px-4 py-3 rounded-lg transition-all duration-200 group border border-transparent select-none w-full
         ${
           isSelected
             ? "bg-night-primary/10 border-night-primary/20"

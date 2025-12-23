@@ -4,6 +4,7 @@ import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import { useAppStore } from "@/stores/useAppStore";
 import { ToastContainer } from "react-toastify";
+import GlobalDropzone from "@/components/upload/GlobalDropzone";
 
 export default function AppLayout() {
   const params = useParams();
@@ -15,6 +16,9 @@ export default function AppLayout() {
 
   return (
     <>
+      {/* Zona de drop global, solamente renderizada en /directory/* y root */}
+      <GlobalDropzone />
+
       <div className="flex h-screen w-full bg-night-main text-night-text overflow-hidden relative font-sans">
         {/* Fondo Aurora */}
         <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">

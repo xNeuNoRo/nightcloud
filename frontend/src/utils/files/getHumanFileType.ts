@@ -1,4 +1,4 @@
-import capitalizeFirstLetter from "./capitalizeFirstLetter";
+import capitalizeFirstLetter from "../capitalizeFirstLetter";
 import { getCategoryFromMime } from "./getCategoryFromExtAndMime";
 
 /**

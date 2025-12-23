@@ -1,4 +1,8 @@
-import { getAncestorsOfNodeById, getNodesFromDir } from "@/api/NodeAPI";
+import {
+  getAncestorsOfNodeById,
+  getNodesFromDir,
+  getNodesFromRoot,
+} from "@/api/NodeAPI";
 import type { NodeType } from "@/types";
 import sortNodes from "@/utils/sortNodes";
 import { useQuery } from "@tanstack/react-query";
@@ -7,19 +11,26 @@ export function useNode(
   nodeId: NodeType["id"] | undefined,
   params?: { includeAncestors?: boolean }
 ) {
+  // Determinar si se deben incluir los ancestros
   const includeAncestors = params && params.includeAncestors !== false;
 
+  // Función de consulta basada en si hay un nodeId o no
+  const queryFn = nodeId
+    ? () => getNodesFromDir(nodeId)
+    : () => getNodesFromRoot();
+
+  // Consulta para obtener el nodo o nodos
   const {
     data: nodeData,
     isLoading: nodeLoading,
     error: nodeError,
   } = useQuery({
-    queryFn: () => getNodesFromDir(nodeId!),
-    queryKey: ["nodes", nodeId],
-    enabled: !!nodeId,
+    queryFn,
+    queryKey: ["nodes", nodeId ?? "root"],
     retry: 1,
   });
 
+  // Consulta para obtener los ancestros si es necesario
   const {
     data: ancestorsData,
     isLoading: ancestorsLoading,
@@ -30,6 +41,7 @@ export function useNode(
     enabled: !!nodeId && includeAncestors,
   });
 
+  // Retornar los datos y estados de carga/error
   return {
     nodeData: nodeData ? sortNodes(nodeData) : undefined,
     nodeLoading,

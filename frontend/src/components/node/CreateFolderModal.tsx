@@ -7,7 +7,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createNodeFolder } from "@/api/NodeAPI";
 import { toast } from "react-toastify";
 
-export default function CreateNodeModal() {
+export default function CreateFolderModal() {
   const location = useLocation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -30,9 +30,11 @@ export default function CreateNodeModal() {
   const { mutate } = useMutation({
     mutationFn: (data: NodeFolderFormData) => createNodeFolder(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["nodes", parentId ?? "root"] });
+      queryClient.invalidateQueries({
+        queryKey: ["nodes", parentId ?? "root"],
+      });
       closeModal();
-      toast.success("Folder created successfully");
+      toast.success("Folder created successfully", { autoClose: 1000 });
       reset();
     },
     onError: (error) => {
