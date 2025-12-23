@@ -4,7 +4,6 @@ import { MulterError } from "multer";
 import type { Node } from "@/domain/nodes/node";
 import { fromMulterFile } from "@/infra/upload/multer-file";
 import { multerUpload } from "@/infra/upload/multer.upload";
-import { NodeRepository } from "@/repositories/NodeRepository";
 import { NodeService } from "@/services/nodes/Node.service";
 import { AppError, toAppError } from "@/utils";
 
@@ -48,6 +47,18 @@ export const nodeProcess = async (
   next: NextFunction,
 ) => {
   try {
+    // Flag para detectar si la subida fue abortada
+    let aborted = false;
+
+    // Función para manejar la cancelación
+    const onAbort = () => {
+      aborted = true;
+    };
+
+    // Escuchar eventos de abort y close
+    req.on("aborted", onAbort);
+    req.on("close", onAbort);
+
     // Verificar que existan archivos subidos
     if (!req.files || (req.files as Express.Multer.File[]).length === 0)
       throw new AppError("NO_FILES_UPLOADED");
@@ -62,6 +73,9 @@ export const nodeProcess = async (
 
     // Procesar cada archivo subido
     for (const file of uploadedFiles) {
+      // Si la subida fue abortada, salir del ciclo
+      if (aborted) break;
+
       console.log(
         `Node uploaded: ${file.filename} (${file.size.toString()} bytes)`,
       );
@@ -69,8 +83,19 @@ export const nodeProcess = async (
       // Procesar el nodo subido
       const node = await NodeService.process(file, parentId ?? null);
 
+      // Si la subida fue abortada, eliminar el nodo creado
+      if (aborted) {
+        await NodeService.rollback([node], [file]); // Revertir el nodo creado
+        break;
+      }
+
       // Almacenamos el resultado
       results.push(node);
+    }
+
+    // Si la subida fue abortada, revertir los nodos creados, tanto en DB como en almacenamiento
+    if (aborted) {
+      await NodeService.rollback(results, uploadedFiles);
     }
 
     // Adjuntar los nodos creados a la request para uso posterior
@@ -97,7 +122,7 @@ export const nodeExists = async (
     const { nodeId } = req.params;
 
     // Buscar el nodo en la base de datos
-    const node = await NodeRepository.findById(nodeId);
+    const node = await NodeService.getNodeById(nodeId);
 
     // Si no existe, lanzar un error
     if (!node) throw new AppError("NODE_NOT_FOUND");
