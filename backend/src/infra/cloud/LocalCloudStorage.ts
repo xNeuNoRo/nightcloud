@@ -1,5 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import { fsSize } from "systeminformation";
 
 import type { CloudStorage } from "@/services/cloud/CloudStorage";
 import { AppError, pathExists } from "@/utils";
@@ -61,6 +62,32 @@ export class LocalCloudStorage implements CloudStorage {
 
     // Si ya fue inicializada, retornar la ruta
     return LocalCloudStorage.tmpPath;
+  }
+
+  /**
+   * @description Obtiene estadísticas del disco donde se encuentra la nube local.
+   * @returns Objeto con estadísticas del disco (total, usado, libre)
+   */
+  async getDiskStats() {
+    const disks = await fsSize();
+    const cloudRoot = await this.ensureRoot();
+
+    const cloudDisk = disks
+      .toSorted((a, b) => b.mount.length - a.mount.length)
+      .find((disk) => cloudRoot.startsWith(disk.mount));
+
+    if (!cloudDisk) {
+      throw new AppError(
+        "INTERNAL",
+        "No se pudo determinar el disco de la nube local",
+      );
+    }
+
+    return {
+      totalDisk: cloudDisk.size,
+      usedDisk: cloudDisk.used,
+      freeDisk: cloudDisk.available,
+    };
   }
 
   /**

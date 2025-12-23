@@ -53,6 +53,15 @@ router.get(
   NodeController.getNodeAncestors,
 );
 
+// Obtener descendientes de un nodo por ID
+router.get(
+  "/:nodeId/descendants",
+  NodeValidators.nodeIdValidator,
+  validateRequest,
+  nodeExists,
+  NodeController.getNodeDescendants,
+);
+
 // Renombrar nodo por ID
 router.patch(
   "/:nodeId/rename",
