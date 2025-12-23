@@ -3,7 +3,7 @@ import type { Node } from "@/domain/nodes/node";
 import type { UploadedFile } from "@/domain/uploads/uploaded-file";
 import { isDirectoryNode } from "@/infra/guards/node";
 import type { Prisma } from "@/infra/prisma/generated/client";
-import type { AncestorRow } from "@/infra/prisma/types";
+import type { AncestorRow, DescendantRow } from "@/infra/prisma/types";
 import { NodeRepository } from "@/repositories/NodeRepository";
 import type { PrismaTxClient } from "@/types/prisma";
 import { AppError, NodeUtils } from "@/utils";
@@ -81,7 +81,7 @@ export class NodeService {
    * @param nodeId ID del nodo a obtener
    * @returns Nodo con sus detalles
    */
-  static async getNodeDetails(nodeId: Node["id"]): Promise<Node | null> {
+  static async getNodeDetails(nodeId: Node["id"]): Promise<Node> {
     try {
       const details = await this.repo.findById(nodeId);
       if (!details) throw new AppError("NODE_NOT_FOUND");
@@ -105,6 +105,17 @@ export class NodeService {
     startNodeId: Node["id"],
   ): Promise<AncestorRow[]> {
     return await this.repo.getAllNodeAncestors(startNodeId);
+  }
+
+  /**
+   * @description Obtiene todos los descendientes de un nodo dado.
+   * @param startNodeId ID del nodo desde el cual comenzar a buscar descendientes
+   * @returns Array de descendientes del nodo
+   */
+  static async getNodeDescendants(
+    startNodeId: Node["id"],
+  ): Promise<DescendantRow[]> {
+    return await this.repo.getAllNodeDescendants(startNodeId);
   }
 
   /**

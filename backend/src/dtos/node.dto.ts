@@ -20,3 +20,13 @@ export interface AncestorDTO {
   isDir: boolean;
   depth: number;
 }
+
+export interface DescendantDTO {
+  id: string;
+  parentId: string | null;
+  name: string;
+  size: string;
+  mime: string;
+  isDir: boolean;
+  depth: number;
+}

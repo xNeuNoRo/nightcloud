@@ -1,6 +1,10 @@
 import type { Request, Response } from "express";
 
-import { toAncestorDTO, toNodeDTO } from "@/infra/mappers/node.dto-mapper";
+import {
+  toAncestorDTO,
+  toDescendantDTO,
+  toNodeDTO,
+} from "@/infra/mappers/node.dto-mapper";
 import { DownloadService } from "@/services/download/Download.service";
 import { NodeService } from "@/services/nodes/Node.service";
 import { AppError } from "@/utils";
@@ -68,6 +72,7 @@ export class NodeController {
     }
   };
 
+  // Obtener ancestros de un nodo
   static readonly getNodeAncestors = async (req: Request, res: Response) => {
     const node = req.node!;
 
@@ -84,12 +89,30 @@ export class NodeController {
     }
   };
 
+  // Obtener descendientes de un nodo
+  static readonly getNodeDescendants = async (req: Request, res: Response) => {
+    const node = req.node!;
+
+    try {
+      const descendants = await NodeService.getNodeAncestors(node.id);
+      res.success(descendants.map((n) => toDescendantDTO(n)));
+    } catch (err) {
+      if (err instanceof AppError) throw err;
+      else
+        throw new AppError(
+          "INTERNAL",
+          `Error al obtener los ancestros de ${node.name}`,
+        );
+    }
+  };
+
+  // Obtener descendientes de un nodo
   static readonly getNodeDetails = async (req: Request, res: Response) => {
     const node = req.node!;
 
     try {
       const details = await NodeService.getNodeDetails(node.id);
-      res.success(toNodeDTO(details!));
+      res.success(toNodeDTO(details));
     } catch (err) {
       if (err instanceof AppError) throw err;
       else

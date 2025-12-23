@@ -1,5 +1,5 @@
 import type { Node } from "@/domain/nodes/node";
-import type { AncestorDTO, NodeDTO } from "@/dtos/node.dto";
+import type { AncestorDTO, DescendantDTO, NodeDTO } from "@/dtos/node.dto";
 
 import type { AncestorRow } from "../prisma/types";
 
@@ -16,6 +16,11 @@ type NodePicked = Pick<
 >;
 
 type AncestorPicked = Pick<
+  AncestorRow,
+  "id" | "parentId" | "name" | "size" | "mime" | "isDir" | "depth"
+>;
+
+type DescendantPicked = Pick<
   AncestorRow,
   "id" | "parentId" | "name" | "size" | "mime" | "isDir" | "depth"
 >;
@@ -50,3 +55,12 @@ export const toAncestorDTO = (n: AncestorPicked): AncestorDTO => ({
   isDir: n.isDir,
   depth: n.depth,
 });
+
+// Mismo mapeo que AncestorDTO, si cambia en el futuro se puede modificar aqui
+/**
+ * @description Mapea un nodo de dominio a un DescendantDTO.
+ * @param n Nodo de dominio a mapear
+ * @returns DescendantDTO mapeado
+ */
+export const toDescendantDTO = (n: DescendantPicked): DescendantDTO =>
+  toAncestorDTO(n);
