@@ -120,6 +120,20 @@ export class NodeRepository {
   }
 
   /**
+   * @description Suma el tamaño de todos los nodos en la base de datos
+   * @returns Suma total del tamaño de los nodos
+   */
+  static async sumNodesSize() {
+    const res = await prisma.node.aggregate({
+      _sum: {
+        size: true,
+      },
+    });
+
+    return BigInt(res._sum.size ?? 0);
+  }
+
+  /**
    * @description Actualiza el campo updatedAt de un nodo por su ID dentro de una transaccion
    * @param tx Transaccion de Prisma
    * @param id ID del nodo a actualizar
