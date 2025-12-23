@@ -49,11 +49,11 @@ export default function Modal({
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-5"
             >
-              <DialogPanel className="w-full max-w-4xl p-16 overflow-hidden text-left align-middle transition-all transform bg-night-main shadow-xl rounded-2xl">
+              <DialogPanel className="w-full max-w-2xl p-16 overflow-hidden text-left align-middle transition-all transform bg-night-main shadow-xl rounded-2xl">
                 {header}
                 <DialogTitle
                   as="h3"
-                  className={`font-display text-night-text text-4xl ${
+                  className={`text-night-text text-3xl ${
                     header ? "mt-5" : ""
                   }`}
                 >

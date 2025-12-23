@@ -6,6 +6,7 @@ import type { NodeFolderFormData } from "@/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createNodeFolder } from "@/api/NodeAPI";
 import { toast } from "react-toastify";
+import { useEffect } from "react";
 
 export default function CreateFolderModal() {
   const location = useLocation();
@@ -25,6 +26,7 @@ export default function CreateFolderModal() {
     reset,
     handleSubmit,
     formState: { errors },
+    setFocus,
   } = useForm({ defaultValues: initialValues });
 
   const { mutate } = useMutation({
@@ -50,13 +52,22 @@ export default function CreateFolderModal() {
     mutate(data);
   };
 
+  // Auto focus the name input when the modal opens
+  useEffect(() => {
+    if (isOpen) {
+      // Use a timeout to wait for the Modal animation
+      const timer = setTimeout(() => {
+        // Focus the specific field name registered in CreateFolderForm
+        setFocus("name");
+      }, 150);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen, setFocus]);
+
   return (
     <Modal title="Create New Folder" open={isOpen} close={closeModal}>
-      <p className="mt-2 text-xl font-semibold text-night-primary">
-        Fill the form below to create a new folder.
-      </p>
       <form
-        className="mt-10 space-y-8"
+        className="space-y-8"
         onSubmit={handleSubmit(handleCreateFolder)}
         noValidate
       >

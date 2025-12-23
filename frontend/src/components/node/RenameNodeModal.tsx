@@ -7,6 +7,8 @@ import Modal from "../Modal";
 import { renameNode } from "@/api/NodeAPI";
 import { useNode } from "@/hooks/useNode";
 import RenameNodeForm from "./RenameNodeForm";
+import { useEffect } from "react";
+import ErrorMessage from "../ErrorMessage";
 
 export default function RenameNodeModal() {
   const location = useLocation();
@@ -31,6 +33,7 @@ export default function RenameNodeModal() {
     reset,
     handleSubmit,
     formState: { errors },
+    setFocus,
   } = useForm({ defaultValues: initialValues });
 
   const { mutate } = useMutation({
@@ -82,35 +85,41 @@ export default function RenameNodeModal() {
     mutate(data);
   };
 
-  if (nodeDataError)
-    return (
-      <Modal title="Error" open={isOpen} close={closeModal}>
-        <p className="mt-2 text-red-600">
-          Error loading node data: {nodeDataError.message}
-        </p>
-      </Modal>
-    );
+  // Auto focus the name input when the modal opens
+  useEffect(() => {
+    if (isOpen) {
+      // Use a timeout to wait for the Modal animation
+      const timer = setTimeout(() => {
+        // Focus the specific field name registered in CreateFolderForm
+        setFocus("name");
+      }, 150);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen, setFocus]);
 
-  if (!nodeData || nodeDataLoading) return null;
-
+  const modalTitle = `Rename ${nodeData?.isDir ? "Folder" : "File"}`;
   return (
     <Modal
-      title={`Rename ${nodeData.isDir ? "Folder" : "File"}`}
+      title={`${nodeDataError ? "Error" : modalTitle}`}
       open={isOpen}
       close={closeModal}
     >
-      <form
-        className="mt-10 space-y-8"
-        onSubmit={handleSubmit(handleRenameNode)}
-        noValidate
-      >
-        <RenameNodeForm register={register} errors={errors} node={nodeData} />
-        <input
-          type="submit"
-          value={`Rename ${nodeData.isDir ? "Folder" : "File"}`}
-          className="w-full p-3 font-bold text-white uppercase transition-colors cursor-pointer bg-night-primary hover:bg-night-primary-hover rounded-xl"
-        />
-      </form>
+      {nodeDataLoading && <p className="mt-2">Loading...</p>}
+      {nodeDataError && <ErrorMessage>Error loading node data</ErrorMessage>}
+      {nodeData && !nodeDataLoading && (
+        <form
+          className="space-y-8"
+          onSubmit={handleSubmit(handleRenameNode)}
+          noValidate
+        >
+          <RenameNodeForm register={register} errors={errors} node={nodeData} />
+          <input
+            type="submit"
+            value={`Rename ${nodeData.isDir ? "Folder" : "File"}`}
+            className="w-full p-3 font-bold text-white uppercase transition-colors cursor-pointer bg-night-primary hover:bg-night-primary-hover rounded-xl"
+          />
+        </form>
+      )}
     </Modal>
   );
 }

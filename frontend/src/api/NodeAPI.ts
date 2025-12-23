@@ -184,7 +184,7 @@ export async function renameNode({
     if (apiRes.success) {
       return apiRes.data;
     } else {
-      throw new Error("Error al crear la carpeta");
+      throw new Error("Error al renombrar el nodo");
     }
   } catch (err) {
     if (isAxiosError(err) && err.response) {
