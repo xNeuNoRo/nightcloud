@@ -332,6 +332,30 @@ export class NodeService {
   }
 
   /**
+   * @description Realiza un rollback de nodos creados y archivos subidos en caso de error.
+   * @param createdNodes Array de nodos creados en la base de datos
+   * @param uploadedFiles Array de archivos subidos en el sistema de nodos
+   */
+  static async rollback(createdNodes: Node[], uploadedFiles: UploadedFile[]) {
+    try {
+      // Eliminar los archivos creados en el sistema de nodos
+      const tmpPaths = uploadedFiles.map((f) => f.path);
+      const nodePaths = createdNodes.map((n) =>
+        CloudStorageService.getFilePath(n),
+      );
+      await CloudStorageService.deleteFiles([...tmpPaths, ...nodePaths]);
+
+      // Eliminar los nodos ya creados en la base de datos
+      const createdNodeIds = createdNodes.map((n) => n.id);
+      await this.repo.deleteManyByIds(createdNodeIds);
+    } catch (err) {
+      if (err instanceof AppError) throw err;
+      else
+        throw new AppError("INTERNAL", "Error al realizar rollback de nodos");
+    }
+  }
+
+  /**
    * @description Elimina un nodo de tipo directorio y todos sus nodos descendientes.
    * @param node Nodo de tipo directorio a eliminar junto con todos sus descendientes.
    */
