@@ -4,7 +4,7 @@ import {
   getNodesFromRoot,
 } from "@/api/NodeAPI";
 import type { NodeType } from "@/types";
-import sortNodes from "@/utils/sortNodes";
+import { sortNodesByDir } from "@/utils/sortNodes";
 import { useQuery } from "@tanstack/react-query";
 
 export function useNode(
@@ -43,7 +43,7 @@ export function useNode(
 
   // Retornar los datos y estados de carga/error
   return {
-    nodeData: nodeData ? sortNodes(nodeData) : undefined,
+    nodeData: nodeData ? sortNodesByDir(nodeData) : undefined,
     nodeLoading,
     nodeError,
     ancestorsData: includeAncestors ? ancestorsData : undefined,
