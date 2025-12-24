@@ -125,11 +125,11 @@ export default function NodeExplorer() {
             )
           )}
         >
-          <div className="flex items-center gap-2 select-none">
+          <div className="flex items-center gap-3 select-none">
             <FaFolderOpen size={22} className="shrink-0 text-night-muted" />
-            <div className="flex flex-col items-center justify-center">
-              <span className="text-night-muted w-full">
-                Current folder {isLiteralRoot ? "(Root)" : ""}
+            <div className="flex flex-col items-start justify-center">
+              <span className="flex text-night-muted w-full">
+                Current folder ({isLiteralRoot ? "Root" : <span className="block max-w-10 sm:max-w-30 truncate">{nodeData?.name}</span>})
               </span>
               <span className="text-xs text-night-muted/80">
                 This is where you are now
@@ -154,32 +154,34 @@ export default function NodeExplorer() {
         <div className="my-3 border-t border-night-border/50" />
 
         {/* Lista de folders */}
-        {!nodeChildrenLoading && Number(nodeChildrenData?.length) > 0 ? (
-          nodeChildrenData?.map((node) => (
-            <div
-              key={node.id}
-              className={classNames(
-                selectedFolderId === node.id
-                  ? "bg-night-primary/20 border-night-primary/20"
-                  : "hover:bg-night-surface hover:border-night-border/50",
-                "flex justify-between gap-2 text-left px-4 py-3 rounded-lg transition-all duration-200 border border-transparent cursor-default w-full"
-              )}
-            >
-              <NodeExplorerFolder node={node} enterFolder={enterFolder} />
-
-              <button
-                type="button"
-                onClick={() => selectFolder(node.id)}
-                className="flex items-center justify-center w-10 h-10 text-night-text opacity-80 hover:cursor-pointer"
-              >
-                {selectedFolderId === node.id ? (
-                  <HiCheckCircle size={25} />
-                ) : (
-                  <HiOutlineCheckCircle size={25} />
+        {!nodeChildrenLoading && Number(nodeChildrenData?.filter(n=>n.isDir)?.length) > 0 ? (
+          nodeChildrenData
+            ?.filter((n) => n.isDir)
+            ?.map((node) => (
+              <div
+                key={node.id}
+                className={classNames(
+                  selectedFolderId === node.id
+                    ? "bg-night-primary/20 border-night-primary/20"
+                    : "hover:bg-night-surface hover:border-night-border/50",
+                  "flex justify-between gap-3 text-left px-4 py-3 rounded-lg transition-all duration-200 border border-transparent cursor-default w-full"
                 )}
-              </button>
-            </div>
-          ))
+              >
+                <NodeExplorerFolder node={node} enterFolder={enterFolder} />
+
+                <button
+                  type="button"
+                  onClick={() => selectFolder(node.id)}
+                  className="flex items-center justify-center w-10 h-10 text-night-text opacity-80 hover:cursor-pointer"
+                >
+                  {selectedFolderId === node.id ? (
+                    <HiCheckCircle size={25} />
+                  ) : (
+                    <HiOutlineCheckCircle size={25} />
+                  )}
+                </button>
+              </div>
+            ))
         ) : (
           <p className="flex flex-col text-night-muted text-center my-7 select-none">
             <span className="text-night-primary/70">No subfolders here</span>

@@ -65,14 +65,22 @@ export default function DeleteNodeModal() {
             {nodeData.isDir ? (
               <>
                 Are you sure you want to delete the folder{" "}
-                <span className="font-bold">"{nodeData.name}"</span> and all its
-                contents? This action cannot be undone.
+                <span className="font-bold whitespace-nowrap">
+                  {""}"
+                  <span className="truncate max-w-40 inline-block align-bottom">
+                    {nodeData.name}
+                  </span>
+                  {""}"
+                </span>{" "}
+                and all its contents? This action cannot be undone.
               </>
             ) : (
               <>
                 Are you sure you want to delete the file{" "}
-                <span className="font-bold">{nodeData.name}</span>? This action
-                cannot be undone.
+                <span className="font-bold truncate max-w-20">
+                  {nodeData.name}
+                </span>
+                {""}? This action cannot be undone.
               </>
             )}
           </p>

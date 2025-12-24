@@ -9,6 +9,7 @@ import MoveNodeForm from "./MoveNodeForm";
 import type { NodeMoveFormData } from "@/types";
 import { useForm } from "react-hook-form";
 import { useExplorer } from "@/hooks/explorer/useExplorer";
+import { useEffect } from "react";
 
 export default function MoveNodeModal() {
   const location = useLocation();
@@ -19,10 +20,8 @@ export default function MoveNodeModal() {
   const isOpen = !!nodeId;
   const parentId = location.pathname.split("/").pop() || null; // Obtener el parentId de la URL
   const { selectedFolderId } = useExplorer();
-  const { nodeData, nodeDataLoading, nodeDataError } = useNode(
-    nodeId || undefined,
-    "node"
-  );
+  const { isPlaceholderData, nodeData, nodeDataLoading, nodeDataError } =
+    useNode(nodeId || undefined, "node");
 
   const initialValues: NodeMoveFormData = {
     name: "",
@@ -33,13 +32,22 @@ export default function MoveNodeModal() {
     reset,
     handleSubmit,
     formState: { errors },
-  } = useForm({ defaultValues: initialValues });
+  } = useForm({ defaultValues: initialValues, shouldUnregister: false });
+
+  // Setear el nombre inicial del nodo a copiar cuando este disponible luego del fetch
+  useEffect(() => {
+    if (isPlaceholderData || !nodeData) return;
+
+    reset({
+      name: nodeData.name,
+    });
+  }, [nodeData, reset, isPlaceholderData]);
 
   const closeModal = () => navigate(location.pathname, { replace: true }); // Remover los query params
 
   const { mutate } = useMutation({
     mutationFn: (data: NodeMoveFormData) =>
-      moveNode(nodeId!, selectedFolderId ?? null, data.name),
+      moveNode(nodeId!, selectedFolderId ?? null, data.name ?? nodeData!.name),
     onSuccess: (data) => {
       // mensaje de éxito
       const nodesAffected = Array.isArray(data) ? data.length : 1;
@@ -78,6 +86,9 @@ export default function MoveNodeModal() {
     return null;
   }
 
+  // Usar una key dinámica para forzar el remount del formulario cuando el nodeData cambia
+  const formKey = `${nodeId}-${isPlaceholderData ? "loading" : "ready"}`;
+
   return (
     <Modal
       title={`Move ${nodeData?.isDir ? "Folder" : "File"} ${nodeData?.name}`}
@@ -92,7 +103,12 @@ export default function MoveNodeModal() {
           onSubmit={handleSubmit(handleMoveNode)}
         >
           <NodeExplorer />
-          <MoveNodeForm register={register} errors={errors} />
+          <MoveNodeForm
+            key={formKey}
+            register={register}
+            errors={errors}
+            isDir={nodeData.isDir}
+          />
           <input
             type="submit"
             value={`Move ${nodeData.isDir ? "Folder" : "File"}`}

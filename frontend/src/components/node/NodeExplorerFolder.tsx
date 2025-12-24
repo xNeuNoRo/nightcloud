@@ -19,12 +19,12 @@ export default function NodeExplorerFolder({
       onHoverStart={() => setHovered(true)}
       onHoverEnd={() => setHovered(false)}
       onClick={() => enterFolder(node)}
-      className="flex items-center gap-3 hover:cursor-pointer select-none"
+      className="flex items-center gap-3 hover:cursor-pointer select-none flex-1 min-w-0"
     >
       <motion.div
         animate={hovered ? { x: 4 } : { x: 0 }}
         transition={{ duration: 0.12 }}
-        className="flex items-center gap-3 text-night-muted hover:text-night-text"
+        className="flex items-center gap-3 flex-1 min-w-0 text-night-muted hover:text-night-text"
       >
         <div className="w-6 h-6 flex items-center justify-center">
           <AnimatePresence mode="wait" initial={false}>
@@ -56,7 +56,7 @@ export default function NodeExplorerFolder({
           </AnimatePresence>
         </div>
         <span
-          className={`truncate max-w-90 ${
+          className={`truncate ${
             hovered ? "text-night-text" : "text-night-muted"
           }`}
         >

@@ -74,6 +74,7 @@ export function useNode(nodeId: NodeType["id"] | undefined, mode: UseNodeMode) {
     nodeData: nodeQuery.data,
     nodeDataLoading: nodeQuery.isLoading,
     nodeDataError: nodeQuery.error,
+    isPlaceholderData: nodeQuery.isPlaceholderData,
 
     // Solo incluir datos de hijos si se solicitó
     nodeChildrenData: childrenQuery.data
