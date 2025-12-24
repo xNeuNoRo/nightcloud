@@ -1,11 +1,13 @@
 import { useEffect, useRef } from "react";
 import { useExplorer } from "@/hooks/explorer/useExplorer";
 import type { NodeType } from "@/types";
+import { useAppStore } from "@/stores/useAppStore";
 
 export function useExplorerInitialization(
   rootParentId?: string,
   nodeData?: NodeType
 ) {
+  const { resetExplorer: resetToCurrentId } = useAppStore();
   const { resetExplorer } = useExplorer();
   const hasInitializedRef = useRef(false);
 
@@ -24,7 +26,16 @@ export function useExplorerInitialization(
 
     // Si hay rootParentId, esperar a que nodeData esté disponible
     if (rootParentId) {
+      // Si no hay nodeData, no hacer nada
       if (!nodeData) return;
+
+      // Si el nodo obtenido no coincide con el rootParentId, resetear al ID
+      // TODO: Creo que todavia podria dar algun bug falta testing
+      if (nodeData.id !== rootParentId) {
+        resetToCurrentId(rootParentId);
+        return;
+      }
+
       /// Resetear el explorador con el nodo obtenido
       resetExplorer(nodeData);
     } else {
@@ -34,5 +45,5 @@ export function useExplorerInitialization(
 
     // Marcar como inicializado
     hasInitializedRef.current = true;
-  }, [rootParentId, nodeData, resetExplorer]);
+  }, [rootParentId, nodeData, resetExplorer, resetToCurrentId]);
 }
