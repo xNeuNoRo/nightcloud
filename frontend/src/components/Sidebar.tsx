@@ -3,6 +3,7 @@ import { FaFolder, FaTrash } from "react-icons/fa6"; // Iconos para el menú
 import Logo from "./Logo";
 import SidebarItem from "./SidebarItem";
 import { useMatch, useNavigate } from "react-router-dom";
+import StorageBar from "./StorageBar";
 
 const menuItems = [
   { icon: FaFolder, label: "My Files", url: "/" },
@@ -46,15 +47,7 @@ export default function Sidebar() {
       </nav>
 
       {/* Storage Status (Opcional visual) */}
-      <div className="mt-auto pt-6 border-t border-night-border">
-        <div className="flex justify-between text-xs text-night-muted mb-2 font-mono">
-          <span>Storage</span>
-          <span>75%</span>
-        </div>
-        <div className="w-full bg-night-border rounded-full h-1.5 overflow-hidden">
-          <div className="bg-night-primary h-full w-3/4 rounded-full shadow-[0_0_10px_var(--color-night-primary)]"></div>
-        </div>
-      </div>
+      <StorageBar />
     </aside>
   );
 }

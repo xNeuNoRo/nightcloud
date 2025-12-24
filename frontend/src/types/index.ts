@@ -1,5 +1,9 @@
 import { z } from "zod";
 
+// ----------------------------------
+// Schemas de validación
+// ----------------------------------
+
 // Schema para respuestas estandarizadas de la API
 export const apiResponseSchema = z.object({
   ok: z.boolean(),
@@ -50,22 +54,51 @@ export const nodeSchema = ancestorSchema
 // Schema para una lista de nodos
 export const nodesSchema = z.array(nodeSchema);
 
+export const cloudStatsSchema = z.object({
+  disk: z.object({
+    total: z.string(),
+    used: z.string(),
+    free: z.string(),
+  }),
+  cloud: z.object({
+    used: z.string(),
+    available: z.string(),
+  }),
+  other: z.object({
+    used: z.string(),
+  }),
+});
+
+// ----------------------------------
+// Types derivados de los schemas
+// ----------------------------------
+
 export type ApiResponseType = z.infer<typeof apiResponseSchema>;
 export type NodeType = z.infer<typeof nodeSchema>;
 export type AncestorType = z.infer<typeof ancestorSchema>;
+export type CloudStatsType = z.infer<typeof cloudStatsSchema>;
 
-// Tipo para el formulario de creación de carpetas
+// ----------------------------------
+// Types para formularios basados
+// en los derivados de los schemas
+// ----------------------------------
+
+// Type para el formulario de creación de carpetas
 export type NodeFolderFormData = Pick<NodeType, "name">;
 
-// Tipo para el formulario de renombrado de nodos
+// Type para el formulario de renombrado de nodos
 export type NodeRenameFormData = Pick<NodeType, "name">;
 
-// Tipo para el progreso de subida de archivos
+// ----------------------------------
+// Otros types
+// ----------------------------------
+
+// Type para el progreso de subida de archivos
 export type UploadProgress = {
   loaded: number;
   total: number;
   percent: number;
 };
 
-// Tipo para la dirección de ordenamiento
+// Type para la dirección de ordenamiento
 export type SortDirection = "asc" | "desc";
