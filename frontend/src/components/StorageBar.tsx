@@ -20,7 +20,7 @@ export default function StorageBar() {
 
   let color = "bg-night-primary";
 
-  if (percentage >= 50 && percentage < 90) {
+  if (percentage >= 65 && percentage < 90) {
     color = "bg-yellow-600";
   } else if (percentage >= 90) {
     color = "bg-red-600";
