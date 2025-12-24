@@ -13,20 +13,17 @@ export default function DirectoryView() {
   const navigate = useNavigate();
   const openModal = () => navigate(location.pathname + "?createFolder=true");
 
-  const { nodeChildrenData, nodeChildrenLoading, nodeChildrenError } = useNode(
-    undefined,
-    "children"
-  );
+  const { children } = useNode(undefined, "children");
 
-  if (nodeChildrenLoading) {
+  if (children.loading) {
     return <div>Loading...</div>;
   }
 
-  if (nodeChildrenError) {
+  if (children.error) {
     return <div>Error loading files.</div>;
   }
 
-  if (!nodeChildrenData) {
+  if (!children.data) {
     return;
   }
 
@@ -50,7 +47,7 @@ export default function DirectoryView() {
 
       {/* El contenedor de la tabla crece para ocupar el resto del espacio */}
       <div className="flex-1 min-h-0">
-        <FileTable nodes={nodeChildrenData} />
+        <FileTable nodes={children.data} />
       </div>
 
       <CreateFolderModal />

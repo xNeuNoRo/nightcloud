@@ -20,48 +20,39 @@ export default function DirectoryView() {
   const navigate = useNavigate();
   const openModal = () => navigate(location.pathname + "?createFolder=true");
 
-  const {
-    nodeChildrenData,
-    nodeChildrenLoading,
-    nodeChildrenError,
-    ancestorsData,
-    ancestorsLoading,
-    ancestorsError,
-  } = useNode(nodeId, "children+ancestors");
+  const { children, ancestors } = useNode(nodeId, "children+ancestors");
 
   if (!nodeId) {
     return <div>No directory specified</div>;
   }
 
-  if (nodeChildrenLoading || ancestorsLoading) {
+  if (children.loading || ancestors.loading) {
     return <div>Loading...</div>;
   }
 
   if (
-    nodeChildrenError ||
-    ancestorsError ||
-    !nodeChildrenData ||
-    !ancestorsData
+    children.error ||
+    ancestors.error ||
+    !children.data ||
+    !ancestors.data
   ) {
     return <div>Error loading files</div>;
   }
 
   // Construir los breadcrums visibles
-  const breadcrums = [...buildBreadcrumbs(nodeId, ancestorsData)];
+  const breadcrums = [...buildBreadcrumbs(nodeId, ancestors.data)];
   // Obtener los breadcrums visibles con elipsis si es necesario
   const { items: visibleBreadcrumbs, hasEllipsis } = getVisibleBreadcrumbs(
     breadcrums,
     2
   );
 
-  console.log(ancestorsData);
-
   const handleGoBack = () => {
-    if (ancestorsData.length === 0) {
+    if (ancestors.data?.length === 0) {
       navigate(`/`);
     } else {
       // Navegar al padre inmediato
-      const parent = ancestorsData.find((a) => a.id === nodeId);
+      const parent = ancestors.data?.find((a) => a.id === nodeId);
 
       // SI no hay padre, navegar al root
       if (!parent?.parentId) return navigate("/");
@@ -82,7 +73,6 @@ export default function DirectoryView() {
               className="flex items-center gap-1 bg-night-primary hover:bg-night-primary-hover hover:cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed p-1 px-2 rounded-lg transition-colors duration-150"
             >
               <HiArrowLeft className="w-4 h-4 text-night-text" />
-              
             </button>
             <div className="flex items-center gap-1 text-xl font-bold leading-none">
               <Link to={`/`} className="hover:underline">
@@ -120,7 +110,7 @@ export default function DirectoryView() {
 
       {/* El contenedor de la tabla crece para ocupar el resto del espacio */}
       <div className="flex-1 min-h-0">
-        <FileTable nodes={nodeChildrenData} />
+        <FileTable nodes={children.data} />
       </div>
 
       <CreateFolderModal />

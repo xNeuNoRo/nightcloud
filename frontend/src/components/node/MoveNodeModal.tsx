@@ -20,7 +20,7 @@ export default function MoveNodeModal() {
   const isOpen = !!nodeId;
   const parentId = location.pathname.split("/").pop() || null; // Obtener el parentId de la URL
   const { selectedFolderId } = useExplorer();
-  const { isPlaceholderData, nodeData, nodeDataLoading, nodeDataError } =
+  const { node } =
     useNode(nodeId || undefined, "node");
 
   const initialValues: NodeMoveFormData = {
@@ -36,22 +36,22 @@ export default function MoveNodeModal() {
 
   // Setear el nombre inicial del nodo a copiar cuando este disponible luego del fetch
   useEffect(() => {
-    if (isPlaceholderData || !nodeData) return;
+    if (node.isPlaceholderData || !node.data) return;
 
     reset({
-      name: nodeData.name,
+      name: node.data.name,
     });
-  }, [nodeData, reset, isPlaceholderData]);
+  }, [node.data, reset, node.isPlaceholderData]);
 
   const closeModal = () => navigate(location.pathname, { replace: true }); // Remover los query params
 
   const { mutate } = useMutation({
     mutationFn: (data: NodeMoveFormData) =>
-      moveNode(nodeId!, selectedFolderId ?? null, data.name ?? nodeData!.name),
+      moveNode(nodeId!, selectedFolderId ?? null, data.name ?? node.data!.name),
     onSuccess: (data) => {
       // mensaje de éxito
       const nodesAffected = Array.isArray(data) ? data.length : 1;
-      const successOperations = nodeData?.isDir
+      const successOperations = node.data?.isDir
         ? `${nodesAffected} Folder(s)`
         : `${nodesAffected} File(s)`;
 
@@ -80,23 +80,23 @@ export default function MoveNodeModal() {
     mutate(data);
   };
 
-  if (nodeDataError) {
-    toast.error(nodeDataError.message);
+  if (node.error) {
+    toast.error(node.error.message);
     queryClient.invalidateQueries({ queryKey: ["nodeDetails", nodeId] });
     return null;
   }
 
-  // Usar una key dinámica para forzar el remount del formulario cuando el nodeData cambia
-  const formKey = `${nodeId}-${isPlaceholderData ? "loading" : "ready"}`;
+  // Usar una key dinámica para forzar el remount del formulario cuando el node.data cambia
+  const formKey = `${nodeId}-${node.isPlaceholderData ? "loading" : "ready"}`;
 
   return (
     <Modal
-      title={`Move ${nodeData?.isDir ? "Folder" : "File"} ${nodeData?.name}`}
+      title={`Move ${node.data?.isDir ? "Folder" : "File"} ${node.data?.name}`}
       open={isOpen}
       close={closeModal}
     >
-      {nodeDataLoading && <p className="mt-2">Loading...</p>}
-      {!nodeDataLoading && nodeData && (
+      {node.loading && <p className="mt-2">Loading...</p>}
+      {!node.loading && node.data && (
         <form
           className="mt-5 space-y-10"
           noValidate
@@ -107,11 +107,11 @@ export default function MoveNodeModal() {
             key={formKey}
             register={register}
             errors={errors}
-            isDir={nodeData.isDir}
+            isDir={node.data.isDir}
           />
           <input
             type="submit"
-            value={`Move ${nodeData.isDir ? "Folder" : "File"}`}
+            value={`Move ${node.data.isDir ? "Folder" : "File"}`}
             className="w-full p-3 font-bold text-white uppercase cursor-pointer transition-colors duration-200 bg-night-primary hover:bg-night-primary-hover rounded-xl"
           />
         </form>

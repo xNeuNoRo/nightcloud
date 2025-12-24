@@ -14,7 +14,7 @@ export default function DeleteNodeModal() {
   const isOpen = !!nodeId;
   const closeModal = () => navigate(location.pathname, { replace: true }); // Limpia los query params
   const parentId = location.pathname.split("/").pop() || null; // Obtener el parentId de la URL
-  const { nodeData, nodeDataLoading, nodeDataError } = useNode(
+  const { node } = useNode(
     nodeId || undefined,
     "node"
   );
@@ -31,7 +31,7 @@ export default function DeleteNodeModal() {
 
       closeModal();
       toast.success(
-        `${nodeData?.isDir ? "Folder" : "File"} deleted successfully`,
+        `${node.data?.isDir ? "Folder" : "File"} deleted successfully`,
         {
           autoClose: 1000,
         }
@@ -46,29 +46,29 @@ export default function DeleteNodeModal() {
     mutate();
   };
 
-  if (nodeDataError) {
-    toast.error(nodeDataError.message);
+  if (node.error) {
+    toast.error(node.error.message);
     queryClient.invalidateQueries({ queryKey: ["nodeDetails", nodeId] });
     return null;
   }
 
   return (
     <Modal
-      title={`Delete ${nodeData?.isDir ? "Folder" : "File"}`}
+      title={`Delete ${node.data?.isDir ? "Folder" : "File"}`}
       open={isOpen}
       close={closeModal}
     >
-      {nodeDataLoading && <p className="mt-2">Loading...</p>}
-      {!nodeDataLoading && nodeData && (
+      {node.loading && <p className="mt-2">Loading...</p>}
+      {!node.loading && node.data && (
         <div className="mt-5 space-y-10">
           <p className="text-night-muted tracking-wider">
-            {nodeData.isDir ? (
+            {node.data.isDir ? (
               <>
                 Are you sure you want to delete the folder{" "}
                 <span className="font-bold whitespace-nowrap">
                   {""}"
                   <span className="truncate max-w-40 inline-block align-bottom">
-                    {nodeData.name}
+                    {node.data.name}
                   </span>
                   {""}"
                 </span>{" "}
@@ -78,7 +78,7 @@ export default function DeleteNodeModal() {
               <>
                 Are you sure you want to delete the file{" "}
                 <span className="font-bold truncate max-w-20">
-                  {nodeData.name}
+                  {node.data.name}
                 </span>
                 {""}? This action cannot be undone.
               </>
@@ -88,7 +88,7 @@ export default function DeleteNodeModal() {
             onClick={handleDeleteNode}
             className="w-full p-3 font-bold text-white uppercase cursor-pointer transition-colors duration-200 bg-red-500 hover:bg-red-700 rounded-xl"
           >
-            {`Delete ${nodeData.isDir ? "Folder" : "File"}`}
+            {`Delete ${node.data.isDir ? "Folder" : "File"}`}
           </button>
         </div>
       )}

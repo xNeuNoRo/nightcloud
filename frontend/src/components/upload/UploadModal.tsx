@@ -27,15 +27,15 @@ export default function ModalDropzone() {
   );
 
   // Obtener las carpetas del directorio actual para el select de destino
-  const { nodeChildrenData } = useNode(parentId || undefined, "children");
+  const { children } = useNode(parentId || undefined, "children");
 
   // Si no hay datos de nodos, no renderizar nada
-  if (!nodeChildrenData) return null;
+  if (!children.data) return null;
 
   // Construir las opciones para el select de destino
   const options = [
     { id: parentId ?? "root", icon: FaFolder, name: "Current Directory" },
-    ...buildNodeDirListOptions(nodeChildrenData),
+    ...buildNodeDirListOptions(children.data),
   ];
 
   const handleOnUpload = () => {

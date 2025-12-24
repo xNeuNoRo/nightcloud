@@ -19,10 +19,7 @@ export default function RenameNodeModal() {
   const isOpen = !!nodeId;
   const closeModal = () => navigate(location.pathname, { replace: true }); // Limpia los query params
   const parentId = location.pathname.split("/").pop() || null; // Obtener el parentId de la URL
-  const { nodeData, nodeDataLoading, nodeDataError } = useNode(
-    nodeId || undefined,
-    "node"
-  );
+  const { node } = useNode(nodeId || undefined, "node");
 
   const initialValues: NodeRenameFormData = {
     name: "",
@@ -97,25 +94,25 @@ export default function RenameNodeModal() {
     }
   }, [isOpen, setFocus]);
 
-  const modalTitle = `Rename ${nodeData?.isDir ? "Folder" : "File"}`;
+  const modalTitle = `Rename ${node.data?.isDir ? "Folder" : "File"}`;
   return (
     <Modal
-      title={`${nodeDataError ? "Error" : modalTitle}`}
+      title={`${node.error ? "Error" : modalTitle}`}
       open={isOpen}
       close={closeModal}
     >
-      {nodeDataLoading && <p className="mt-2">Loading...</p>}
-      {nodeDataError && <ErrorMessage>Error loading node data</ErrorMessage>}
-      {nodeData && !nodeDataLoading && (
+      {node.loading && <p className="mt-2">Loading...</p>}
+      {node.error && <ErrorMessage>Error loading node data</ErrorMessage>}
+      {node.data && !node.loading && (
         <form
           className="space-y-8"
           onSubmit={handleSubmit(handleRenameNode)}
           noValidate
         >
-          <RenameNodeForm register={register} errors={errors} node={nodeData} />
+          <RenameNodeForm register={register} errors={errors} node={node.data} />
           <input
             type="submit"
-            value={`Rename ${nodeData.isDir ? "Folder" : "File"}`}
+            value={`Rename ${node.data.isDir ? "Folder" : "File"}`}
             className="w-full p-3 font-bold text-white uppercase transition-colors cursor-pointer bg-night-primary hover:bg-night-primary-hover rounded-xl"
           />
         </form>

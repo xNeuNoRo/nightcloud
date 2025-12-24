@@ -71,26 +71,41 @@ export function useNode(nodeId: NodeType["id"] | undefined, mode: UseNodeMode) {
   // Retornar los datos y estados de carga/error
   return {
     // Datos y estados del nodo actual
-    nodeData: nodeQuery.data,
-    nodeDataLoading: nodeQuery.isLoading,
-    nodeDataError: nodeQuery.error,
-    isPlaceholderData: nodeQuery.isPlaceholderData,
+    node: {
+      data: nodeQuery.data,
+      loading: nodeQuery.isLoading,
+      error: nodeQuery.error,
+      isPlaceholderData: nodeQuery.isPlaceholderData,
+    },
 
     // Solo incluir datos de hijos si se solicitó
-    nodeChildrenData: childrenQuery.data
-      ? sortNodesByDir(childrenQuery.data)
-      : undefined,
-    nodeChildrenLoading: includeChildrens ? childrenQuery.isLoading : false,
-    nodeChildrenError: includeChildrens ? childrenQuery.error : undefined,
+    children: {
+      data: childrenQuery.data ? sortNodesByDir(childrenQuery.data) : undefined,
+      loading: includeChildrens ? childrenQuery.isLoading : false,
+      error: includeChildrens ? childrenQuery.error : undefined,
+      isPlaceholderData: includeChildrens
+        ? childrenQuery.isPlaceholderData
+        : false,
+    },
 
     // Solo incluir datos de ancestros si se solicitó
-    ancestorsData: includeAncestors ? ancestorsQuery.data : undefined,
-    ancestorsLoading: includeAncestors ? ancestorsQuery.isLoading : false,
-    ancestorsError: includeAncestors ? ancestorsQuery.error : undefined,
+    ancestors: {
+      data: ancestorsQuery.data ?? undefined,
+      loading: includeAncestors ? ancestorsQuery.isLoading : false,
+      error: includeAncestors ? ancestorsQuery.error : undefined,
+      isPlaceholderData: includeAncestors
+        ? ancestorsQuery.isPlaceholderData
+        : false,
+    },
 
     // Solo incluir datos de descendientes si se solicitó
-    descendantsData: includeDescendants ? descendantsQuery.data : undefined,
-    descendantsLoading: includeDescendants ? descendantsQuery.isLoading : false,
-    descendantsError: includeDescendants ? descendantsQuery.error : undefined,
+    descendants: {
+      data: descendantsQuery.data ?? undefined,
+      loading: includeDescendants ? descendantsQuery.isLoading : false,
+      error: includeDescendants ? descendantsQuery.error : undefined,
+      isPlaceholderData: includeDescendants
+        ? descendantsQuery.isPlaceholderData
+        : false,
+    },
   };
 }

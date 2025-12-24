@@ -28,13 +28,13 @@ export default function NodeExplorer() {
   const { rootParentId } = useExplorerContext();
 
   // Obtener los datos del nodo actual y sus hijos
-  const { nodeData, nodeChildrenData, nodeChildrenLoading } = useNode(
+  const { node, children } = useNode(
     currentFolderId ?? contextRootId,
     "node+children"
   );
 
   // Inicializar el explorador con el rootParentId y el nodeData actual
-  useExplorerInitialization(rootParentId || undefined, nodeData);
+  useExplorerInitialization(rootParentId || undefined, node.data);
 
   // Verificar si la carpeta actual está seleccionada
   const isCurrentFolderSelected = selectedFolderId === currentFolderId;
@@ -129,7 +129,15 @@ export default function NodeExplorer() {
             <FaFolderOpen size={22} className="shrink-0 text-night-muted" />
             <div className="flex flex-col items-start justify-center">
               <span className="flex text-night-muted w-full">
-                Current folder ({isLiteralRoot ? "Root" : <span className="block max-w-10 sm:max-w-30 truncate">{nodeData?.name}</span>})
+                Current folder (
+                {isLiteralRoot ? (
+                  "Root"
+                ) : (
+                  <span className="block max-w-10 sm:max-w-30 truncate">
+                    {node.data?.name}
+                  </span>
+                )}
+                )
               </span>
               <span className="text-xs text-night-muted/80">
                 This is where you are now
@@ -154,8 +162,9 @@ export default function NodeExplorer() {
         <div className="my-3 border-t border-night-border/50" />
 
         {/* Lista de folders */}
-        {!nodeChildrenLoading && Number(nodeChildrenData?.filter(n=>n.isDir)?.length) > 0 ? (
-          nodeChildrenData
+        {!children.loading &&
+        Number(children.data?.filter((n) => n.isDir)?.length) > 0 ? (
+          children.data
             ?.filter((n) => n.isDir)
             ?.map((node) => (
               <div
