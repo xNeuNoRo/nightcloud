@@ -387,17 +387,17 @@ export class NodeService {
         throw new AppError("NODE_IS_NOT_DIRECTORY");
       }
 
+      // Obtenemos los descendientes de la carpeta (incluyéndola)
+      const descendants = await this.repo.getAllNodeDescendants(node.id);
+
       // Si la carpeta está vacía (no contiene archivos ni subdirectorios).
-      if (!node.size) {
+      if (descendants.length == 0) {
         await this.prisma.$transaction(async (tx) => {
           // Eliminar el registro del nodo en la base de datos
           await this.repo.deleteByIdTx(tx, node.id);
         });
         return;
       }
-
-      // Obtenemos los descendientes de la carpeta (incluyéndola)
-      const descendants = await this.repo.getAllNodeDescendants(node.id);
 
       // Usar transacción para actualizar los tamaños
       await this.prisma.$transaction(async (tx) => {
@@ -423,8 +423,10 @@ export class NodeService {
         .filter((descendant) => !descendant.isDir)
         .map((descendant) => this.cloud.getFilePath(descendant));
 
-      // Eliminamos los archivos
-      await this.cloud.deleteFiles(nodePaths);
+      if (nodePaths) {
+        // Eliminamos los archivos
+        await this.cloud.deleteFiles(nodePaths);
+      }
     } catch (err) {
       if (err instanceof AppError) throw err;
       else throw new AppError("INTERNAL", "Error al eliminar el nodo");
