@@ -1,4 +1,4 @@
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { FaFolderPlus } from "react-icons/fa";
 import FileTable from "@/components/node/NodeTable";
 import buildBreadcrumbs from "@/utils/build/buildBreadcrumbs";
@@ -8,8 +8,13 @@ import CreateFolderModal from "@/components/node/CreateFolderModal";
 import UploadModal from "@/components/upload/UploadModal";
 import RenameNodeModal from "@/components/node/RenameNodeModal";
 import DeleteNodeModal from "@/components/node/DeleteNodeModal";
+import CopyNodeModal from "@/components/node/CopyNodeModal";
+import { getVisibleBreadcrumbs } from "@/utils/getVisibleBreadcrums";
+import { HiArrowLeft } from "react-icons/hi";
 
 export default function DirectoryView() {
+  const location = useLocation();
+  const isRootPath = location.pathname === "/";
   const { nodeId } = useParams();
   const navigate = useNavigate();
   const openModal = () => navigate(location.pathname + "?createFolder=true");
@@ -40,21 +45,64 @@ export default function DirectoryView() {
     return <div>Error loading files</div>;
   }
 
+  // Construir los breadcrums visibles
+  const breadcrums = [...buildBreadcrumbs(nodeId, ancestorsData)];
+  // Obtener los breadcrums visibles con elipsis si es necesario
+  const { items: visibleBreadcrumbs, hasEllipsis } = getVisibleBreadcrumbs(
+    breadcrums,
+    2
+  );
+
+  console.log(ancestorsData);
+
+  const handleGoBack = () => {
+    if (ancestorsData.length === 0) {
+      navigate(`/`);
+    } else {
+      // Navegar al padre inmediato
+      const parent = ancestorsData.find((a) => a.id === nodeId);
+
+      // SI no hay padre, navegar al root
+      if (!parent?.parentId) return navigate("/");
+
+      // Navegar al parentId del nodo actual
+      navigate(`/directory/${parent.parentId}`);
+    }
+  };
+
   return (
     <>
       <div className="flex flex-col gap-4">
         <div className="flex items-center justify-between h-14 px-4 shrink-0 mb-4">
-          <div className="text-xl font-bold leading-none">
-            <Link to={`/`} className="hover:underline">
-              My Files
-            </Link>
-            {" > "}
-            {buildBreadcrumbs(nodeId, ancestorsData).map((n, i) => {
-              if (i < ancestorsData.length - 1) {
-                return <Breadcrumb key={n.id} n={n} />;
-              }
-              return <span key={n.id}>{n.name}</span>;
-            })}
+          <div className="flex items-center gap-4">
+            <button
+              onClick={handleGoBack}
+              disabled={isRootPath}
+              className="flex items-center gap-1 bg-night-primary hover:bg-night-primary-hover hover:cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed p-1 px-2 rounded-lg transition-colors duration-150"
+            >
+              <HiArrowLeft className="w-4 h-4 text-night-text" />
+              
+            </button>
+            <div className="flex items-center gap-1 text-xl font-bold leading-none">
+              <Link to={`/`} className="hover:underline">
+                My Files
+              </Link>
+              {" > "}
+              {visibleBreadcrumbs.map((n, i) => {
+                const showEllipsis = hasEllipsis && i === 2; // si es el segundo elemento y hay elipsis
+                if (showEllipsis) {
+                  return (
+                    <span key="ellipsis" className="mx-1">
+                      ... {"  >"}
+                    </span>
+                  );
+                }
+                if (i < visibleBreadcrumbs.length - 1) {
+                  return <Breadcrumb key={n.id} n={n} />;
+                }
+                return <span key={n.id}>{n.name}</span>;
+              })}
+            </div>
           </div>
 
           <div className="flex items-center gap-3">
@@ -78,6 +126,7 @@ export default function DirectoryView() {
       <UploadModal />
       <RenameNodeModal />
       <DeleteNodeModal />
+      <CopyNodeModal />
     </>
   );
 }

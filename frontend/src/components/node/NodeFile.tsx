@@ -59,7 +59,7 @@ export default function NodeFile({ node }: Readonly<NodeFileProps>) {
 
       {/* Nombre e Icono */}
       <div className="flex items-center gap-3 overflow-hidden">
-        <Icon className="text-xl text-night-muted" />
+        <Icon className="text-xl text-night-muted shrink-0" />
         <span
           className={`truncate font-medium ${
             isSelected ? "text-white" : "text-night-text"

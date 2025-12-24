@@ -27,6 +27,7 @@ export default function DeleteNodeModal() {
         queryKey: ["nodes", parentId ?? "root"],
       });
       queryClient.invalidateQueries({ queryKey: ["nodeDetails", nodeId] });
+      queryClient.invalidateQueries({ queryKey: ["cloudStats"] });
 
       closeModal();
       toast.success(

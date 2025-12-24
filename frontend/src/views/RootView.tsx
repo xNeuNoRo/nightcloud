@@ -6,6 +6,7 @@ import UploadModal from "@/components/upload/UploadModal";
 import { useNode } from "@/hooks/useNode";
 import RenameNodeModal from "@/components/node/RenameNodeModal";
 import DeleteNodeModal from "@/components/node/DeleteNodeModal";
+import CopyNodeModal from "@/components/node/CopyNodeModal";
 
 export default function DirectoryView() {
   const navigate = useNavigate();
@@ -55,6 +56,7 @@ export default function DirectoryView() {
       <UploadModal />
       <RenameNodeModal />
       <DeleteNodeModal />
+      <CopyNodeModal />
     </>
   );
 }

@@ -4,6 +4,7 @@ import {
   ancestorsSchema,
   descendantsSchema,
   nodeSchema,
+  nodesOrNodeSchema,
   nodesSchema,
   type AncestorType,
   type DescendantType,
@@ -252,6 +253,37 @@ export async function deleteNode(nodeId: NodeType["id"]) {
     await api.delete(`/nodes/${nodeId}`);
   } catch (err) {
     if (isAxiosError(err) && err.response) {
+      throw new Error(err.response.data.error.message);
+    } else throw err;
+  }
+}
+
+/**
+ * @description Copiar un nodo a otra ubicación
+ * @param nodeId ID del nodo a copiar
+ * @param targetParentId ID del nodo padre destino
+ * @param newName Nuevo nombre para el nodo copiado (opcional)
+ * @returns
+ */
+export async function copyNode(
+  nodeId: NodeType["id"],
+  targetParentId: NodeType["id"] | null,
+  newName?: string
+): Promise<NodeType | NodeType[]> {
+  try {
+    const { data } = await api.post(`/nodes/${nodeId}/copy`, {
+      parentId: targetParentId,
+      newName,
+    });
+    const apiRes = nodesOrNodeSchema.safeParse(validateApiRes(data).data);
+
+    if (apiRes.success) {
+      return apiRes.data;
+    } else {
+      throw new Error("Error al copiar el nodo");
+    }
+  } catch (err) {
+    if (isAxiosError(err) && err.response?.data.error) {
       throw new Error(err.response.data.error.message);
     } else throw err;
   }

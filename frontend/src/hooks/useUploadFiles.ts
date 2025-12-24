@@ -35,13 +35,17 @@ export function useUploadFiles(parentId: NodeType["id"] | null) {
         const formData = buildUploadFormData(files, parentId);
 
         // Subir los archivos
-        const res = await uploadFiles(formData, controller.signal, async (p) => {
-          // Actualizar el estado de zustand
-          upload.setProgress(p.percent);
+        const res = await uploadFiles(
+          formData,
+          controller.signal,
+          async (p) => {
+            // Actualizar el estado de zustand
+            upload.setProgress(p.percent);
 
-          // Actualizar el toast con el progreso y la función de cancelación
-          updateUploadToast(toastId, () => upload.cancel(), p.percent);
-        });
+            // Actualizar el toast con el progreso y la función de cancelación
+            updateUploadToast(toastId, () => upload.cancel(), p.percent);
+          }
+        );
 
         // Finalizar la subida (actualizar estado de zustand)
         upload.finish();
@@ -68,10 +72,14 @@ export function useUploadFiles(parentId: NodeType["id"] | null) {
       }
     },
     onSuccess: () => {
-
+      // Invalidar la caché para refrescar los datos
       queryClient.invalidateQueries({
         queryKey: ["nodes", parentId ?? "root"],
-      });
+      }); // Para actualizar la lista de nodos
+      queryClient.invalidateQueries({ queryKey: ["nodeDetails", parentId] }); // Para actualizar los detalles del nodo padre
+      queryClient.invalidateQueries({ queryKey: ["cloudStats"] }); // Para actualizar las estadísticas de la nube
+
+      // Resetear el estado de la subida
       upload.finish();
     },
   });

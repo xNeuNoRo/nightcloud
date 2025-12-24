@@ -62,7 +62,7 @@ export default function Modal({
                 {header}
                 <DialogTitle
                   as="h3"
-                  className={`text-night-text text-3xl ${header ? "mt-5" : ""}`}
+                  className={`truncate text-night-text text-3xl ${header ? "mt-5" : ""}`}
                 >
                   {title}
                 </DialogTitle>

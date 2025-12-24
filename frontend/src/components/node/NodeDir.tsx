@@ -59,7 +59,7 @@ export default function NodeDir({ node }: Readonly<NodeDirProps>) {
 
       {/* Nombre e Icono */}
       <div className="flex items-center gap-3 overflow-hidden">
-        <FaFolder className="text-xl text-night-primary" />
+        <FaFolder className="text-xl text-night-primary shrink-0" />
         <span
           className={`truncate font-medium ${
             isSelected ? "text-white" : "text-night-text"

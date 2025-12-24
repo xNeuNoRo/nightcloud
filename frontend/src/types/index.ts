@@ -60,6 +60,9 @@ export const nodeSchema = ancestorSchema
 // Schema para una lista de nodos
 export const nodesSchema = z.array(nodeSchema);
 
+// Schema que puede ser un nodo o una lista de nodos
+export const nodesOrNodeSchema = z.union([nodesSchema, nodeSchema]);
+
 export const cloudStatsSchema = z.object({
   disk: z.object({
     total: z.string(),
@@ -95,6 +98,9 @@ export type NodeFolderFormData = Pick<NodeType, "name">;
 
 // Type para el formulario de renombrado de nodos
 export type NodeRenameFormData = Pick<NodeType, "name">;
+
+// Type para el formulario de copiado de nodos (en realidad el nombre es opcional)
+export type NodeCopyFormData = Pick<NodeType, "name">;
 
 // ----------------------------------
 // Otros types
