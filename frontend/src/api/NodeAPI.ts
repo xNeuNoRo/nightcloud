@@ -2,9 +2,11 @@ import { isAxiosError } from "axios";
 import { api } from "@/lib/axios";
 import {
   ancestorsSchema,
+  descendantsSchema,
   nodeSchema,
   nodesSchema,
   type AncestorType,
+  type DescendantType,
   type NodeFolderFormData,
   type NodeRenameFormData,
   type NodeType,
@@ -82,6 +84,30 @@ export async function getAncestorsOfNodeById(
       return apiRes.data;
     } else {
       throw new Error("Error al obtener los ancestros del nodo");
+    }
+  } catch (err) {
+    if (isAxiosError(err) && err.response) {
+      throw new Error(err.response.data.error.message);
+    } else throw err;
+  }
+}
+
+/**
+ * @description Obtener los descendientes de un nodo específico
+ * @param nodeId ID del nodo
+ * @returns {Promise<DescendantType[]>} Lista de descendientes
+ */
+export async function getDescendantsOfNodeById(
+  nodeId: NodeType["id"]
+): Promise<DescendantType[]> {
+  try {
+    const { data } = await api.get(`/nodes/${nodeId}/descendants`);
+    const apiRes = descendantsSchema.safeParse(validateApiRes(data).data);
+
+    if (apiRes.success) {
+      return apiRes.data;
+    } else {
+      throw new Error("Error al obtener los descendientes del nodo");
     }
   } catch (err) {
     if (isAxiosError(err) && err.response) {
@@ -210,6 +236,20 @@ export async function getNodeDetails(
     } else {
       throw new Error("Error al obtener los detalles del nodo");
     }
+  } catch (err) {
+    if (isAxiosError(err) && err.response) {
+      throw new Error(err.response.data.error.message);
+    } else throw err;
+  }
+}
+
+/**
+ * @description Eliminar un nodo
+ * @param nodeId ID del nodo
+ */
+export async function deleteNode(nodeId: NodeType["id"]) {
+  try {
+    await api.delete(`/nodes/${nodeId}`);
   } catch (err) {
     if (isAxiosError(err) && err.response) {
       throw new Error(err.response.data.error.message);

@@ -7,6 +7,7 @@ import Breadcrumb from "@/components/Breadcrumb";
 import CreateFolderModal from "@/components/node/CreateFolderModal";
 import UploadModal from "@/components/upload/UploadModal";
 import RenameNodeModal from "@/components/node/RenameNodeModal";
+import DeleteNodeModal from "@/components/node/DeleteNodeModal";
 
 export default function DirectoryView() {
   const { nodeId } = useParams();
@@ -20,7 +21,7 @@ export default function DirectoryView() {
     ancestorsData,
     ancestorsLoading,
     ancestorsError,
-  } = useNode(nodeId, "ancestors+children");
+  } = useNode(nodeId, "children+ancestors");
 
   if (!nodeId) {
     return <div>No directory specified</div>;
@@ -76,6 +77,7 @@ export default function DirectoryView() {
       <CreateFolderModal />
       <UploadModal />
       <RenameNodeModal />
+      <DeleteNodeModal />
     </>
   );
 }

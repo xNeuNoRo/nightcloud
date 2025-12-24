@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import UploadModal from "@/components/upload/UploadModal";
 import { useNode } from "@/hooks/useNode";
 import RenameNodeModal from "@/components/node/RenameNodeModal";
+import DeleteNodeModal from "@/components/node/DeleteNodeModal";
 
 export default function DirectoryView() {
   const navigate = useNavigate();
@@ -53,6 +54,7 @@ export default function DirectoryView() {
       <CreateFolderModal />
       <UploadModal />
       <RenameNodeModal />
+      <DeleteNodeModal />
     </>
   );
 }

@@ -1,48 +1,18 @@
 import {
   getAncestorsOfNodeById,
+  getDescendantsOfNodeById,
   getNodeDetails,
   getNodesFromDir,
   getNodesFromRoot,
 } from "@/api/NodeAPI";
 import type { NodeType } from "@/types";
-import { sortNodesByDir } from "@/utils/sortNodes";
+import type { UseNodeMode } from "@/types/useNode.types";
+import {
+  EMPTY_NODE_QUERY_CONFIG,
+  parseUseNodeMode,
+} from "@/utils/node/parseUseNodeMode";
+import { sortNodesByDir } from "@/utils/node/sortNodes";
 import { useQuery } from "@tanstack/react-query";
-
-type UseNodeMode =
-  | "node"
-  | "children"
-  | "ancestors"
-  | "node+children"
-  | "node+ancestors"
-  | "ancestors+children"
-  | "all";
-
-type queryConfigType = {
-  node: boolean;
-  children: boolean;
-  ancestors: boolean;
-};
-
-const getModeFlags = (mode: UseNodeMode, queryConfig: queryConfigType) => {
-  switch (mode) {
-    case "node":
-      return { ...queryConfig, node: true };
-    case "children":
-      return { ...queryConfig, children: true };
-    case "ancestors":
-      return { ...queryConfig, ancestors: true };
-    case "node+children":
-      return { ...queryConfig, node: true, children: true };
-    case "node+ancestors":
-      return { ...queryConfig, node: true, ancestors: true };
-    case "ancestors+children":
-      return { ...queryConfig, ancestors: true, children: true };
-    case "all":
-      return { node: true, children: true, ancestors: true };
-    default:
-      return queryConfig;
-  }
-};
 
 // Función para obtener los hijos de un nodo o desde la raíz
 const getChildrenQueryFn = (nodeId?: NodeType["id"]) =>
@@ -56,18 +26,15 @@ const getChildrenQueryFn = (nodeId?: NodeType["id"]) =>
  */
 export function useNode(
   nodeId: NodeType["id"] | undefined,
-  mode: UseNodeMode = "all"
+  mode: UseNodeMode
 ) {
   // Configuración para determinar qué datos cargar
   const {
     node: includeNode,
     children: includeChildrens,
     ancestors: includeAncestors,
-  } = getModeFlags(mode, {
-    node: false,
-    children: false,
-    ancestors: false,
-  });
+    descendants: includeDescendants,
+  } = parseUseNodeMode(mode, EMPTY_NODE_QUERY_CONFIG);
 
   // Verificar si hay un nodeId válido
   const hasNodeId = Boolean(nodeId);
@@ -97,6 +64,13 @@ export function useNode(
     placeholderData: (prevData) => prevData, // Usar datos previos como placeholders - evitar flashes de carga al quedarse sin datos
   });
 
+  const descendantsQuery = useQuery({
+    queryFn: () => getDescendantsOfNodeById(nodeId!),
+    queryKey: ["descendants", nodeId],
+    enabled: hasNodeId && includeDescendants, // Solo cargar si hay nodeId y se quieren descendientes
+    placeholderData: (prevData) => prevData, // Usar datos previos como placeholders - evitar flashes de carga al quedarse sin datos
+  });
+
   // Retornar los datos y estados de carga/error
   return {
     // Datos y estados del nodo actual
@@ -115,5 +89,10 @@ export function useNode(
     ancestorsData: includeAncestors ? ancestorsQuery.data : undefined,
     ancestorsLoading: includeAncestors ? ancestorsQuery.isLoading : false,
     ancestorsError: includeAncestors ? ancestorsQuery.error : undefined,
+
+    // Solo incluir datos de descendientes si se solicitó
+    descendantsData: includeDescendants ? descendantsQuery.data : undefined,
+    descendantsLoading: includeDescendants ? descendantsQuery.isLoading : false,
+    descendantsError: includeDescendants ? descendantsQuery.error : undefined,
   };
 }

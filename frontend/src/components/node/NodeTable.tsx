@@ -3,7 +3,7 @@ import type { NodeType, SortDirection } from "@/types";
 import { useAppStore } from "@/stores/useAppStore";
 import NodeDir from "@/components/node/NodeDir";
 import NodeFile from "@/components/node/NodeFile";
-import { toggleNameDirection } from "@/utils/sortNodes";
+import { toggleNameDirection } from "@/utils/node/sortNodes";
 import classNames from "@/utils/classNames";
 import { useMemo, useState } from "react";
 
