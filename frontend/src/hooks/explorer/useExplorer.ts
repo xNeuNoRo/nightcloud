@@ -103,7 +103,7 @@ export function useExplorer() {
   };
 
   // Manejar la selección de una carpeta
-  const handleSelectFolder = (id?: string) => {
+  const handleSelectFolder = (id?: string | undefined) => {
     // Determinar el fallbackId que deberia ser la carpeta actual
     const fallbackId = effectiveCurrentFolderId;
 

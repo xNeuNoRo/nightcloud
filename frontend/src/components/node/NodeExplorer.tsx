@@ -32,6 +32,9 @@ export default function NodeExplorer() {
     currentFolderId ?? contextRootId,
     "node+children"
   );
+  console.log("NodeExplorer - currentFolderId:", currentFolderId);
+  console.log("NodeExplorer - contextRootId:", contextRootId);
+  console.log("NodeExplorer - rootParentId:", rootParentId);
 
   // Inicializar el explorador con el rootParentId y el nodeData actual
   useExplorerInitialization(rootParentId || undefined, node.data);
@@ -62,7 +65,9 @@ export default function NodeExplorer() {
           className="flex items-center gap-1 bg-night-primary hover:bg-night-primary-hover hover:cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed p-1 px-2 rounded-lg transition-colors duration-150"
         >
           <HiArrowLeft className="w-4 h-4 text-night-text" />
-          <span className="text-night-text tracking-wider">Go Back</span>
+          <span className="text-night-text tracking-wider">
+            Go {visibleBreadcrumbs.length === 1 ? "Root" : "Back"}
+          </span>
         </button>
 
         <div className="flex items-center gap-1 truncate">

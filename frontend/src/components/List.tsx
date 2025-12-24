@@ -37,7 +37,7 @@ export default function List({
   }[maxHeight];
 
   return (
-    <Listbox onChange={listSetSelectedOption}>
+    <Listbox as="div" className="relative" onChange={listSetSelectedOption}>
       {({ open }) => (
         <>
           <ListboxButton className="p-2 px-4 bg-night-surface rounded-lg border border-night-border hover:cursor-pointer w-full focus:outline-0 flex justify-between items-center">
@@ -64,57 +64,71 @@ export default function List({
             as={Fragment}
             show={open}
             enter="transition ease-out duration-100"
-            enterFrom="opacity-0 scale-95"
-            enterTo="opacity-100 scale-100"
+            enterFrom="opacity-0 -translate-y-2"
+            enterTo="opacity-100 translate-y-0"
             leave="transition ease-in duration-75"
-            leaveFrom="opacity-100 scale-100"
-            leaveTo="opacity-0 scale-95"
+            leaveFrom="opacity-100 translate-y-0"
+            leaveTo="opacity-0 -translate-y-2"
           >
             <ListboxOptions
-              className={classNames(
-                maxHeightClass,
-                "p-2 border border-night-border rounded-lg bg-night-surface focus:outline-0 shadow-lg overflow-y-auto divide-y divide-night-muted/20 scrollbar-thin scrollbar-thumb-night-border scrollbar-track-transparent"
-              )}
+              portal
+              anchor="bottom end"
+              // CAJA EXTERIOR:
+              // 1. Quitamos 'p-2'
+              // 2. Quitamos 'overflow-y-auto' y 'divide-y'
+              // 3. Quitamos 'max-h' (se lo pasamos al hijo)
+              // 4. Mantenemos 'overflow-hidden' para recortar las esquinas
+              className="fixed w-(--button-width) my-2 border border-night-border rounded-lg bg-night-surface focus:outline-0 shadow-lg overflow-hidden z-50"
             >
-              {listSelectedOption && (
-                <ListboxOption
-                  value={null}
-                  className="p-2 group hover:cursor-pointer rounded-md mx-1 transition-all duration-150 cursor-pointer"
-                >
-                  <span className="text-night-muted transform transition-all duration-150 group-hover:text-night-text">
-                    --- Select an option ---
-                  </span>
-                </ListboxOption>
-              )}
-              {Object.entries(options).map(([, option]) => (
-                <ListboxOption
-                  key={option.id}
-                  value={option}
-                  className={({ focus }) =>
-                    classNames(
-                      "flex justify-between gap-2 p-2 group hover:cursor-pointer rounded-md mx-1 transition-all duration-150 cursor-pointer",
-                      listSelectedOption?.id === option.id
-                        ? "bg-night-primary/20 border-night-primary/20"
-                        : "",
-                      focus ? "bg-night-primary/10" : ""
-                    )
-                  }
-                >
-                  <div className="flex items-center gap-3">
-                    {option.icon && (
-                      <div className="text-night-muted transform transition-all duration-150 group-hover:text-night-text group-hover:translate-x-1">
-                        <option.icon />
-                      </div>
-                    )}
-                    <span className="text-night-muted transform transition-all duration-150 group-hover:translate-x-1 group-hover:text-night-text">
-                      {option.name}
+              {/* CAJA INTERIOR: Se encarga del scroll y el espaciado interno */}
+              <div
+                className={classNames(
+                  maxHeightClass, // La altura máxima va AQUI
+                  "overflow-y-auto p-2 scrollbar-thin scrollbar-thumb-night-border scrollbar-track-transparent"
+                )}
+              >
+                {listSelectedOption && (
+                  <ListboxOption
+                    value={null}
+                    className="mb-1 pb-1 p-2 group hover:cursor-pointer rounded-md mx-1 transition-all duration-150 cursor-pointer"
+                  >
+                    <span className="text-night-muted transform transition-all duration-150 group-hover:text-night-text">
+                      --- Select an option ---
                     </span>
-                  </div>
-                  {listSelectedOption?.id === option.id && (
-                    <HiCheckCircle className="w-5 h-5 text-night-text opacity-80" />
-                  )}
-                </ListboxOption>
-              ))}
+                  </ListboxOption>
+                )}
+
+                {Object.entries(options).map(([, option]) => (
+                  <ListboxOption
+                    key={option.id}
+                    value={option}
+                    className={({ focus }) =>
+                      classNames(
+                        "flex justify-between gap-2 p-2 group hover:cursor-pointer rounded-md mx-1 transition-all duration-150 cursor-pointer",
+                        "border-b border-night-muted/20 last:border-0 mb-1 last:mb-0",
+                        listSelectedOption?.id === option.id
+                          ? "bg-night-primary/20 border-night-primary/20"
+                          : "",
+                        focus ? "bg-night-primary/10" : ""
+                      )
+                    }
+                  >
+                    <div className="flex items-center gap-3">
+                      {option.icon && (
+                        <div className="text-night-muted transform transition-all duration-150 group-hover:text-night-text group-hover:translate-x-1">
+                          <option.icon />
+                        </div>
+                      )}
+                      <span className="text-night-muted transform transition-all duration-150 group-hover:translate-x-1 group-hover:text-night-text">
+                        {option.name}
+                      </span>
+                    </div>
+                    {listSelectedOption?.id === option.id && (
+                      <HiCheckCircle className="w-5 h-5 text-night-text opacity-80" />
+                    )}
+                  </ListboxOption>
+                ))}
+              </div>
             </ListboxOptions>
           </Transition>
         </>
