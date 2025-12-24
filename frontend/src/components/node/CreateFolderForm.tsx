@@ -17,6 +17,7 @@ export default function CreateFolderForm({
         id="name"
         type="text"
         placeholder="e.g. My Documents"
+        autoComplete="off"
         className="w-full mt-5 p-3 border border-night-border rounded-lg bg-night-surface text-night-text focus:outline-none focus:ring-2 focus:ring-night-primary focus:border-transparent placeholder-night-muted"
         {...register("name", {
           required: "Folder name is mandatory",
