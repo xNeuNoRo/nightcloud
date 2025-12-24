@@ -11,6 +11,7 @@ import { Fragment } from "react/jsx-runtime";
 type ModalProps = {
   header?: ReactNode;
   title: string;
+  size?: "small" | "medium" | "large";
   open: boolean;
   close: () => void;
   children: ReactNode;
@@ -19,10 +20,16 @@ type ModalProps = {
 export default function Modal({
   header,
   title,
+  size = "medium",
   open,
   close,
   children,
 }: Readonly<ModalProps>) {
+  const sizeClasses = {
+    small: "max-w-xl",
+    medium: "max-w-2xl",
+    large: "max-w-4xl",
+  };
   return (
     <Transition appear show={open} as={Fragment}>
       <Dialog as="div" className="relative z-10" onClose={close}>
@@ -49,13 +56,13 @@ export default function Modal({
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-5"
             >
-              <DialogPanel className="w-full max-w-2xl p-16 overflow-hidden text-left align-middle transition-all transform bg-night-main shadow-xl rounded-2xl">
+              <DialogPanel
+                className={`w-full ${sizeClasses[size]} p-16 overflow-hidden text-left align-middle transition-all transform bg-night-main shadow-xl rounded-2xl`}
+              >
                 {header}
                 <DialogTitle
                   as="h3"
-                  className={`text-night-text text-3xl ${
-                    header ? "mt-5" : ""
-                  }`}
+                  className={`text-night-text text-3xl ${header ? "mt-5" : ""}`}
                 >
                   {title}
                 </DialogTitle>

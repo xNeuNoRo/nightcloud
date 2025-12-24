@@ -45,7 +45,7 @@ export default function ModalDropzone() {
   };
 
   return (
-    <Modal title="Upload Files" open={isOpen} close={closeModal}>
+    <Modal title="Upload Files" size="large" open={isOpen} close={closeModal}>
       <UploadDropzone />
       <div className="grid grid-cols-1 gap-6 mt-12 text-night-muted text-sm">
         <div className="flex flex-col gap-4">

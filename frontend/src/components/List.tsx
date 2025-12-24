@@ -73,7 +73,7 @@ export default function List({
             <ListboxOptions
               className={classNames(
                 maxHeightClass,
-                "mt-2 p-2 border border-night-border rounded-lg bg-night-surface focus:outline-0 shadow-lg overflow-y-auto divide-y divide-night-muted/20 scrollbar-thin scrollbar-thumb-night-border scrollbar-track-transparent"
+                "p-2 border border-night-border rounded-lg bg-night-surface focus:outline-0 shadow-lg overflow-y-auto divide-y divide-night-muted/20 scrollbar-thin scrollbar-thumb-night-border scrollbar-track-transparent"
               )}
             >
               {listSelectedOption && (

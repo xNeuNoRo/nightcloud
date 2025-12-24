@@ -30,7 +30,10 @@ export default function DeleteNodeModal() {
 
       closeModal();
       toast.success(
-        `${nodeData?.isDir ? "Folder" : "File"} deleted successfully`
+        `${nodeData?.isDir ? "Folder" : "File"} deleted successfully`,
+        {
+          autoClose: 1000,
+        }
       );
     },
     onError: (error) => {
@@ -60,13 +63,15 @@ export default function DeleteNodeModal() {
           <p className="text-night-muted tracking-wider">
             {nodeData.isDir ? (
               <>
-                Are you sure you want to delete the folder <span className="font-bold">"{nodeData.name}"</span> and
-                all its contents? This action cannot be undone.
+                Are you sure you want to delete the folder{" "}
+                <span className="font-bold">"{nodeData.name}"</span> and all its
+                contents? This action cannot be undone.
               </>
             ) : (
               <>
-                Are you sure you want to delete the file <span className="font-bold">{nodeData.name}</span>? This
-                action cannot be undone.
+                Are you sure you want to delete the file{" "}
+                <span className="font-bold">{nodeData.name}</span>? This action
+                cannot be undone.
               </>
             )}
           </p>

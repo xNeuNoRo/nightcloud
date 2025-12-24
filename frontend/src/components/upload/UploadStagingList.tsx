@@ -22,7 +22,7 @@ export default function UploadStagingList() {
   const extendColumn = stagedFiles.length % 2 !== 0;
 
   return (
-    <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] max-h-40 overflow-y-auto rounded-lg border border-night-border divide-y divide-x divide-night-border">
+    <div className="grid grid-cols-2 max-h-40 overflow-y-auto rounded-lg border border-night-border divide-y divide-x divide-night-border">
       {stagedFiles.map((data) => {
         const category = getCategoryFromMime(data.file.type);
         const Icon = FileCategoryIcons[category];
@@ -35,16 +35,24 @@ export default function UploadStagingList() {
                 stagedFiles.length - 1 === stagedFiles.indexOf(data)
                 ? "col-span-2"
                 : "",
-              "flex items-center justify-between px-4 py-3 hover:bg-night-surface/60 transition-all"
+              "flex items-center justify-between gap-2 px-4 py-3 hover:bg-night-surface/60 transition-all"
             )}
           >
             <div className="flex items-center gap-3 min-w-0">
-              <Icon className="text-2xl text-night-muted" />
-              <span className="text-night-text truncate max-w-46">
+              <Icon className="text-2xl text-night-muted shrink-0" />
+              <span
+                className={classNames(
+                  extendColumn &&
+                    stagedFiles.length - 1 === stagedFiles.indexOf(data)
+                    ? "max-w-100"
+                    : "max-w-42",
+                  "text-night-text truncate"
+                )}
+              >
                 {data.file.name}
               </span>
             </div>
-            <div className="flex items-center gap-6 text-night-muted text-sm">
+            <div className="flex items-center gap-3 text-night-muted text-sm">
               {getHumanFileSize(data.file.size)}
               <button
                 onClick={() => removeFileFromStaging(data)}
