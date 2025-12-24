@@ -263,7 +263,7 @@ export async function deleteNode(nodeId: NodeType["id"]) {
  * @param nodeId ID del nodo a copiar
  * @param targetParentId ID del nodo padre destino
  * @param newName Nuevo nombre para el nodo copiado (opcional)
- * @returns
+ * @returns {Promise<NodeType | NodeType[]>} Nodo copiado o lista de nodos copiados
  */
 export async function copyNode(
   nodeId: NodeType["id"],
@@ -281,6 +281,38 @@ export async function copyNode(
       return apiRes.data;
     } else {
       throw new Error("Error al copiar el nodo");
+    }
+  } catch (err) {
+    if (isAxiosError(err) && err.response?.data.error) {
+      throw new Error(err.response.data.error.message);
+    } else throw err;
+  }
+}
+
+/**
+ * @description Mover un nodo a otra ubicación
+ * @param nodeId ID del nodo a mover
+ * @param targetParentId ID del nodo padre destino
+ * @param newName Nuevo nombre para el nodo movido (opcional)
+ * @returns {Promise<NodeType | NodeType[]>} Nodo movido o lista de nodos movidos
+ */
+export async function moveNode(
+  nodeId: NodeType["id"],
+  targetParentId: NodeType["id"] | null,
+  newName?: string
+): Promise<NodeType | NodeType[]> {
+  try {
+    const { data } = await api.post(`/nodes/${nodeId}/move`, {
+      parentId: targetParentId,
+      newName,
+    });
+    const apiRes = nodesOrNodeSchema.safeParse(validateApiRes(data).data);
+
+    if (apiRes.success) {
+      console.log(apiRes.data);
+      return apiRes.data;
+    } else {
+      throw new Error("Error al mover el nodo");
     }
   } catch (err) {
     if (isAxiosError(err) && err.response?.data.error) {

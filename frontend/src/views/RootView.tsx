@@ -7,6 +7,7 @@ import { useNode } from "@/hooks/useNode";
 import RenameNodeModal from "@/components/node/RenameNodeModal";
 import DeleteNodeModal from "@/components/node/DeleteNodeModal";
 import CopyNodeModal from "@/components/node/CopyNodeModal";
+import MoveNodeModal from "@/components/node/MoveNodeModal";
 
 export default function DirectoryView() {
   const navigate = useNavigate();
@@ -57,6 +58,7 @@ export default function DirectoryView() {
       <RenameNodeModal />
       <DeleteNodeModal />
       <CopyNodeModal />
+      <MoveNodeModal />
     </>
   );
 }

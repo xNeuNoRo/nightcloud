@@ -11,6 +11,7 @@ import DeleteNodeModal from "@/components/node/DeleteNodeModal";
 import CopyNodeModal from "@/components/node/CopyNodeModal";
 import { getVisibleBreadcrumbs } from "@/utils/getVisibleBreadcrums";
 import { HiArrowLeft } from "react-icons/hi";
+import MoveNodeModal from "@/components/node/MoveNodeModal";
 
 export default function DirectoryView() {
   const location = useLocation();
@@ -127,6 +128,7 @@ export default function DirectoryView() {
       <RenameNodeModal />
       <DeleteNodeModal />
       <CopyNodeModal />
+      <MoveNodeModal />
     </>
   );
 }

@@ -24,10 +24,7 @@ const getChildrenQueryFn = (nodeId?: NodeType["id"]) =>
  * @param mode Modo de consulta (qué datos cargar)
  * @returns {object} Datos y estados de carga/error
  */
-export function useNode(
-  nodeId: NodeType["id"] | undefined,
-  mode: UseNodeMode
-) {
+export function useNode(nodeId: NodeType["id"] | undefined, mode: UseNodeMode) {
   // Configuración para determinar qué datos cargar
   const {
     node: includeNode,

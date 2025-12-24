@@ -3,19 +3,19 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import Modal from "../Modal";
 import NodeExplorer from "./NodeExplorer";
-import { copyNode } from "@/api/NodeAPI";
+import { moveNode } from "@/api/NodeAPI";
 import { useNode } from "@/hooks/useNode";
-import CopyNodeForm from "./CopyNodeForm";
-import type { NodeCopyFormData } from "@/types";
+import MoveNodeForm from "./MoveNodeForm";
+import type { NodeMoveFormData } from "@/types";
 import { useForm } from "react-hook-form";
 import { useExplorer } from "@/hooks/explorer/useExplorer";
 
-export default function CopyNodeModal() {
+export default function MoveNodeModal() {
   const location = useLocation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const queryParams = new URLSearchParams(location.search);
-  const nodeId = queryParams.get("copyNode");
+  const nodeId = queryParams.get("moveNode");
   const isOpen = !!nodeId;
   const parentId = location.pathname.split("/").pop() || null; // Obtener el parentId de la URL
   const { selectedFolderId } = useExplorer();
@@ -24,7 +24,7 @@ export default function CopyNodeModal() {
     "node"
   );
 
-  const initialValues: NodeCopyFormData = {
+  const initialValues: NodeMoveFormData = {
     name: "",
   };
 
@@ -38,8 +38,8 @@ export default function CopyNodeModal() {
   const closeModal = () => navigate(location.pathname, { replace: true }); // Remover los query params
 
   const { mutate } = useMutation({
-    mutationFn: (data: NodeCopyFormData) =>
-      copyNode(nodeId!, selectedFolderId ?? null, data.name),
+    mutationFn: (data: NodeMoveFormData) =>
+      moveNode(nodeId!, selectedFolderId ?? null, data.name),
     onSuccess: (data) => {
       // mensaje de éxito
       const nodesAffected = Array.isArray(data) ? data.length : 1;
@@ -53,11 +53,11 @@ export default function CopyNodeModal() {
       });
       queryClient.invalidateQueries({ queryKey: ["cloudStats"] });
 
-      toast.success(`${successOperations} copied successfully`, {
+      toast.success(`${successOperations} moved successfully`, {
         autoClose: 1000,
       });
-
       closeModal();
+
       reset();
     },
     onError: (error) => {
@@ -65,7 +65,7 @@ export default function CopyNodeModal() {
     },
   });
 
-  const handleCopyNode = (formData: NodeCopyFormData) => {
+  const handleMoveNode = (formData: NodeMoveFormData) => {
     const data = {
       ...formData,
     };
@@ -80,7 +80,7 @@ export default function CopyNodeModal() {
 
   return (
     <Modal
-      title={`Copy ${nodeData?.isDir ? "Folder" : "File"} ${nodeData?.name}`}
+      title={`Move ${nodeData?.isDir ? "Folder" : "File"} ${nodeData?.name}`}
       open={isOpen}
       close={closeModal}
     >
@@ -89,13 +89,13 @@ export default function CopyNodeModal() {
         <form
           className="mt-5 space-y-10"
           noValidate
-          onSubmit={handleSubmit(handleCopyNode)}
+          onSubmit={handleSubmit(handleMoveNode)}
         >
           <NodeExplorer />
-          <CopyNodeForm register={register} errors={errors} />
+          <MoveNodeForm register={register} errors={errors} />
           <input
             type="submit"
-            value={`Copy ${nodeData.isDir ? "Folder" : "File"}`}
+            value={`Move ${nodeData.isDir ? "Folder" : "File"}`}
             className="w-full p-3 font-bold text-white uppercase cursor-pointer transition-colors duration-200 bg-night-primary hover:bg-night-primary-hover rounded-xl"
           />
         </form>

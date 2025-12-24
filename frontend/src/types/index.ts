@@ -99,8 +99,11 @@ export type NodeFolderFormData = Pick<NodeType, "name">;
 // Type para el formulario de renombrado de nodos
 export type NodeRenameFormData = Pick<NodeType, "name">;
 
-// Type para el formulario de copiado de nodos (en realidad el nombre es opcional)
+// Type para el formulario de copiado de nodos (idk en el backend es obligatorio cambiarlo en un futuro a opcional)
 export type NodeCopyFormData = Pick<NodeType, "name">;
+
+// Type para el formulario de movida de nodos (en realidad el nombre es opcional)
+export type NodeMoveFormData = Pick<NodeType, "name">;
 
 // ----------------------------------
 // Otros types
