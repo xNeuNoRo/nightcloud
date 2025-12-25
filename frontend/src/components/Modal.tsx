@@ -1,3 +1,4 @@
+import { useCtx } from "@/hooks/context/useCtx";
 import {
   Dialog,
   DialogPanel,
@@ -25,6 +26,12 @@ export default function Modal({
   close,
   children,
 }: Readonly<ModalProps>) {
+  const { openCtx } = useCtx();
+  const handleContextMenu = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    openCtx("modal", e.clientX, e.clientY);
+  };
   const sizeClasses = {
     small: "max-w-xl",
     medium: "max-w-2xl",
@@ -46,7 +53,12 @@ export default function Modal({
         </TransitionChild>
 
         <div className="fixed inset-0 overflow-y-auto">
-          <div className="flex items-center justify-center min-h-full p-4 text-center">
+          <div // NOSONAR - Desactivar el aviso de sonar puesto q es solo por el context menu
+            role="dialog"
+            aria-modal="true"
+            onContextMenu={handleContextMenu}
+            className="flex items-center justify-center min-h-full p-4 text-center"
+          >
             <TransitionChild
               as={Fragment}
               enter="ease-out duration-150"
@@ -62,7 +74,9 @@ export default function Modal({
                 {header}
                 <DialogTitle
                   as="h3"
-                  className={`truncate text-night-text text-3xl ${header ? "mt-5" : ""}`}
+                  className={`truncate text-night-text text-3xl ${
+                    header ? "mt-5" : ""
+                  }`}
                 >
                   {title}
                 </DialogTitle>

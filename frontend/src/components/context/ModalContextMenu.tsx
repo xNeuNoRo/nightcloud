@@ -1,11 +1,11 @@
 import { Transition } from "@headlessui/react";
 import { Fragment, useRef } from "react";
+import { HiOutlineX } from "react-icons/hi";
 import { useCtx } from "@/hooks/context/useCtx";
 import { useCtxClickOutside } from "@/hooks/context/useCtxClickOutside";
-import { FaFolderPlus } from "react-icons/fa6";
 import { useNavigate } from "react-router-dom";
 
-export default function NodeAreaContextMenu() {
+export default function ModalContextMenu() {
   const { closeCtx, isOpen, position, type } = useCtx();
   const navigate = useNavigate();
   const menuRef = useRef<HTMLDivElement>(null);
@@ -20,11 +20,11 @@ export default function NodeAreaContextMenu() {
   });
 
   // Renderizado condicional simple
-  if (!isOpen || type !== "nodeAreas") return null;
+  if (!isOpen || type !== "modal") return null;
 
-  const handleCreateFolder = () => {
+  const closeModal = () => {
     closeCtx();
-    navigate(location.pathname + "?createFolder=true");
+    navigate(location.pathname, { replace: true });
   };
 
   return (
@@ -54,13 +54,13 @@ export default function NodeAreaContextMenu() {
             left: position.x,
           }}
         >
-          <div className="flex flex-col px-1 gap-0.5">
+          <div className="flex items-center flex-col px-1 gap-0.5">
             <button
-              onClick={handleCreateFolder}
-              className="flex items-center w-full px-3 py-1 overflow-hidden text-sm font-semibold leading-6 text-left text-night-text hover:bg-night-border/50 hover:text-white transition-colors rounded-md hover:cursor-pointer"
+              onClick={closeModal}
+              className="flex items-center w-full px-3 py-1 overflow-hidden text-sm font-semibold leading-6 text-left text-red-400 hover:bg-night-border/50 hover:text-red-300 transition-colors rounded-md hover:cursor-pointer"
             >
-              <FaFolderPlus className="mr-2 text-lg" />
-              Create New Folder
+              <HiOutlineX className="mr-2 text-lg" />
+              Close
             </button>
           </div>
         </div>

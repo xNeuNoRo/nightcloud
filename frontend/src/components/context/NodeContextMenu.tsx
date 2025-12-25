@@ -20,7 +20,7 @@ export default function NodeContextMenu() {
     addSelectedNodes,
     clearSelectedNodes,
   } = useSelectedNodes();
-  const { closeCtx, isOpen, position } = useCtx();
+  const { closeCtx, isOpen, type, position } = useCtx();
   const payload = useCtxPayload("node");
   const navigate = useNavigate();
   const location = useLocation();
@@ -52,7 +52,7 @@ export default function NodeContextMenu() {
   };
 
   // Renderizado condicional simple
-  if (!isOpen) return null;
+  if (!isOpen || type !== "node") return null;
 
   return (
     // Z-Index alto para asegurar que se vea encima de cualquier cosa

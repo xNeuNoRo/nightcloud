@@ -32,9 +32,6 @@ export default function NodeExplorer() {
     currentFolderId ?? contextRootId,
     "node+children"
   );
-  console.log("NodeExplorer - currentFolderId:", currentFolderId);
-  console.log("NodeExplorer - contextRootId:", contextRootId);
-  console.log("NodeExplorer - rootParentId:", rootParentId);
 
   // Inicializar el explorador con el rootParentId y el nodeData actual
   useExplorerInitialization(rootParentId || undefined, node.data);
