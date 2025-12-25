@@ -1,7 +1,7 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
-import Modal from "../Modal";
-import CreateFolderForm from "./CreateFolderForm";
+import Modal from "../../Modal";
+import CreateFolderForm from "../form/CreateFolderForm";
 import type { NodeFolderFormData } from "@/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createNodeFolder } from "@/api/NodeAPI";

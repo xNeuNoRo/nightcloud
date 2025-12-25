@@ -1,16 +1,16 @@
-import type { NodeCopyFormData, NodeType } from "@/types";
-import type { FieldErrors, UseFormRegister } from "react-hook-form";
-import ErrorMessage from "../ErrorMessage";
+import type { NodeMoveFormData, NodeType } from "@/types";
+import { type FieldErrors, type UseFormRegister } from "react-hook-form";
+import ErrorMessage from "@/components/ErrorMessage";
 import { HiOutlinePencil } from "react-icons/hi";
 import capitalizeFirstLetter from "@/utils/capitalizeFirstLetter";
 
 type CreateFolderProps = {
-  register: UseFormRegister<NodeCopyFormData>;
-  errors: FieldErrors<NodeCopyFormData>;
+  register: UseFormRegister<NodeMoveFormData>;
+  errors: FieldErrors<NodeMoveFormData>;
   isDir: NodeType["isDir"];
 };
 
-export default function CopyNodeForm({
+export default function MoveNodeForm({
   register,
   errors,
   isDir,
@@ -28,7 +28,7 @@ export default function CopyNodeForm({
       <input
         id="name"
         type="text"
-        placeholder={`e.g. My Copied ${capitalizeFirstLetter(nodeType)}`}
+        placeholder={`e.g. My Moved ${capitalizeFirstLetter(nodeType)}`}
         className="w-full p-3 border border-night-border rounded-lg bg-night-surface text-night-text focus:outline-none focus:ring-2 focus:ring-night-primary focus:border-transparent placeholder-night-muted"
         {...register("name")}
       />

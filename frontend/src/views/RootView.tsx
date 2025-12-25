@@ -1,13 +1,13 @@
 import { FaFolderPlus } from "react-icons/fa";
 import FileTable from "@/components/node/NodeTable";
-import CreateFolderModal from "@/components/node/CreateFolderModal";
+import CreateFolderModal from "@/components/node/modal/CreateFolderModal";
 import { useNavigate } from "react-router-dom";
 import UploadModal from "@/components/upload/UploadModal";
 import { useNode } from "@/hooks/useNode";
-import RenameNodeModal from "@/components/node/RenameNodeModal";
-import DeleteNodeModal from "@/components/node/DeleteNodeModal";
-import CopyNodeModal from "@/components/node/CopyNodeModal";
-import MoveNodeModal from "@/components/node/MoveNodeModal";
+import RenameNodeModal from "@/components/node/modal/RenameNodeModal";
+import DeleteNodeModal from "@/components/node/modal/DeleteNodeModal";
+import CopyNodeModal from "@/components/node/modal/CopyNodeModal";
+import MoveNodeModal from "@/components/node/modal/MoveNodeModal";
 
 export default function DirectoryView() {
   const navigate = useNavigate();

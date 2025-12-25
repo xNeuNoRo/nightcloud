@@ -4,14 +4,14 @@ import FileTable from "@/components/node/NodeTable";
 import buildBreadcrumbs from "@/utils/build/buildBreadcrumbs";
 import { useNode } from "@/hooks/useNode";
 import Breadcrumb from "@/components/Breadcrumb";
-import CreateFolderModal from "@/components/node/CreateFolderModal";
+import CreateFolderModal from "@/components/node/modal/CreateFolderModal";
 import UploadModal from "@/components/upload/UploadModal";
-import RenameNodeModal from "@/components/node/RenameNodeModal";
-import DeleteNodeModal from "@/components/node/DeleteNodeModal";
-import CopyNodeModal from "@/components/node/CopyNodeModal";
+import RenameNodeModal from "@/components/node/modal/RenameNodeModal";
+import DeleteNodeModal from "@/components/node/modal/DeleteNodeModal";
+import CopyNodeModal from "@/components/node/modal/CopyNodeModal";
 import { getVisibleBreadcrumbs } from "@/utils/getVisibleBreadcrums";
 import { HiArrowLeft } from "react-icons/hi";
-import MoveNodeModal from "@/components/node/MoveNodeModal";
+import MoveNodeModal from "@/components/node/modal/MoveNodeModal";
 
 export default function DirectoryView() {
   const location = useLocation();

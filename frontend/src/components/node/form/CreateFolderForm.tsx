@@ -1,6 +1,6 @@
 import type { NodeFolderFormData } from "@/types";
 import type { FieldErrors, UseFormRegister } from "react-hook-form";
-import ErrorMessage from "../ErrorMessage";
+import ErrorMessage from "@/components/ErrorMessage";
 
 type CreateFolderProps = {
   register: UseFormRegister<NodeFolderFormData>;

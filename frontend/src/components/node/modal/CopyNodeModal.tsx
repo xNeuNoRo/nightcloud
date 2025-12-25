@@ -1,29 +1,28 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import Modal from "../Modal";
-import NodeExplorer from "./NodeExplorer";
-import { moveNode } from "@/api/NodeAPI";
+import Modal from "../../Modal";
+import NodeExplorer from "../NodeExplorer";
+import { copyNode } from "@/api/NodeAPI";
 import { useNode } from "@/hooks/useNode";
-import MoveNodeForm from "./MoveNodeForm";
-import type { NodeMoveFormData } from "@/types";
+import CopyNodeForm from "../form/CopyNodeForm";
+import type { NodeCopyFormData } from "@/types";
 import { useForm } from "react-hook-form";
 import { useExplorer } from "@/hooks/explorer/useExplorer";
 import { useEffect } from "react";
 
-export default function MoveNodeModal() {
+export default function CopyNodeModal() {
   const location = useLocation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const queryParams = new URLSearchParams(location.search);
-  const nodeId = queryParams.get("moveNode");
+  const nodeId = queryParams.get("copyNode");
   const isOpen = !!nodeId;
   const parentId = location.pathname.split("/").pop() || null; // Obtener el parentId de la URL
   const { selectedFolderId } = useExplorer();
-  const { node } =
-    useNode(nodeId || undefined, "node");
+  const { node } = useNode(nodeId || undefined, "node");
 
-  const initialValues: NodeMoveFormData = {
+  const initialValues: NodeCopyFormData = {
     name: "",
   };
 
@@ -32,7 +31,7 @@ export default function MoveNodeModal() {
     reset,
     handleSubmit,
     formState: { errors },
-  } = useForm({ defaultValues: initialValues, shouldUnregister: false });
+  } = useForm({ defaultValues: initialValues });
 
   // Setear el nombre inicial del nodo a copiar cuando este disponible luego del fetch
   useEffect(() => {
@@ -46,8 +45,8 @@ export default function MoveNodeModal() {
   const closeModal = () => navigate(location.pathname, { replace: true }); // Remover los query params
 
   const { mutate } = useMutation({
-    mutationFn: (data: NodeMoveFormData) =>
-      moveNode(nodeId!, selectedFolderId ?? null, data.name ?? node.data!.name),
+    mutationFn: (data: NodeCopyFormData) =>
+      copyNode(nodeId!, selectedFolderId ?? null, data.name ?? node.data!.name),
     onSuccess: (data) => {
       // mensaje de éxito
       const nodesAffected = Array.isArray(data) ? data.length : 1;
@@ -61,11 +60,11 @@ export default function MoveNodeModal() {
       });
       queryClient.invalidateQueries({ queryKey: ["cloudStats"] });
 
-      toast.success(`${successOperations} moved successfully`, {
+      toast.success(`${successOperations} copied successfully`, {
         autoClose: 1000,
       });
-      closeModal();
 
+      closeModal();
       reset();
     },
     onError: (error) => {
@@ -73,7 +72,7 @@ export default function MoveNodeModal() {
     },
   });
 
-  const handleMoveNode = (formData: NodeMoveFormData) => {
+  const handleCopyNode = (formData: NodeCopyFormData) => {
     const data = {
       ...formData,
     };
@@ -88,10 +87,9 @@ export default function MoveNodeModal() {
 
   // Usar una key dinámica para forzar el remount del formulario cuando el node.data cambia
   const formKey = `${nodeId}-${node.isPlaceholderData ? "loading" : "ready"}`;
-
   return (
     <Modal
-      title={`Move ${node.data?.isDir ? "Folder" : "File"} ${node.data?.name}`}
+      title={`Copy ${node.data?.isDir ? "Folder" : "File"} ${node.data?.name}`}
       open={isOpen}
       close={closeModal}
     >
@@ -100,10 +98,10 @@ export default function MoveNodeModal() {
         <form
           className="mt-5 space-y-10"
           noValidate
-          onSubmit={handleSubmit(handleMoveNode)}
+          onSubmit={handleSubmit(handleCopyNode)}
         >
           <NodeExplorer />
-          <MoveNodeForm
+          <CopyNodeForm
             key={formKey}
             register={register}
             errors={errors}
@@ -111,7 +109,7 @@ export default function MoveNodeModal() {
           />
           <input
             type="submit"
-            value={`Move ${node.data.isDir ? "Folder" : "File"}`}
+            value={`Copy ${node.data.isDir ? "Folder" : "File"}`}
             className="w-full p-3 font-bold text-white uppercase cursor-pointer transition-colors duration-200 bg-night-primary hover:bg-night-primary-hover rounded-xl"
           />
         </form>

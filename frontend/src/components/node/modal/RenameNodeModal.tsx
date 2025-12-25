@@ -3,12 +3,12 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import Modal from "../Modal";
+import Modal from "../../Modal";
 import { renameNode } from "@/api/NodeAPI";
 import { useNode } from "@/hooks/useNode";
-import RenameNodeForm from "./RenameNodeForm";
+import RenameNodeForm from "../form/RenameNodeForm";
 import { useEffect } from "react";
-import ErrorMessage from "../ErrorMessage";
+import ErrorMessage from "../../ErrorMessage";
 
 export default function RenameNodeModal() {
   const location = useLocation();
