@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Outlet, useParams } from "react-router-dom";
+import { Outlet, useLocation, useParams } from "react-router-dom";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import { ToastContainer } from "react-toastify";
@@ -20,14 +20,18 @@ import {
 import { useMoveNodeOnDrop } from "@/utils/useMoveNodeOnDrop";
 
 export default function AppLayout() {
+  const location = useLocation();
   const params = useParams();
   const { setSelectedNodes } = useSelectedNodes();
   const { openCtx } = useCtx();
+  const isRootOrDirView =
+    location.pathname === "/" || location.pathname.startsWith("/directory/");
 
   // Manejador del click derecho en el área principal
   const handleContextMenu = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    if (!isRootOrDirView) return; // Solo abrir el context menu en root o directory view
     openCtx("nodeAreas", e.clientX, e.clientY);
   };
 
