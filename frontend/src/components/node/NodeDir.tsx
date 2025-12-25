@@ -15,7 +15,7 @@ type NodeDirProps = {
 };
 
 export default function NodeDir({ node }: Readonly<NodeDirProps>) {
-  const { selectedNodes, addSelectedNodes, removeSelectedNode } = useAppStore();
+  const { clearSelectedNodes, selectedNodes, addSelectedNodes, removeSelectedNode } = useAppStore();
   const { openContextMenu } = useContextMenu();
   const isSelected = useMemo(() => {
     return selectedNodes.some((n) => n.id === node.id);
@@ -38,6 +38,9 @@ export default function NodeDir({ node }: Readonly<NodeDirProps>) {
     e.preventDefault();
     e.stopPropagation();
     openContextMenu(e.clientX, e.clientY, node);
+    if (selectedNodes.some((n) => n.id === node.id)) return;
+    clearSelectedNodes();
+    toggleSelect(node);
   };
 
   return (

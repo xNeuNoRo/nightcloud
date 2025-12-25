@@ -41,6 +41,7 @@ export default function NodeFile({ node }: Readonly<NodeFileProps>) {
     e.preventDefault();
     e.stopPropagation();
     openContextMenu(e.clientX, e.clientY, node);
+    toggleSelect(node);
   };
 
   return (

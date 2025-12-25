@@ -8,8 +8,11 @@ import {
 } from "react-icons/hi";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useContextMenu } from "@/hooks/stores/useContextMenu";
+import { useAppStore } from "@/stores/useAppStore";
+import type { NodeType } from "@/types";
 
 export default function NodeContextMenu() {
+  const { selectedNodes, removeSelectedNode, addSelectedNodes } = useAppStore();
   const { contextMenu, closeContextMenu } = useContextMenu();
   const navigate = useNavigate();
   const location = useLocation();
@@ -32,10 +35,19 @@ export default function NodeContextMenu() {
     };
   }, [contextMenu.isOpen, closeContextMenu]);
 
+  const toggleSelect = (selectedNode: NodeType) => {
+    if (selectedNodes.some((node) => node.id === selectedNode.id)) {
+      removeSelectedNode(selectedNode.id);
+    } else {
+      addSelectedNodes([selectedNode]);
+    }
+  };
+
   const handleAction = (param: string) => {
     if (!contextMenu.selectedNode) return;
     navigate(`${location.pathname}?${param}=${contextMenu.selectedNode.id}`);
     closeContextMenu();
+    toggleSelect(contextMenu.selectedNode);
   };
 
   // Renderizado condicional simple
@@ -70,12 +82,12 @@ export default function NodeContextMenu() {
         >
           {contextMenu.selectedNode && (
             <>
-              <div className="px-3 py-2 text-xs border-b border-night-border/50 text-night-muted mb-2 select-none truncate">
+              {/* <div className="px-3 py-2 text-xs border-b border-night-border/50 text-night-muted mb-2 select-none truncate">
                 Options:{" "}
                 <span className="text-night-text font-medium">
                   {contextMenu.selectedNode.name}
                 </span>
-              </div>
+              </div> */}
 
               <div className="flex flex-col px-1 gap-0.5">
                 <button
