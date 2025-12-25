@@ -54,11 +54,11 @@ export default function NodeContextMenu() {
         show={contextMenu.isOpen}
         appear={true}
         enter="transition ease-out duration-100"
-        enterFrom="opacity-0 scale-95"
+        enterFrom="opacity-0 scale-5"
         enterTo="opacity-100 scale-100"
         leave="transition ease-in duration-75"
         leaveFrom="opacity-100 scale-100"
-        leaveTo="opacity-0 scale-95"
+        leaveTo="opacity-0 scale-5"
       >
         <div
           ref={menuRef}
