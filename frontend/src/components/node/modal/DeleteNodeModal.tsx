@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import Modal from "../Modal";
+import Modal from "../../Modal";
 import { deleteNode } from "@/api/NodeAPI";
 import { useNode } from "@/hooks/useNode";
 
