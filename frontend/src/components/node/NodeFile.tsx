@@ -6,7 +6,7 @@ import { getCategoryFromMime } from "@/utils/files/getCategoryFromExtAndMime";
 import { FileCategoryIcons } from "@/data/fileCategoryIcons";
 import formatDate from "@/utils/formatDate";
 import NodeActions from "./NodeActions";
-import { useContextMenu } from "@/hooks/stores/useContextMenu";
+import { useCtx } from "@/hooks/context/useCtx";
 import { useSelectedNodes } from "@/hooks/stores/useSelectedNodes";
 
 type NodeFileProps = {
@@ -14,8 +14,9 @@ type NodeFileProps = {
 };
 
 export default function NodeFile({ node }: Readonly<NodeFileProps>) {
-  const { selectedNodes, addSelectedNodes, removeSelectedNode } = useSelectedNodes();
-  const { openCtx } = useContextMenu();
+  const { selectedNodes, addSelectedNodes, removeSelectedNode } =
+    useSelectedNodes();
+  const { openCtx } = useCtx();
   const isSelected = useMemo(() => {
     return selectedNodes.some((n) => n.id === node.id);
   }, [selectedNodes, node.id]);

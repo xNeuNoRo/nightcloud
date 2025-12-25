@@ -7,7 +7,7 @@ import { Link } from "react-router-dom";
 import formatDate from "@/utils/formatDate";
 import classNames from "@/utils/classNames";
 import NodeActions from "./NodeActions";
-import { useContextMenu } from "@/hooks/stores/useContextMenu";
+import { useCtx } from "@/hooks/context/useCtx";
 import { useSelectedNodes } from "@/hooks/stores/useSelectedNodes";
 
 type NodeDirProps = {
@@ -21,7 +21,7 @@ export default function NodeDir({ node }: Readonly<NodeDirProps>) {
     addSelectedNodes,
     removeSelectedNode,
   } = useSelectedNodes();
-  const { openCtx } = useContextMenu();
+  const { openCtx } = useCtx();
   const isSelected = useMemo(() => {
     return selectedNodes.some((n) => n.id === node.id);
   }, [selectedNodes, node.id]);

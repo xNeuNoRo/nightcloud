@@ -4,7 +4,7 @@ import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import { ToastContainer } from "react-toastify";
 import GlobalDropzone from "@/components/upload/GlobalDropzone";
-import NodeContextMenu from "@/components/node/NodeContextMenu";
+import NodeContextMenu from "@/components/context/NodeContextMenu";
 import { useSelectedNodes } from "@/hooks/stores/useSelectedNodes";
 
 export default function AppLayout() {

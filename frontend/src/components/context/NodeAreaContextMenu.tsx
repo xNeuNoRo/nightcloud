@@ -6,23 +6,12 @@ import {
   HiOutlineDuplicate,
   HiOutlineTrash,
 } from "react-icons/hi";
-import { useNavigate, useLocation } from "react-router-dom";
-import { useContextMenu } from "@/hooks/stores/useContextMenu";
-import type { NodeType } from "@/types";
-import { useContextMenuPayload } from "@/hooks/stores/useContextMenuPayload";
-import { useSelectedNodes } from "@/hooks/stores/useSelectedNodes";
+import { useCtx } from "@/hooks/context/useCtx";
+import { useCtxPayload } from "@/hooks/context/useCtxPayload";
 
-export default function NodeContextMenu() {
-  const {
-    selectedNodes,
-    removeSelectedNode,
-    addSelectedNodes,
-    clearSelectedNodes,
-  } = useSelectedNodes();
-  const { closeCtx, isOpen, position } = useContextMenu();
-  const payload = useContextMenuPayload("node");
-  const navigate = useNavigate();
-  const location = useLocation();
+export default function NodeAreaContextMenu() {
+  const { closeCtx, isOpen, position } = useCtx();
+  const payload = useCtxPayload("node");
   const menuRef = useRef<HTMLDivElement>(null);
 
   // Lógica para cerrar si hacen click fuera (Click Outside manual)
@@ -30,7 +19,6 @@ export default function NodeContextMenu() {
     const handleClickOutside = (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
         closeCtx();
-        clearSelectedNodes();
       }
     };
 
@@ -41,22 +29,7 @@ export default function NodeContextMenu() {
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [isOpen, clearSelectedNodes, closeCtx]);
-
-  const toggleSelect = (selectedNode: NodeType) => {
-    if (selectedNodes.some((node) => node.id === selectedNode.id)) {
-      removeSelectedNode(selectedNode.id);
-    } else {
-      addSelectedNodes([selectedNode]);
-    }
-  };
-
-  const handleAction = (param: string) => {
-    if (!payload) return;
-    navigate(`${location.pathname}?${param}=${payload.selectedNode.id}`);
-    closeCtx();
-    toggleSelect(payload.selectedNode);
-  };
+  }, [isOpen, closeCtx]);
 
   // Renderizado condicional simple
   if (!isOpen) return null;
@@ -89,17 +62,9 @@ export default function NodeContextMenu() {
           }}
         >
           {payload?.selectedNode && (
-            <>
-              {/* <div className="px-3 py-2 text-xs border-b border-night-border/50 text-night-muted mb-2 select-none truncate">
-                Options:{" "}
-                <span className="text-night-text font-medium">
-                  {contextMenu.selectedNode.name}
-                </span>
-              </div> */}
-
-              <div className="flex flex-col px-1 gap-0.5">
+            <div className="flex flex-col px-1 gap-0.5">
                 <button
-                  onClick={() => handleAction("renameNode")}
+                  onClick={() => {}}
                   className="flex items-center w-full px-3 py-1 overflow-hidden text-sm font-semibold leading-6 text-left text-night-text hover:bg-night-border/50 hover:text-white transition-colors rounded-md hover:cursor-pointer"
                 >
                   <HiOutlinePencil className="mr-2 text-lg" />
@@ -107,7 +72,7 @@ export default function NodeContextMenu() {
                 </button>
 
                 <button
-                  onClick={() => handleAction("moveNode")}
+                  onClick={() => {}}
                   className="flex items-center w-full px-3 py-1 overflow-hidden text-sm font-semibold leading-6 text-left text-night-text hover:bg-night-border/50 hover:text-white transition-colors rounded-md hover:cursor-pointer"
                 >
                   <HiOutlineFolderOpen className="mr-2 text-lg" />
@@ -115,7 +80,7 @@ export default function NodeContextMenu() {
                 </button>
 
                 <button
-                  onClick={() => handleAction("copyNode")}
+                  onClick={() => {}}
                   className="flex items-center w-full px-3 py-1 overflow-hidden text-sm font-semibold leading-6 text-left text-night-text hover:bg-night-border/50 hover:text-white transition-colors rounded-md hover:cursor-pointer"
                 >
                   <HiOutlineDuplicate className="mr-2 text-lg" />
@@ -125,14 +90,13 @@ export default function NodeContextMenu() {
                 <div className="my-2 border-t border-night-border/30" />
 
                 <button
-                  onClick={() => handleAction("deleteNode")}
+                  onClick={() => {}}
                   className="flex items-center w-full px-3 py-1 overflow-hidden text-sm font-semibold leading-6 text-left text-red-400 hover:bg-night-border/50 hover:text-red-300 transition-colors rounded-md hover:cursor-pointer"
                 >
                   <HiOutlineTrash className="mr-2 text-lg" />
                   Remove
                 </button>
               </div>
-            </>
           )}
         </div>
       </Transition>

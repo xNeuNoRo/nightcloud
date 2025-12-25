@@ -4,7 +4,7 @@ import type {
   ContextMenuType,
 } from "@/types/contextMenu.types";
 
-export function useContextMenuPayload<T extends ContextMenuType>(
+export function useCtxPayload<T extends ContextMenuType>(
   expectedType: T
 ) {
   const { type, payload } = useAppStore();
