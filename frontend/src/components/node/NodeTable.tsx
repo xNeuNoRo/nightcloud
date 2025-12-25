@@ -6,6 +6,9 @@ import { toggleNameDirection } from "@/utils/node/sortNodes";
 import classNames from "@/utils/classNames";
 import { useMemo, useState } from "react";
 import { useSelectedNodes } from "@/hooks/stores/useSelectedNodes";
+import { DragOverlay } from "@dnd-kit/core";
+import { snapCenterToCursor } from "@dnd-kit/modifiers";
+import ActiveNode from "./ActiveNode";
 
 // TODO: Adaptar el backend para los favoritos, fecha de creacion y modificacion.
 
@@ -14,8 +17,10 @@ type NodeTableProps = {
 };
 
 export default function NodeTable({ nodes }: Readonly<NodeTableProps>) {
+  // Estado de ordenamiento
   const [direction, setDirection] = useState<SortDirection>("asc");
-  const { selectedNodes, setSelectedNodes, clearSelectedNodes } = useSelectedNodes();
+  const { selectedNodes, setSelectedNodes, clearSelectedNodes } =
+    useSelectedNodes();
 
   // Nodos ordenados segun la direccion
   const sortedNodes = useMemo(() => {
@@ -71,13 +76,18 @@ export default function NodeTable({ nodes }: Readonly<NodeTableProps>) {
       {/* Filas */}
       <div className="flex-1 overflow-y-auto mt-2 space-y-1 scrollbar-thin scrollbar-thumb-night-border scrollbar-track-transparent pb-2">
         {sortedNodes.length > 0 ? (
-          sortedNodes.map((node) => {
-            return node.isDir ? (
-              <NodeDir key={node.id} node={node} />
-            ) : (
-              <NodeFile key={node.id} node={node} />
-            );
-          })
+          <>
+            {sortedNodes.map((node) => {
+              return node.isDir ? (
+                <NodeDir key={node.id} node={node} />
+              ) : (
+                <NodeFile key={node.id} node={node} />
+              );
+            })}
+            <DragOverlay dropAnimation={null} modifiers={[snapCenterToCursor]}> {/* ese modifier centra el dragoverlay al cursor */}
+              <ActiveNode nodes={sortedNodes} />
+            </DragOverlay>
+          </>
         ) : (
           <div className="text-center text-night-muted text-xl mt-20">
             No files found

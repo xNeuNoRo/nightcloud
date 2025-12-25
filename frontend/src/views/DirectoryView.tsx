@@ -1,6 +1,6 @@
-import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { FaFolderPlus } from "react-icons/fa";
-import FileTable from "@/components/node/NodeTable";
+import NodeTable from "@/components/node/NodeTable";
 import buildBreadcrumbs from "@/utils/build/buildBreadcrumbs";
 import { useNode } from "@/hooks/useNode";
 import Breadcrumb from "@/components/Breadcrumb";
@@ -22,31 +22,6 @@ export default function DirectoryView() {
 
   const { children, ancestors } = useNode(nodeId, "children+ancestors");
 
-  if (!nodeId) {
-    return <div>No directory specified</div>;
-  }
-
-  if (children.loading || ancestors.loading) {
-    return <div>Loading...</div>;
-  }
-
-  if (
-    children.error ||
-    ancestors.error ||
-    !children.data ||
-    !ancestors.data
-  ) {
-    return <div>Error loading files</div>;
-  }
-
-  // Construir los breadcrums visibles
-  const breadcrums = [...buildBreadcrumbs(nodeId, ancestors.data)];
-  // Obtener los breadcrums visibles con elipsis si es necesario
-  const { items: visibleBreadcrumbs, hasEllipsis } = getVisibleBreadcrumbs(
-    breadcrums,
-    2
-  );
-
   const handleGoBack = () => {
     if (ancestors.data?.length === 0) {
       navigate(`/`);
@@ -62,6 +37,35 @@ export default function DirectoryView() {
     }
   };
 
+  if (!nodeId) {
+    return <div>No directory specified</div>;
+  }
+
+  if (children.loading || ancestors.loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (children.error || ancestors.error || !children.data || !ancestors.data) {
+    return <div>Error loading files</div>;
+  }
+
+  // Construir los breadcrums visibles
+  const breadcrums = [...buildBreadcrumbs(nodeId, ancestors.data)];
+  // Obtener los breadcrums visibles con elipsis si es necesario
+  const { items: visibleBreadcrumbs, hasEllipsis } = getVisibleBreadcrumbs(
+    breadcrums,
+    3
+  );
+  // Agregar el breadcrumb de root al inicio
+  const breadcrumbs = [
+    {
+      id: "breadcrumb:root",
+      name: "My Files",
+      parentId: null,
+    },
+    ...visibleBreadcrumbs,
+  ];
+
   return (
     <>
       <div className="flex flex-col gap-4">
@@ -75,11 +79,7 @@ export default function DirectoryView() {
               <HiArrowLeft className="w-4 h-4 text-night-text" />
             </button>
             <div className="flex items-center gap-1 text-xl font-bold leading-none">
-              <Link to={`/`} className="hover:underline">
-                My Files
-              </Link>
-              {" > "}
-              {visibleBreadcrumbs.map((n, i) => {
+              {breadcrumbs.map((n, i) => {
                 const showEllipsis = hasEllipsis && i === 2; // si es el segundo elemento y hay elipsis
                 if (showEllipsis) {
                   return (
@@ -88,10 +88,14 @@ export default function DirectoryView() {
                     </span>
                   );
                 }
-                if (i < visibleBreadcrumbs.length - 1) {
+                if (i < breadcrumbs.length - 1) {
                   return <Breadcrumb key={n.id} n={n} />;
                 }
-                return <span key={n.id}>{n.name}</span>;
+                return (
+                  <span className="truncate max-w-50" key={n.id}>
+                    {n.name}
+                  </span>
+                );
               })}
             </div>
           </div>
@@ -109,8 +113,8 @@ export default function DirectoryView() {
       </div>
 
       {/* El contenedor de la tabla crece para ocupar el resto del espacio */}
-      <div className="flex-1 min-h-0">
-        <FileTable nodes={children.data} />
+      <div className="flex-1 min-h-0 relative overflow-hidden">
+        <NodeTable nodes={children.data} />
       </div>
 
       <CreateFolderModal />

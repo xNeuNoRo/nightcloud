@@ -9,6 +9,7 @@ import classNames from "@/utils/classNames";
 import NodeActions from "./NodeActions";
 import { useCtx } from "@/hooks/context/useCtx";
 import { useSelectedNodes } from "@/hooks/stores/useSelectedNodes";
+import { useDraggable, useDroppable } from "@dnd-kit/core";
 
 type NodeDirProps = {
   node: NodeType;
@@ -21,11 +22,41 @@ export default function NodeDir({ node }: Readonly<NodeDirProps>) {
     addSelectedNodes,
     removeSelectedNode,
   } = useSelectedNodes();
+
+  // Drag and Drop
+  const {
+    attributes,
+    listeners,
+    setNodeRef: setDraggableRef,
+    transform,
+    isDragging,
+  } = useDraggable({
+    id: node.id,
+    data: node,
+  });
+
+  const { isOver, setNodeRef: setDroppableRef } = useDroppable({
+    id: node.id,
+    data: {
+      dropAction: "node_dropable", // Para identificar droppables por feat en el futuro
+      ...node,
+    },
+  });
+
+  // Estilo de transformacion durante el drag
+  const style =
+    transform && !isDragging
+      ? {
+          transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
+        }
+      : undefined;
+
   const { openCtx } = useCtx();
   const isSelected = useMemo(() => {
     return selectedNodes.some((n) => n.id === node.id);
   }, [selectedNodes, node.id]);
 
+  // Funciones de seleccion
   const toggleSelect = (selectedNode: NodeType) => {
     if (selectedNodes.some((node) => node.id === selectedNode.id)) {
       removeSelectedNode(selectedNode.id);
@@ -33,12 +64,11 @@ export default function NodeDir({ node }: Readonly<NodeDirProps>) {
       addSelectedNodes([selectedNode]);
     }
   };
-
   const handleOnClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     toggleSelect(node);
   };
-
+  // Manejar el menu contextual
   const handleContextMenu = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -48,13 +78,27 @@ export default function NodeDir({ node }: Readonly<NodeDirProps>) {
     toggleSelect(node);
   };
 
+  // Combinar refs de draggable y droppable
+  const setNodeRef = (el: HTMLLIElement | null) => {
+    setDraggableRef(el);
+    setDroppableRef(el);
+  };
+
   return (
     <li
+      ref={setNodeRef}
+      {...attributes}
+      {...listeners}
+      style={style}
       onContextMenu={handleContextMenu}
       className={classNames(
         isSelected
           ? "bg-night-primary/10 border-night-primary/20"
           : "hover:bg-night-surface hover:border-night-border/50",
+        isDragging
+          ? "opacity-40 cursor-grabbing border-dashed"
+          : "opacity-100 scale-100",
+        isOver ? "border-night-primary/40 bg-night-primary/20" : "",
         "relative z-10 grid grid-cols-[50px_1fr_100px_100px_180px_50px] gap-4 items-center px-4 py-3 rounded-lg transition-all duration-200 group border border-transparent cursor-default w-full hover:cursor-pointer"
       )}
     >

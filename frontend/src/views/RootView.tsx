@@ -1,5 +1,5 @@
 import { FaFolderPlus } from "react-icons/fa";
-import FileTable from "@/components/node/NodeTable";
+import NodeTable from "@/components/node/NodeTable";
 import CreateFolderModal from "@/components/node/modal/CreateFolderModal";
 import { useNavigate } from "react-router-dom";
 import UploadModal from "@/components/upload/UploadModal";
@@ -46,8 +46,8 @@ export default function DirectoryView() {
       </div>
 
       {/* El contenedor de la tabla crece para ocupar el resto del espacio */}
-      <div className="flex-1 min-h-0">
-        <FileTable nodes={children.data} />
+      <div className="flex-1 min-h-0 relative overflow-hidden">
+        <NodeTable nodes={children.data} />
       </div>
 
       <CreateFolderModal />

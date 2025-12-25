@@ -8,6 +8,8 @@ import formatDate from "@/utils/formatDate";
 import NodeActions from "./NodeActions";
 import { useCtx } from "@/hooks/context/useCtx";
 import { useSelectedNodes } from "@/hooks/stores/useSelectedNodes";
+import { useDraggable } from "@dnd-kit/core";
+import classNames from "@/utils/classNames";
 
 type NodeFileProps = {
   node: NodeType;
@@ -16,6 +18,21 @@ type NodeFileProps = {
 export default function NodeFile({ node }: Readonly<NodeFileProps>) {
   const { selectedNodes, addSelectedNodes, removeSelectedNode } =
     useSelectedNodes();
+
+  // Drag and Drop
+  const { attributes, listeners, setNodeRef, transform, isDragging } =
+    useDraggable({
+      id: node.id,
+      data: node,
+    });
+  // Estilo de transformacion durante el drag
+  const style =
+    transform && !isDragging
+      ? {
+          transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
+        }
+      : undefined;
+
   const { openCtx } = useCtx();
   const isSelected = useMemo(() => {
     return selectedNodes.some((n) => n.id === node.id);
@@ -25,6 +42,7 @@ export default function NodeFile({ node }: Readonly<NodeFileProps>) {
   const category = getCategoryFromMime(node.mime);
   const Icon = FileCategoryIcons[category];
 
+  // Funciones de seleccion
   const toggleSelect = (selectedNode: NodeType) => {
     if (selectedNodes.some((node) => node.id === selectedNode.id)) {
       removeSelectedNode(selectedNode.id);
@@ -32,12 +50,10 @@ export default function NodeFile({ node }: Readonly<NodeFileProps>) {
       addSelectedNodes([selectedNode]);
     }
   };
-
   const handleOnClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     toggleSelect(node);
   };
-
   const handleContextMenu = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -47,15 +63,20 @@ export default function NodeFile({ node }: Readonly<NodeFileProps>) {
 
   return (
     <li
+      ref={setNodeRef}
+      {...attributes}
+      {...listeners}
+      style={style}
       onContextMenu={handleContextMenu}
-      className={`
-        grid grid-cols-[50px_1fr_100px_100px_180px_50px] gap-4 items-center px-4 py-3 rounded-lg transition-all duration-200 group border border-transparent select-none w-full
-        ${
-          isSelected
-            ? "bg-night-primary/10 border-night-primary/20"
-            : "hover:bg-night-surface hover:border-night-border/50"
-        }
-      `}
+      className={classNames(
+        isSelected
+          ? "bg-night-primary/10 border-night-primary/20"
+          : "hover:bg-night-surface hover:border-night-border/50",
+        isDragging
+          ? "opacity-40 cursor-grabbing border-dashed"
+          : "opacity-100 scale-100",
+        "grid grid-cols-[50px_1fr_100px_100px_180px_50px] gap-4 items-center px-4 py-3 rounded-lg transition-all duration-200 group border border-transparent select-none w-full"
+      )}
     >
       {/* Checkbox */}
       <div className="flex justify-center">

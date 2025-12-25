@@ -9,6 +9,15 @@ import { useSelectedNodes } from "@/hooks/stores/useSelectedNodes";
 import ModalContextMenu from "@/components/context/ModalContextMenu";
 import NodeAreaContextMenu from "@/components/context/NodeAreaContextMenu";
 import { useCtx } from "@/hooks/context/useCtx";
+import {
+  DndContext,
+  PointerSensor,
+  pointerWithin,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import { useMoveNodeOnDrop } from "@/utils/useMoveNodeOnDrop";
 
 export default function AppLayout() {
   const params = useParams();
@@ -22,10 +31,48 @@ export default function AppLayout() {
     openCtx("nodeAreas", e.clientX, e.clientY);
   };
 
+  // Limpiar los nodos seleccionados al cambiar de ruta
   useEffect(() => {
     setSelectedNodes([]);
   }, [params, setSelectedNodes]);
 
+  // Configurar sensores para el drag and drop
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 6, // Activar el drag solo si se mueve 6px
+      },
+    })
+  );
+
+  // Obtener el handler para mover nodos al soltar
+  const { handleNodeDrop } = useMoveNodeOnDrop();
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    // Leer los datos del elemento sobre el cual se solto
+    const { over } = event;
+    // Extraer la accion q se definio en el droppable
+    const action = over?.data.current?.dropAction;
+    // Ejecutar la accion correspondiente
+    switch (action) {
+      case "node_dropable":
+      case "breadcrumb_dropable": {
+        handleNodeDrop(event); // Dejarselo al hook que se encargue por el respeto xd
+        break;
+      }
+      default: {
+        // No hacer nada si no hay una accion definida
+        break;
+      }
+    }
+    // Aqui se podrian agregar mas cosas si se quiere en el futuro para el drag and drop en cualquier parte
+  };
+
+  // Con el collisionDetection=pointerWithin, el over sera el elemento bajo el cursor literal,
+  // Por defecto se calcula en base al rect de cada elemento, pero asi podria no ser preciso
+  // al usar el snapCenterToCursor en el DragOverlay de los nodos para centrar el elemento arrastrado al cursor.
+  // Por ende opte por usar pointerWithin que es más intuitivo en este caso para calcular el over en base al cursor.
+  // En el futuro si se necesita mas precision se podria implementar un callback para collision personalizado que combine ambos metodos.
   return (
     <>
       {/* Zona de drop global, solamente renderizada en /directory/* y root */}
@@ -45,18 +92,24 @@ export default function AppLayout() {
 
         {/* Área Principal */}
         <main className="flex-1 flex flex-col relative z-10 min-w-0 h-full">
-          <Header />
-
-          <div // NOSONAR - Desactivar el aviso de sonar puesto q es solo por el context menu
-            role="main"
-            aria-label="Main Content Area"
-            onContextMenu={handleContextMenu}
-            className="flex-1 flex flex-col overflow-hidden p-8"
+          <DndContext
+            sensors={sensors}
+            onDragEnd={handleDragEnd}
+            collisionDetection={pointerWithin}
           >
-            <div className="w-full h-full mx-auto flex flex-col">
-              <Outlet />
+            <Header />
+
+            <div // NOSONAR - Desactivar el aviso de sonar puesto q es solo por el context menu
+              role="main"
+              aria-label="Main Content Area"
+              onContextMenu={handleContextMenu}
+              className="flex-1 flex flex-col overflow-hidden p-8"
+            >
+              <div className="w-full h-full mx-auto flex flex-col">
+                <Outlet />
+              </div>
             </div>
-          </div>
+          </DndContext>
         </main>
       </div>
 
