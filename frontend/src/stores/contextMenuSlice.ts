@@ -1,36 +1,34 @@
-import type { NodeType } from "@/types";
 import type { StateCreator } from "zustand";
+import type {
+  ContextMenuRegistry,
+  ContextMenuType,
+} from "@/types/contextMenu.types";
 
-export type ContextMenuSliceType = {
+export type ContextMenuState = {
   isOpen: boolean;
+  type: ContextMenuType | null;
   position: { x: number; y: number };
-  selectedNode: NodeType | null;
-  openContextMenu: (x: number, y: number, node: NodeType) => void;
-  closeContextMenu: () => void;
+  payload: unknown;
+  openCtx: <T extends ContextMenuType>(
+    type: T,
+    x: number,
+    y: number,
+    ...args: ContextMenuRegistry[T] extends void ? [] : [ContextMenuRegistry[T]]
+  ) => void;
+
+  closeCtx: () => void;
 };
 
-export const createContextMenuSlice: StateCreator<ContextMenuSliceType> = (
-  set
-) => ({
-  // Estado inicial
+export const createContextMenuSlice: StateCreator<ContextMenuState> = (set) => ({
   isOpen: false,
+  type: null,
   position: { x: 0, y: 0 },
-  selectedNode: null,
-
-  // Abrir el menú contextual en la posición (x, y) para el nodo dado
-  openContextMenu(x, y, node) {
-    set(() => ({
-      isOpen: true,
-      position: { x, y },
-      selectedNode: node,
-    }));
+  payload: null,
+  openCtx: (type, x, y, ...args) => {
+    const payload = args[0] ?? null;
+    set({ isOpen: true, type, position: { x, y }, payload });
   },
-
-  // Cerrar el menú contextual
-  closeContextMenu() {
-    set((prev) => ({
-      ...prev,
-      isOpen: false,
-    }));
+  closeCtx: () => {
+    set({ isOpen: false, type: null, payload: null });
   },
 });

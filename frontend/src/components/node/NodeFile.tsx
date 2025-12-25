@@ -15,7 +15,7 @@ type NodeFileProps = {
 
 export default function NodeFile({ node }: Readonly<NodeFileProps>) {
   const { selectedNodes, addSelectedNodes, removeSelectedNode } = useAppStore();
-  const { openContextMenu } = useContextMenu();
+  const { openCtx } = useContextMenu();
   const isSelected = useMemo(() => {
     return selectedNodes.some((n) => n.id === node.id);
   }, [selectedNodes, node.id]);
@@ -40,7 +40,7 @@ export default function NodeFile({ node }: Readonly<NodeFileProps>) {
   const handleContextMenu = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    openContextMenu(e.clientX, e.clientY, node);
+    openCtx("node", e.clientX, e.clientY, { selectedNode: node });
     toggleSelect(node);
   };
 

@@ -10,10 +10,17 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useContextMenu } from "@/hooks/stores/useContextMenu";
 import { useAppStore } from "@/stores/useAppStore";
 import type { NodeType } from "@/types";
+import { useContextMenuPayload } from "@/hooks/stores/useContextMenuPayload";
 
 export default function NodeContextMenu() {
-  const { selectedNodes, removeSelectedNode, addSelectedNodes } = useAppStore();
-  const { contextMenu, closeContextMenu } = useContextMenu();
+  const {
+    selectedNodes,
+    removeSelectedNode,
+    addSelectedNodes,
+    clearSelectedNodes,
+  } = useAppStore();
+  const { closeCtx, isOpen, position } = useContextMenu();
+  const payload = useContextMenuPayload("node");
   const navigate = useNavigate();
   const location = useLocation();
   const menuRef = useRef<HTMLDivElement>(null);
@@ -22,18 +29,19 @@ export default function NodeContextMenu() {
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        closeContextMenu();
+        closeCtx();
+        clearSelectedNodes();
       }
     };
 
     // Solo añadimos el listener si el menú está abierto
-    if (contextMenu.isOpen) {
+    if (isOpen) {
       document.addEventListener("mousedown", handleClickOutside);
     }
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [contextMenu.isOpen, closeContextMenu]);
+  }, [isOpen, clearSelectedNodes, closeCtx]);
 
   const toggleSelect = (selectedNode: NodeType) => {
     if (selectedNodes.some((node) => node.id === selectedNode.id)) {
@@ -44,26 +52,26 @@ export default function NodeContextMenu() {
   };
 
   const handleAction = (param: string) => {
-    if (!contextMenu.selectedNode) return;
-    navigate(`${location.pathname}?${param}=${contextMenu.selectedNode.id}`);
-    closeContextMenu();
-    toggleSelect(contextMenu.selectedNode);
+    if (!payload) return;
+    navigate(`${location.pathname}?${param}=${payload.selectedNode.id}`);
+    closeCtx();
+    toggleSelect(payload.selectedNode);
   };
 
   // Renderizado condicional simple
-  if (!contextMenu.isOpen) return null;
+  if (!isOpen) return null;
 
   return (
     // Z-Index alto para asegurar que se vea encima de cualquier cosa
     <div className="fixed inset-0 z-9999 pointer-events-none">
       <button
         className="fixed inset-0 pointer-events-auto bg-transparent"
-        onClick={closeContextMenu}
+        onClick={closeCtx}
       />
 
       <Transition
         as={Fragment}
-        show={contextMenu.isOpen}
+        show={isOpen}
         appear={true}
         enter="transition ease-out duration-100"
         enterFrom="opacity-0 scale-5"
@@ -76,11 +84,11 @@ export default function NodeContextMenu() {
           ref={menuRef}
           className="fixed pointer-events-auto w-56 py-2 bg-night-surface border border-night-border rounded-md shadow-2xl focus:outline-none flex flex-col"
           style={{
-            top: contextMenu.position.y,
-            left: contextMenu.position.x,
+            top: position.y,
+            left: position.x,
           }}
         >
-          {contextMenu.selectedNode && (
+          {payload?.selectedNode && (
             <>
               {/* <div className="px-3 py-2 text-xs border-b border-night-border/50 text-night-muted mb-2 select-none truncate">
                 Options:{" "}

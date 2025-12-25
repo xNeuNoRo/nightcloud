@@ -14,7 +14,7 @@ import {
 } from "./breadcrumbSlice";
 import {
   createContextMenuSlice,
-  type ContextMenuSliceType,
+  type ContextMenuState,
 } from "./contextMenuSlice";
 
 export const useAppStore = create<
@@ -24,7 +24,7 @@ export const useAppStore = create<
     ListSliceType &
     ExplorerSliceType &
     BreadcrumbSliceType &
-    ContextMenuSliceType
+    ContextMenuState
 >()(
   devtools((...args) => ({
     ...createNodeSlice(...args),

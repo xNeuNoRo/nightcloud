@@ -5,16 +5,12 @@ import { useAppStore } from "@/stores/useAppStore";
  * @returns {Object} Estado y funciones del menú contextual
  */
 export function useContextMenu() {
-  const { isOpen, position, selectedNode, openContextMenu, closeContextMenu } =
-    useAppStore();
+  const { isOpen, position, openCtx, closeCtx } = useAppStore();
 
   return {
-    contextMenu: {
-      isOpen,
-      position,
-      selectedNode,
-    },
-    openContextMenu,
-    closeContextMenu,
+    isOpen,
+    position,
+    openCtx,
+    closeCtx,
   };
 }

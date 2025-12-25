@@ -15,8 +15,13 @@ type NodeDirProps = {
 };
 
 export default function NodeDir({ node }: Readonly<NodeDirProps>) {
-  const { clearSelectedNodes, selectedNodes, addSelectedNodes, removeSelectedNode } = useAppStore();
-  const { openContextMenu } = useContextMenu();
+  const {
+    clearSelectedNodes,
+    selectedNodes,
+    addSelectedNodes,
+    removeSelectedNode,
+  } = useAppStore();
+  const { openCtx } = useContextMenu();
   const isSelected = useMemo(() => {
     return selectedNodes.some((n) => n.id === node.id);
   }, [selectedNodes, node.id]);
@@ -37,7 +42,7 @@ export default function NodeDir({ node }: Readonly<NodeDirProps>) {
   const handleContextMenu = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    openContextMenu(e.clientX, e.clientY, node);
+    openCtx("node", e.clientX, e.clientY, { selectedNode: node });
     if (selectedNodes.some((n) => n.id === node.id)) return;
     clearSelectedNodes();
     toggleSelect(node);
