@@ -66,7 +66,9 @@ export default function RenameNodeModal() {
       queryClient.invalidateQueries({ queryKey: ["nodeDetails", nodeId] });
 
       closeModal();
-      toast.success(`${data.isDir ? "Folder" : "File"} renamed successfully`);
+      toast.success(`${data.isDir ? "Folder" : "File"} renamed successfully`, {
+        autoClose: 1000,
+      });
       reset();
     },
     onError: (error) => {
@@ -109,7 +111,11 @@ export default function RenameNodeModal() {
           onSubmit={handleSubmit(handleRenameNode)}
           noValidate
         >
-          <RenameNodeForm register={register} errors={errors} node={node.data} />
+          <RenameNodeForm
+            register={register}
+            errors={errors}
+            node={node.data}
+          />
           <input
             type="submit"
             value={`Rename ${node.data.isDir ? "Folder" : "File"}`}
