@@ -4,20 +4,19 @@ import UploadDropzone from "./UploadDropzone";
 import { useNode } from "@/hooks/useNode";
 import { useUploadFiles } from "@/hooks/useUploadFiles";
 import UploadStagingList from "./UploadStagingList";
-import { useAppStore } from "@/stores/useAppStore";
 import { useMemo } from "react";
 import NodeExplorer from "../node/NodeExplorer";
 import { useExplorer } from "@/hooks/explorer/useExplorer";
+import { useUploadStage } from "@/hooks/stores/useUploadStage";
 
 export default function ModalDropzone() {
   const location = useLocation();
   const navigate = useNavigate();
   const { nodeId: parentId } = useParams();
+  const { stagedFiles, clearStagedFiles } = useUploadStage();
   const queryParams = new URLSearchParams(location.search);
   const isOpen = queryParams.get("uploadFiles") === "true";
   const closeModal = () => navigate(location.pathname, { replace: true }); // Limpia los query params
-  const stagedFiles = useAppStore((state) => state.stagedFiles);
-  const clearStagedFiles = useAppStore((state) => state.clearStagedFiles);
   const uploadLimit = Number(import.meta.env.VITE_API_UPLOAD_FILES_LIMIT) || 10;
   const { selectedFolderId } = useExplorer();
   const { mutate } = useUploadFiles(selectedFolderId ?? null);
@@ -25,7 +24,7 @@ export default function ModalDropzone() {
     () => stagedFiles.map((f) => f.file),
     [stagedFiles]
   );
-  
+
   // Obtener las carpetas del directorio actual para el select de destino
   const { children } = useNode(parentId || undefined, "children");
 

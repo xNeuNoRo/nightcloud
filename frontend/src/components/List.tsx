@@ -1,5 +1,5 @@
+import { useList } from "@/hooks/stores/useList";
 import type { ListOption } from "@/stores/listSlice";
-import { useAppStore } from "@/stores/useAppStore";
 import classNames from "@/utils/classNames";
 import {
   Listbox,
@@ -22,7 +22,7 @@ export default function List({
   defaultOption,
   maxHeight = "normal",
 }: Readonly<ListProps>) {
-  const { listSelectedOption, listSetSelectedOption } = useAppStore();
+  const { listSelectedOption, listSetSelectedOption } = useList();
   // Establecer la opción por defecto si se proporciona y no hay ninguna seleccionada
   useEffect(() => {
     if (defaultOption && !listSelectedOption) {

@@ -8,8 +8,7 @@ import { toast } from "react-toastify";
 export default function UploadDropzone() {
   const matchRoot = useMatch("/");
   const matchDirectory = useMatch("/directory/:nodeId");
-  const parentId = useAppStore((state) => state.listSelectedOption?.id); // Obtener la carpeta seleccionada del store
-  const enabled = !!matchRoot || (!!matchDirectory && !!parentId);
+  const enabled = !!matchRoot || !!matchDirectory;
   const stageFiles = useAppStore((state) => state.stageFiles);
   const uploadLimit = Number(import.meta.env.VITE_API_UPLOAD_FILES_LIMIT) || 10;
 

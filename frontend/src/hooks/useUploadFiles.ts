@@ -1,5 +1,5 @@
 import { uploadFiles, type NodeAPIType } from "@/api/NodeAPI";
-import { useAppStore } from "@/stores/useAppStore";
+import { useUpload } from "./stores/useUpload";
 import type { NodeType } from "@/types";
 import {
   cancelUploadToast,
@@ -13,7 +13,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 export function useUploadFiles(parentId: NodeType["id"] | null) {
   const queryClient = useQueryClient();
-  const upload = useAppStore();
+  const upload = useUpload();
 
   return useMutation({
     mutationFn: async ({ files }: NodeAPIType["uploadFiles"]) => {

@@ -8,9 +8,9 @@ import {
 } from "react-icons/hi";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useContextMenu } from "@/hooks/stores/useContextMenu";
-import { useAppStore } from "@/stores/useAppStore";
 import type { NodeType } from "@/types";
 import { useContextMenuPayload } from "@/hooks/stores/useContextMenuPayload";
+import { useSelectedNodes } from "@/hooks/stores/useSelectedNodes";
 
 export default function NodeContextMenu() {
   const {
@@ -18,7 +18,7 @@ export default function NodeContextMenu() {
     removeSelectedNode,
     addSelectedNodes,
     clearSelectedNodes,
-  } = useAppStore();
+  } = useSelectedNodes();
   const { closeCtx, isOpen, position } = useContextMenu();
   const payload = useContextMenuPayload("node");
   const navigate = useNavigate();

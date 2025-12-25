@@ -4,11 +4,11 @@ import type { NodeType } from "@/types";
 import getHumanFileType from "@/utils/files/getHumanFileType";
 import getHumanFileSize from "@/utils/files/getHumanFileSize";
 import { Link } from "react-router-dom";
-import { useAppStore } from "@/stores/useAppStore";
 import formatDate from "@/utils/formatDate";
 import classNames from "@/utils/classNames";
 import NodeActions from "./NodeActions";
 import { useContextMenu } from "@/hooks/stores/useContextMenu";
+import { useSelectedNodes } from "@/hooks/stores/useSelectedNodes";
 
 type NodeDirProps = {
   node: NodeType;
@@ -20,7 +20,7 @@ export default function NodeDir({ node }: Readonly<NodeDirProps>) {
     selectedNodes,
     addSelectedNodes,
     removeSelectedNode,
-  } = useAppStore();
+  } = useSelectedNodes();
   const { openCtx } = useContextMenu();
   const isSelected = useMemo(() => {
     return selectedNodes.some((n) => n.id === node.id);

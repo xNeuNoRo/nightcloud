@@ -4,17 +4,17 @@ import getHumanFileType from "@/utils/files/getHumanFileType";
 import getHumanFileSize from "@/utils/files/getHumanFileSize";
 import { getCategoryFromMime } from "@/utils/files/getCategoryFromExtAndMime";
 import { FileCategoryIcons } from "@/data/fileCategoryIcons";
-import { useAppStore } from "@/stores/useAppStore";
 import formatDate from "@/utils/formatDate";
 import NodeActions from "./NodeActions";
 import { useContextMenu } from "@/hooks/stores/useContextMenu";
+import { useSelectedNodes } from "@/hooks/stores/useSelectedNodes";
 
 type NodeFileProps = {
   node: NodeType;
 };
 
 export default function NodeFile({ node }: Readonly<NodeFileProps>) {
-  const { selectedNodes, addSelectedNodes, removeSelectedNode } = useAppStore();
+  const { selectedNodes, addSelectedNodes, removeSelectedNode } = useSelectedNodes();
   const { openCtx } = useContextMenu();
   const isSelected = useMemo(() => {
     return selectedNodes.some((n) => n.id === node.id);

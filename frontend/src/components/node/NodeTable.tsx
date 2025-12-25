@@ -1,11 +1,11 @@
 import { FaArrowUp } from "react-icons/fa6";
 import type { NodeType, SortDirection } from "@/types";
-import { useAppStore } from "@/stores/useAppStore";
 import NodeDir from "@/components/node/NodeDir";
 import NodeFile from "@/components/node/NodeFile";
 import { toggleNameDirection } from "@/utils/node/sortNodes";
 import classNames from "@/utils/classNames";
 import { useMemo, useState } from "react";
+import { useSelectedNodes } from "@/hooks/stores/useSelectedNodes";
 
 // TODO: Adaptar el backend para los favoritos, fecha de creacion y modificacion.
 
@@ -15,7 +15,7 @@ type NodeTableProps = {
 
 export default function NodeTable({ nodes }: Readonly<NodeTableProps>) {
   const [direction, setDirection] = useState<SortDirection>("asc");
-  const { selectedNodes, setSelectedNodes, clearSelectedNodes } = useAppStore();
+  const { selectedNodes, setSelectedNodes, clearSelectedNodes } = useSelectedNodes();
 
   // Nodos ordenados segun la direccion
   const sortedNodes = useMemo(() => {

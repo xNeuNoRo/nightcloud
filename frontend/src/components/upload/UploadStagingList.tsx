@@ -1,15 +1,12 @@
 import { FileCategoryIcons } from "@/data/fileCategoryIcons";
-import { useAppStore } from "@/stores/useAppStore";
+import { useUploadStage } from "@/hooks/stores/useUploadStage";
 import classNames from "@/utils/classNames";
 import { getCategoryFromMime } from "@/utils/files/getCategoryFromExtAndMime";
 import getHumanFileSize from "@/utils/files/getHumanFileSize";
 import { motion } from "framer-motion";
 
 export default function UploadStagingList() {
-  const stagedFiles = useAppStore((state) => state.stagedFiles);
-  const removeFileFromStaging = useAppStore(
-    (state) => state.removeFileFromStaging
-  );
+  const { stagedFiles, removeFileFromStaging } = useUploadStage();
 
   if (stagedFiles.length === 0) {
     return (
