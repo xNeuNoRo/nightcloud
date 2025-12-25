@@ -10,12 +10,11 @@ import RenameNodeModal from "@/components/node/modal/RenameNodeModal";
 import DeleteNodeModal from "@/components/node/modal/DeleteNodeModal";
 import CopyNodeModal from "@/components/node/modal/CopyNodeModal";
 import { getVisibleBreadcrumbs } from "@/utils/getVisibleBreadcrums";
-import { HiArrowLeft } from "react-icons/hi";
+import { HiArrowLeft, HiChevronRight } from "react-icons/hi";
 import MoveNodeModal from "@/components/node/modal/MoveNodeModal";
 
 export default function DirectoryView() {
   const location = useLocation();
-  const isRootPath = location.pathname === "/";
   const { nodeId } = useParams();
   const navigate = useNavigate();
   const openModal = () => navigate(location.pathname + "?createFolder=true");
@@ -73,18 +72,21 @@ export default function DirectoryView() {
           <div className="flex items-center gap-4">
             <button
               onClick={handleGoBack}
-              disabled={isRootPath}
-              className="flex items-center gap-1 bg-night-primary hover:bg-night-primary-hover hover:cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed p-1 px-2 rounded-lg transition-colors duration-150"
+              className="flex items-center gap-1 px-2 py-1 rounded-md border border-night-border/50 text-night-muted hover:text-night-text hover:bg-night-surface/40 hover:cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed transition-colors duration-150"
             >
               <HiArrowLeft className="w-4 h-4 text-night-text" />
             </button>
-            <div className="flex items-center gap-1 text-xl font-bold leading-none">
+            <div className="flex items-center gap-1 text-xl font-bold leading-none rounded-full bg-night-surface/60 backdrop-blur-md border border-night-border/40 px-3 py-1 overflow-hidden">
               {breadcrumbs.map((n, i) => {
                 const showEllipsis = hasEllipsis && i === 2; // si es el segundo elemento y hay elipsis
                 if (showEllipsis) {
                   return (
-                    <span key="ellipsis" className="mx-1">
-                      ... {"  >"}
+                    <span
+                      key="ellipsis"
+                      className="flex items-center gap-2 text-night-muted/60"
+                    >
+                      <span className="tracking-widest">…</span>
+                      <HiChevronRight className="w-6 h-6 opacity-60" />
                     </span>
                   );
                 }
@@ -92,7 +94,10 @@ export default function DirectoryView() {
                   return <Breadcrumb key={n.id} n={n} />;
                 }
                 return (
-                  <span className="truncate max-w-50" key={n.id}>
+                  <span
+                    className="truncate max-w-50 px-2 py-1 rounded-md bg-night-surface/60 text-night-text font-semibold cursor-default select-text"
+                    key={n.id}
+                  >
                     {n.name}
                   </span>
                 );
