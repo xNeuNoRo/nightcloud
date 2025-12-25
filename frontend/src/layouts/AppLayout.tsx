@@ -5,6 +5,7 @@ import Sidebar from "@/components/Sidebar";
 import { useAppStore } from "@/stores/useAppStore";
 import { ToastContainer } from "react-toastify";
 import GlobalDropzone from "@/components/upload/GlobalDropzone";
+import NodeContextMenu from "@/components/node/NodeContextMenu";
 
 export default function AppLayout() {
   const params = useParams();
@@ -51,6 +52,7 @@ export default function AppLayout() {
           "relative grid grid-cols-[auto_1fr_auto] items-center w-full overflow-hidden cursor-pointer rounded-md shadow-lg pr-16 pl-4 py-5 mb-4 bg-night-surface text-night-text border border-night-border"
         }
       />
+      <NodeContextMenu />
     </>
   );
 }

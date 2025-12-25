@@ -7,6 +7,7 @@ import { FileCategoryIcons } from "@/data/fileCategoryIcons";
 import { useAppStore } from "@/stores/useAppStore";
 import formatDate from "@/utils/formatDate";
 import NodeActions from "./NodeActions";
+import { useContextMenu } from "@/hooks/stores/useContextMenu";
 
 type NodeFileProps = {
   node: NodeType;
@@ -14,6 +15,7 @@ type NodeFileProps = {
 
 export default function NodeFile({ node }: Readonly<NodeFileProps>) {
   const { selectedNodes, addSelectedNodes, removeSelectedNode } = useAppStore();
+  const { openContextMenu } = useContextMenu();
   const isSelected = useMemo(() => {
     return selectedNodes.some((n) => n.id === node.id);
   }, [selectedNodes, node.id]);
@@ -35,8 +37,15 @@ export default function NodeFile({ node }: Readonly<NodeFileProps>) {
     toggleSelect(node);
   };
 
+  const handleContextMenu = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    openContextMenu(e.clientX, e.clientY, node);
+  };
+
   return (
-    <div
+    <li
+      onContextMenu={handleContextMenu}
       className={`
         grid grid-cols-[50px_1fr_100px_100px_180px_50px] gap-4 items-center px-4 py-3 rounded-lg transition-all duration-200 group border border-transparent select-none w-full
         ${
@@ -91,6 +100,6 @@ export default function NodeFile({ node }: Readonly<NodeFileProps>) {
       <div className="flex justify-end">
         <NodeActions node={node} />
       </div>
-    </div>
+    </li>
   );
 }

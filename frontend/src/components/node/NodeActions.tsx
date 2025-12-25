@@ -50,7 +50,7 @@ export default function NodeActions({ node }: Readonly<NodeActionsProps>) {
         <MenuItems
           portal
           anchor="bottom end"
-          className="fixed mt-2 w-56 py-2 origin-top-right bg-night-surface border border-night-border rounded-md shadow-lg ring-1 ring-night-border/50 focus:outline-none z-50"
+          className="fixed mt-2 w-56 p-2 origin-top-right bg-night-surface border border-night-border rounded-md shadow-lg ring-1 ring-night-border/50 focus:outline-none z-50"
         >
           <MenuItem>
             <button
@@ -79,10 +79,11 @@ export default function NodeActions({ node }: Readonly<NodeActionsProps>) {
               <span className="tracking-wider">Copy</span>
             </button>
           </MenuItem>
+          <div className="my-2 border-t border-night-border/30" />
           <MenuItem>
             <button
               onClick={openDeleteModal}
-              className="flex items-center w-full px-3 py-1 overflow-hidden text-sm font-semibold leading-6 text-left text-night-text hover:bg-night-border/50 hover:text-white transition-colors rounded-md hover:cursor-pointer"
+              className="flex items-center w-full px-3 py-1 overflow-hidden text-sm font-semibold leading-6 text-left text-red-400 hover:bg-night-border/50 hover:text-red-300 transition-colors rounded-md hover:cursor-pointer"
             >
               <HiOutlineTrash className="mr-3 text-lg" />
               <span className="tracking-wider">Remove</span>

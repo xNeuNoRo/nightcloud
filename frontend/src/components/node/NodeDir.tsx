@@ -8,6 +8,7 @@ import { useAppStore } from "@/stores/useAppStore";
 import formatDate from "@/utils/formatDate";
 import classNames from "@/utils/classNames";
 import NodeActions from "./NodeActions";
+import { useContextMenu } from "@/hooks/stores/useContextMenu";
 
 type NodeDirProps = {
   node: NodeType;
@@ -15,6 +16,7 @@ type NodeDirProps = {
 
 export default function NodeDir({ node }: Readonly<NodeDirProps>) {
   const { selectedNodes, addSelectedNodes, removeSelectedNode } = useAppStore();
+  const { openContextMenu } = useContextMenu();
   const isSelected = useMemo(() => {
     return selectedNodes.some((n) => n.id === node.id);
   }, [selectedNodes, node.id]);
@@ -32,8 +34,15 @@ export default function NodeDir({ node }: Readonly<NodeDirProps>) {
     toggleSelect(node);
   };
 
+  const handleContextMenu = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    openContextMenu(e.clientX, e.clientY, node);
+  };
+
   return (
-    <div
+    <li
+      onContextMenu={handleContextMenu}
       className={classNames(
         isSelected
           ? "bg-night-primary/10 border-night-primary/20"
@@ -91,6 +100,6 @@ export default function NodeDir({ node }: Readonly<NodeDirProps>) {
       <div className="flex z-30 justify-end">
         <NodeActions node={node} />
       </div>
-    </div>
+    </li>
   );
 }

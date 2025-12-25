@@ -12,6 +12,10 @@ import {
   createBreadcrumbSlice,
   type BreadcrumbSliceType,
 } from "./breadcrumbSlice";
+import {
+  createContextMenuSlice,
+  type ContextMenuSliceType,
+} from "./contextMenuSlice";
 
 export const useAppStore = create<
   NodeSliceType &
@@ -19,7 +23,8 @@ export const useAppStore = create<
     UploadStagingType &
     ListSliceType &
     ExplorerSliceType &
-    BreadcrumbSliceType
+    BreadcrumbSliceType &
+    ContextMenuSliceType
 >()(
   devtools((...args) => ({
     ...createNodeSlice(...args),
@@ -28,5 +33,6 @@ export const useAppStore = create<
     ...createListSlice(...args),
     ...createExplorerSlice(...args),
     ...createBreadcrumbSlice(...args),
+    ...createContextMenuSlice(...args),
   }))
 );
