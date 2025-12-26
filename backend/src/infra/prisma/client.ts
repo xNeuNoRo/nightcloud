@@ -3,7 +3,11 @@ import { Pool } from "pg";
 
 import { PrismaClient } from "@/infra/prisma/generated/client";
 
-import { nodeAncestorsExtension, nodeDescendantsExtension } from "./extensions";
+import {
+  nodeAncestorsExtension,
+  nodeDescendantsExtension,
+  nodeSearchExtension,
+} from "./extensions";
 
 // Initialize PostgreSQL connection pool
 const pool = new Pool({
@@ -19,5 +23,6 @@ const adapter = new PrismaPg(pool);
 export function createPrismaClient() {
   return new PrismaClient({ adapter })
     .$extends(nodeAncestorsExtension) // Agregar la extensión de ancestros
-    .$extends(nodeDescendantsExtension); // Agregar la extensión de descendientes
+    .$extends(nodeDescendantsExtension) // Agregar la extensión de descendientes
+    .$extends(nodeSearchExtension); // Agregar la extensión de búsqueda
 }

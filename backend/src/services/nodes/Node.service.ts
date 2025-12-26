@@ -222,6 +222,21 @@ export class NodeService {
   }
 
   /**
+   * @description Busca nodos por nombre bajo un nodo padre especifico.
+   * @param nameQuery Nombre o parte del nombre a buscar
+   * @param parentId ID del nodo padre donde buscar
+   * @param limit Máximo número de resultados a retornar (default 20)
+   * @returns Array de nodos que coinciden con la búsqueda
+   */
+  static async searchNodesByName(
+    nameQuery: string,
+    parentId: Node["parentId"],
+    limit: number = 20,
+  ) {
+    return await this.repo.search(parentId, nameQuery, limit);
+  }
+
+  /**
    * @description Detecta conflictos de nombres para un nodo dado.
    * @param node Nodo a verificar
    * @param newName Nuevo nombre propuesto (opcional)

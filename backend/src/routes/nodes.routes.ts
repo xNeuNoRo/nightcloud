@@ -24,6 +24,14 @@ router.post(
   NodeController.uploadNodes,
 );
 
+// Buscar nodos por nombre
+router.get(
+  "/search",
+  NodeValidators.nodeSearchValidator,
+  validateRequest,
+  NodeController.searchNode,
+);
+
 // Crear un nodo (archivo/carpeta)
 router.post(
   "/",

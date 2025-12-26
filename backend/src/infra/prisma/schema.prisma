@@ -19,20 +19,21 @@ datasource db {
  */
 model Node {
     // Campos del modelo
-    id         String   @id @default(uuid()) @db.Uuid
-    parentId   String?  @db.Uuid
-    name       String
-    hash       String   @unique
-    size       BigInt
-    mime       String
-    isDir      Boolean  @default(false)
-    createdAt  DateTime @default(now())
-    updatedAt  DateTime @updatedAt
-    parent     Node?    @relation("ParentNode", fields: [parentId], references: [id])
-    children   Node[]   @relation("ParentNode")
+    id        String   @id @default(uuid()) @db.Uuid
+    parentId  String?  @db.Uuid
+    name      String
+    hash      String   @unique
+    size      BigInt
+    mime      String
+    isDir     Boolean  @default(false)
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+    parent    Node?    @relation("ParentNode", fields: [parentId], references: [id])
+    children  Node[]   @relation("ParentNode")
 
     // Indice para optimizar consultas por parentId y hash
-    @@index([parentId, hash])
+    // Agregue name al índice para maximo perfomance en las búsquedas por nombre globalmente
+    @@index([parentId, name, hash])
     // Remapeo de la tabla a "node"
     @@map("node")
 }
