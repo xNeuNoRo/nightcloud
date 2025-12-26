@@ -52,7 +52,6 @@ export class NodeController {
 
     try {
       const nodes = await NodeService.searchNodesByName(parentId, q, limit);
-      console.log(nodes);
       res.success(nodes.map((n) => toNodeSearchDTO(n)));
     } catch (err) {
       console.error(err);
