@@ -572,6 +572,28 @@ export class NodeRepository {
   }
 
   /**
+   * @description Obtiene todos los ancestros de multiples nodos
+   * @param rootNodeIds IDs de los nodos raíz desde los cuales comenzar a buscar ancestros
+   * @returns Lista de ancestros con sus IDs y parentIds
+   */
+  static async getAllNodeAncestorsBulk(rootNodeIds: Node["id"][]) {
+    return await prisma.getAncestorsBulk(rootNodeIds);
+  }
+
+  /**
+   * @description Obtiene todos los ancestros de multiples nodos dentro de una transaccion
+   * @param tx Transaccion de Prisma
+   * @param rootNodeIds IDs de los nodos raíz desde los cuales comenzar a buscar ancestros
+   * @returns Lista de ancestros con sus IDs y parentIds
+   */
+  static async getAllNodeAncestorsBulkTx(
+    tx: PrismaTxClient,
+    rootNodeIds: Node["id"][],
+  ) {
+    return await tx.getAncestorsBulk(rootNodeIds);
+  }
+
+  /**
    * @remarks La funcion getDescendants es una queryRaw de una funcion almacenada optimizada
    * Es la forma mas eficiente de obtener todos los descendientes en una sola consulta.
    * @description Obtiene todos los descendientes de un nodo dado.
@@ -595,6 +617,28 @@ export class NodeRepository {
     startNodeId: Node["id"],
   ) {
     return await tx.getDescendants(startNodeId);
+  }
+
+  /**
+   * @description Obtiene todos los descendientes de multiples nodos
+   * @param rootNodeIds IDs de los nodos raíz desde los cuales comenzar a buscar descendientes
+   * @returns Lista de descendientes
+   */
+  static async getAllNodeDescendantsBulk(rootNodeIds: Node["id"][]) {
+    return await prisma.getDescendantsBulk(rootNodeIds);
+  }
+
+  /**
+   * @description Obtiene todos los descendientes de multiples nod
+   * @param tx Transaccion de Prisma
+   * @param rootNodeIds IDs de los nodos raíz desde los cuales comenzar a buscar descendientes
+   * @returns Lista de descendientes
+   */
+  static async getAllNodeDescendantsBulkTx(
+    tx: PrismaTxClient,
+    rootNodeIds: Node["id"][],
+  ) {
+    return await tx.getDescendantsBulk(rootNodeIds);
   }
 
   /**
