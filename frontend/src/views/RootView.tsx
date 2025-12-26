@@ -9,6 +9,8 @@ import DeleteNodeModal from "@/components/node/modal/DeleteNodeModal";
 import CopyNodeModal from "@/components/node/modal/CopyNodeModal";
 import MoveNodeModal from "@/components/node/modal/MoveNodeModal";
 import { HiArrowLeft } from "react-icons/hi";
+import DirectorySkeleton from "../components/skeletons/DirectorySkeleton";
+import ErrorState from "@/components/ErrorState";
 
 export default function DirectoryView() {
   const navigate = useNavigate();
@@ -17,15 +19,11 @@ export default function DirectoryView() {
   const { children } = useNode(undefined, "children");
 
   if (children.loading) {
-    return <div>Loading...</div>;
+    return <DirectorySkeleton filesCount={10} />;
   }
 
-  if (children.error) {
-    return <div>Error loading files.</div>;
-  }
-
-  if (!children.data) {
-    return;
+  if (children.error || !children.data) {
+    return <ErrorState />;
   }
 
   return (
