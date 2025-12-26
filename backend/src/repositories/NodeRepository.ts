@@ -184,41 +184,6 @@ export class NodeRepository {
   }
 
   /**
-   * @description Actualiza el nombre de un nodo por su ID
-   * @param id ID del nodo a actualizar
-   * @param newName Nuevo nombre para el nodo
-   * @returns Nodo actualizado
-   */
-  static async updateNameById(id: Node["id"], newName: string) {
-    const res = await prisma.node.update({
-      where: { id },
-      data: { name: newName },
-    });
-    return fromPrismaNode(res);
-  }
-
-  /**
-   * @description Actualiza el nombre y hash de un nodo por su ID
-   * @param id ID del nodo a actualizar
-   * @param identity Nuevo nombre y hash para el nodo
-   * @returns Nodo actualizado
-   */
-  static async updateIdentityById(
-    id: Node["id"],
-    identity: { newName: string; newHash: string },
-  ) {
-    const res = await prisma.node.update({
-      where: { id },
-      data: {
-        name: identity.newName,
-        hash: identity.newHash,
-      },
-    });
-
-    return fromPrismaNode(res);
-  }
-
-  /**
    * @description Actualiza el nombre y hash de un nodo por su ID
    * @param tx Transaccion de Prisma
    * @param id ID del nodo a actualizar
@@ -235,30 +200,6 @@ export class NodeRepository {
       data: {
         name: identity.newName,
         hash: identity.newHash,
-      },
-    });
-
-    return fromPrismaNode(res);
-  }
-
-  /**
-   * @description Actualiza el nombre de un nodo por su ID dentro de una transaccion
-   * @param id ID del nodo a actualizar
-   * @param identity Nuevo nombre y hash para el nodo
-   * @param newParentId Nuevo ID del nodo padre
-   * @returns Nodo actualizado
-   */
-  static async updateIdentityAndParentIdById(
-    id: Node["id"],
-    identity: { newName: string; newHash: string },
-    newParentId: string | null,
-  ) {
-    const res = await prisma.node.update({
-      where: { id },
-      data: {
-        name: identity.newName,
-        hash: identity.newHash,
-        parentId: newParentId,
       },
     });
 
@@ -331,13 +272,18 @@ export class NodeRepository {
   }
 
   /**
-   * @description Encuentra nodos de tipo dir por su nombre
+   * @description Encuentra nodos de tipo dir por su nombre dentro de una transaccion
+   * @param tx Transaccion de Prisma
    * @param parentId ID del nodo padre
    * @param name Nombre del nodo a buscar
    * @returns Nodo encontrado o null
    */
-  static async findDirByName(parentId: string | null, name: string) {
-    const res = await prisma.node.findFirst({
+  static async findDirByNameTx(
+    tx: PrismaTxClient,
+    parentId: Node["parentId"],
+    name: string,
+  ) {
+    const res = await tx.node.findFirst({
       where: {
         parentId,
         name: {
@@ -363,6 +309,19 @@ export class NodeRepository {
   }
 
   /**
+   * @description Busca un nodo por su hash
+   * @param tx Transaccion de Prisma
+   * @param hash Hash del nodo
+   * @returns Nodo encontrado o null
+   */
+  static async findByHashTx(tx: PrismaTxClient, hash: string) {
+    const res = await tx.node.findFirst({
+      where: { hash },
+    });
+    return res ? fromPrismaNode(res) : null;
+  }
+
+  /**
    * @description Busca un nodo por su hash y parentId
    * @param hash Hash del nodo
    * @param parentId ID del nodo padre
@@ -382,6 +341,29 @@ export class NodeRepository {
   }
 
   /**
+   * @description Busca un nodo por su hash y parentId dentro de una transaccion
+   * @param tx Transaccion de Prisma
+   * @param hash Hash del nodo
+   * @param parentId ID del nodo padre
+   * @returns Nodo encontrado o null
+   */
+  static async findByHashAndParentIdTx(
+    tx: PrismaTxClient,
+    hash: string,
+    parentId: string | null,
+  ): Promise<Node | null> {
+    const res = await tx.node.findFirst({
+      where: {
+        hash,
+        parentId,
+      },
+    });
+    return res ? fromPrismaNode(res) : null;
+  }
+
+  /**
+   * @remarks Si, se que utiliza una consulta raw y podria hacerse una extension de prisma, pero mientras no escale,
+   * lo dejo asi para no complicar mas el codigo.
    * @description Busca nombres de nodos que entren en conflicto con una expresion regular dada.
    * @param parentId ID del nodo padre
    * @param regexPattern Expresion regular para buscar nombres en conflicto
@@ -392,6 +374,30 @@ export class NodeRepository {
     regexPattern: string,
   ): Promise<Node["name"][]> {
     const rows = await prisma.$queryRaw<{ name: string }[]>`
+      SELECT name
+      FROM node
+      WHERE "parentId" IS NOT DISTINCT FROM ${parentId}
+        AND name ~* ${regexPattern} 
+    `; // ~* : Case insensitive y patron de expresion regular en PostgreSQL
+
+    return rows.map((r) => r.name);
+  }
+
+  /**
+   * @remarks Si, se que utiliza una consulta raw y podria hacerse una extension de prisma, pero mientras no escale,
+   * lo dejo asi para no complicar mas el codigo.
+   * @description Busca nombres de nodos que entren en conflicto con una expresion regular dada dentro de una transaccion.
+   * @param tx Transaccion de Prisma
+   * @param parentId ID del nodo padre
+   * @param regexPattern Expresion regular para buscar nombres en conflicto
+   * @returns Lista de nombres en conflicto
+   */
+  static async findConflictingNamesTx(
+    tx: PrismaTxClient,
+    parentId: string | null,
+    regexPattern: string,
+  ): Promise<Node["name"][]> {
+    const rows = await tx.$queryRaw<{ name: string }[]>`
       SELECT name
       FROM node
       WHERE "parentId" IS NOT DISTINCT FROM ${parentId}

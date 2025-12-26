@@ -17,8 +17,7 @@ import { CloudStorageService } from "../cloud/CloudStorage.service";
  * @description Servicio para gestionar nodos (archivos y directorios).
  */
 export class NodeService {
-  private static readonly persistence: NodePersistenceService =
-    new NodePersistenceService();
+  private static readonly persistence = NodePersistenceService;
   private static readonly cloud = CloudStorageService;
   private static readonly identity = NodeIdentityService;
   private static readonly repo = NodeRepository;
@@ -32,34 +31,36 @@ export class NodeService {
    */
   static async process(file: UploadedFile, parentId: string | null) {
     try {
-      // Resolver nombre y hash unicos
-      const { nodeName, nodeHash } = await this.identity.resolve(
-        file,
-        parentId,
-      );
+      return await this.prisma.$transaction(async (tx) => {
+        // Resolver nombre y hash unicos
+        const { nodeName, nodeHash } = await this.identity.resolveTx(
+          tx,
+          file,
+          parentId,
+        );
 
-      console.log(`Processing node: ${nodeName}`);
+        console.log(`Processing node: ${nodeName}`);
 
-      // Persistir el nodo en la base de datos
-      const node = await this.persistence.persist(
-        file,
-        parentId,
-        nodeName,
-        nodeHash,
-      );
+        // Persistir el nodo en la base de datos
+        const node = await this.persistence.persistTx(
+          tx,
+          file,
+          parentId,
+          nodeName,
+          nodeHash,
+        );
 
-      // Actualizar el tamaño del nodo padre si es una carpeta
-      await this.prisma.$transaction(async (tx) => {
+        // Actualizar el tamaño del nodo padre si es una carpeta
         if (parentId) {
           const parentNode = await this.repo.findByIdTx(tx, parentId);
           if (parentNode) {
             await this.incrementNodeSizeByIdTx(tx, parentId, file.size);
           }
         }
-      });
 
-      console.log(`Node processed: ${nodeName} as ${nodeHash}`);
-      return node;
+        console.log(`Node processed: ${nodeName} as ${nodeHash}`);
+        return node;
+      });
     } catch (err) {
       console.error(err);
       await this.cloud.delete(file.path); // Limpiar archivo temporal en caso de error
@@ -128,25 +129,29 @@ export class NodeService {
     name: string | null,
   ): Promise<Omit<Node, "hash">> {
     try {
-      // Si no hay nombre, colocamos uno por defecto
-      let finalName = name ?? "Untitled Folder";
+      return await this.prisma.$transaction(async (tx) => {
+        // Si no hay nombre, colocamos uno por defecto
+        let finalName = name ?? "Untitled Folder";
 
-      // Verificamos que no exista un directorio con el mismo nombre
-      const existentNode = await this.repo.findDirByName(parentId, finalName);
+        // Verificamos que no exista un directorio con el mismo nombre
+        const existentNode = await this.repo.findDirByNameTx(
+          tx,
+          parentId,
+          finalName,
+        );
 
-      // En caso de que exista un directorio, resolvemos el nombre
-      if (existentNode) {
-        finalName = await this.resolveName(parentId, finalName);
-      }
+        // En caso de que exista un directorio, resolvemos el nombre
+        if (existentNode) {
+          finalName = await this.resolveName(parentId, finalName);
+        }
 
-      // Preparamos los datos para crear el directorio
-      const hash = NodeUtils.genDirectoryHash(finalName, parentId);
-      const mime = "inode/directory";
+        // Preparamos los datos para crear el directorio
+        const hash = NodeUtils.genDirectoryHash(finalName, parentId);
+        const mime = "inode/directory";
 
-      // Tratamos de crear el directorio (nodo al fin)
+        // Tratamos de crear el directorio (nodo al fin)
 
-      if (parentId) {
-        return await this.prisma.$transaction(async (tx) => {
+        if (parentId) {
           const { hash: _h, ...node } = await this.repo.createTx(tx, {
             name: finalName,
             hash,
@@ -167,21 +172,21 @@ export class NodeService {
 
           // Si sale bien, devolvemos el directorio creado en el parentId correspondiente
           return node;
+        }
+
+        // Crear el directorio sin padre (raiz)
+        const { hash: _h, ...node } = await this.repo.createTx(tx, {
+          name: finalName,
+          hash,
+          parent: undefined,
+          size: 0,
+          mime,
+          isDir: true,
         });
-      }
 
-      // Crear el directorio sin padre (raiz)
-      const { hash: _h, ...node } = await this.createNode({
-        name: finalName,
-        hash,
-        parent: undefined,
-        size: 0,
-        mime,
-        isDir: true,
+        // Si sale bien, devolvemos el directorio creado en el parentId correspondiente
+        return node;
       });
-
-      // Si sale bien, devolvemos el directorio creado en el parentId correspondiente
-      return node;
     } catch (err) {
       console.error(err);
       throw new AppError("INTERNAL", "Error al crear el directorio (nodo)");
@@ -198,17 +203,20 @@ export class NodeService {
     // Asegurarse de que la extension del nodo se mantenga igual
     newName = NodeUtils.ensureNodeExt(newName, node);
 
-    // Resolver nombre y hash unicos
-    const { nodeName, nodeHash } = await this.identity.resolve(
-      node,
-      node.parentId,
-      { newName },
-    );
+    return await this.prisma.$transaction(async (tx) => {
+      // Resolver nombre y hash unicos
+      const { nodeName, nodeHash } = await this.identity.resolveTx(
+        tx,
+        node,
+        node.parentId,
+        { newName },
+      );
 
-    // Actualizar el nodo en la base de datos
-    return await this.repo.updateIdentityById(node.id, {
-      newName: nodeName,
-      newHash: nodeHash,
+      // Actualizar el nodo en la base de datos
+      return await this.repo.updateIdentityByIdTx(tx, node.id, {
+        newName: nodeName,
+        newHash: nodeHash,
+      });
     });
   }
 
@@ -446,19 +454,6 @@ export class NodeService {
       if (err instanceof AppError) throw err;
       else throw new AppError("INTERNAL", "Error al eliminar el nodo");
     }
-  }
-
-  /**
-   * @description Actualiza el nombre de un nodo.
-   * @param node Nodo a actualizar
-   * @param newName Nuevo nombre para el nodo
-   * @returns Nodo actualizado
-   */
-  static async updateNodeName(
-    nodeId: Node["id"],
-    newName: string,
-  ): Promise<Node> {
-    return await this.repo.updateNameById(nodeId, newName);
   }
 
   /**

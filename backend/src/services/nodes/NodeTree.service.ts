@@ -3,7 +3,7 @@ import type { LimitFunction } from "p-limit";
 import pLimit from "p-limit";
 
 import { DB } from "@/config/db";
-import type { DirectoryNode, FileNode, Node } from "@/domain/nodes/node";
+import type { FileNode, Node, NodeLite } from "@/domain/nodes/node";
 import { fromDescendantRow } from "@/infra/mappers/node.mapper";
 import type { DescendantRow } from "@/infra/prisma/types";
 import { NodeRepository } from "@/repositories/NodeRepository";
@@ -38,20 +38,21 @@ export class NodeTreeService {
   ) {
     const limit = pLimit(options?.concurrency ?? 5); // Limitar concurrencia
 
-    // Resolver el nuevo nombre y hash para el nodo de directorio
-    const { nodeName, nodeHash } = await this.identity.resolve(
-      node,
-      parentId,
-      options?.newName
-        ? {
-            newName: options.newName,
-          }
-        : undefined,
-    );
-
     // Transacción para "copiar" el nodo en la base de datos
 
     return await this.prisma.$transaction(async (tx) => {
+      // Resolver el nuevo nombre y hash para el nodo de directorio
+      const { nodeName, nodeHash } = await this.identity.resolveTx(
+        tx,
+        node,
+        parentId,
+        options?.newName
+          ? {
+              newName: options.newName,
+            }
+          : undefined,
+      );
+
       // Almacenar el nodo copiado
       const nodesToCopy = await this.repo.getAllNodeDescendantsTx(tx, node.id);
 
@@ -159,7 +160,7 @@ export class NodeTreeService {
     ]);
 
     await NodeUtils.forEachDepthLevel(directories, async (depthNodes) => {
-      const nodesToCreate: DirectoryNode[] = [];
+      const nodesToCreate: NodeLite[] = [];
       // Procesar todos los nodos en este nivel de profundidad
       for (const dirNode of depthNodes) {
         const id = crypto.randomUUID() as string;
@@ -218,7 +219,8 @@ export class NodeTreeService {
         );
 
         // Resolver el nuevo nombre y hash para el nodo hijo
-        const { nodeName, nodeHash } = await this.identity.resolve(
+        const { nodeName, nodeHash } = await this.identity.resolveTx(
+          tx,
           childNode,
           parent.id,
         );
@@ -286,20 +288,25 @@ export class NodeTreeService {
     // Si es un archivo y hay un nuevo nombre, asegurarse de que la extension del archivo se mantiene
     if (newName) newName = NodeUtils.ensureNodeExt(newName, node);
 
-    // Asegurarse de que la extension se mantenga igual si es
-    const { nodeName, nodeHash } = await this.identity.resolve(node, parentId, {
-      newName,
-    });
-
-    // Obtener la ruta raiz de la nube
-    const cloudRoot = await this.cloud.getCloudRootPath();
-
-    // Obtenemos la carpeta root
-    const src = path.resolve(cloudRoot, node.hash); // Ruta actual del nodo
-    const dest = path.resolve(cloudRoot, nodeHash); // Nueva ruta del nodo a mover
-
     // Transacción para "mover" el nodo en la base de datos
     return await this.prisma.$transaction(async (tx) => {
+      // Asegurarse de que la extension se mantenga igual si es
+      const { nodeName, nodeHash } = await this.identity.resolveTx(
+        tx,
+        node,
+        parentId,
+        {
+          newName,
+        },
+      );
+
+      // Obtener la ruta raiz de la nube
+      const cloudRoot = await this.cloud.getCloudRootPath();
+
+      // Obtenemos la carpeta root
+      const src = path.resolve(cloudRoot, node.hash); // Ruta actual del nodo
+      const dest = path.resolve(cloudRoot, nodeHash); // Nueva ruta del nodo a mover
+
       // Preparamos un resultado para devolver al frontend, ignorando el hash
       const res = await this.repo.updateIdentityAndParentIdByIdTx(
         tx,
@@ -355,23 +362,28 @@ export class NodeTreeService {
     // Si es un archivo y hay un nuevo nombre, asegurarse de que la extension del archivo se mantiene
     if (newName) newName = NodeUtils.ensureNodeExt(newName, node);
 
-    // Asegurarse de que la extension se mantenga igual si es
-    const { nodeName, nodeHash } = await this.identity.resolve(node, parentId, {
-      newName,
-    });
-
-    // Obtener la ruta raiz de la nube
-    const cloudRoot = await CloudStorageService.getCloudRootPath();
-
-    // Construimos las rutas absoluta de origen y destino del archivo en la nube
-    const src = path.resolve(cloudRoot, node.hash); // Ruta actual del nodo
-    const dest = path.resolve(cloudRoot, nodeHash); // Nueva ruta del nodo copiado
-
-    // Copiar el archivo en el almacenamiento en la nube
-    await CloudStorageService.copy(src, dest);
-
     // Transaccion para "copiar" el nodo en la base de datos
     return await this.prisma.$transaction(async (tx) => {
+      // Asegurarse de que la extension se mantenga igual si es
+      const { nodeName, nodeHash } = await this.identity.resolveTx(
+        tx,
+        node,
+        parentId,
+        {
+          newName,
+        },
+      );
+
+      // Obtener la ruta raiz de la nube
+      const cloudRoot = await CloudStorageService.getCloudRootPath();
+
+      // Construimos las rutas absoluta de origen y destino del archivo en la nube
+      const src = path.resolve(cloudRoot, node.hash); // Ruta actual del nodo
+      const dest = path.resolve(cloudRoot, nodeHash); // Nueva ruta del nodo copiado
+
+      // Copiar el archivo en el almacenamiento en la nube
+      await CloudStorageService.copy(src, dest);
+
       // Preparamos un resultado para devolver al frontend, ignorando el hash
       const res = await this.repo.createTx(tx, {
         name: nodeName,
