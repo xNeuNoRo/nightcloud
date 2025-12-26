@@ -32,7 +32,7 @@ model Node {
     children  Node[]   @relation("ParentNode")
 
     // Indice para optimizar consultas por parentId y hash
-    // Agregue name al índice para maximo perfomance en las búsquedas por nombre globalmente
+    // Agregue name al índice para maximo performance en las búsquedas por nombre globalmente
     @@index([parentId, name, hash])
     // Remapeo de la tabla a "node"
     @@map("node")

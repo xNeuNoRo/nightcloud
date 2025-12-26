@@ -229,8 +229,8 @@ export class NodeService {
    * @returns Array de nodos que coinciden con la búsqueda
    */
   static async searchNodesByName(
-    nameQuery: string,
     parentId: Node["parentId"],
+    nameQuery: string,
     limit: number = 20,
   ) {
     return await this.repo.search(parentId, nameQuery, limit);
