@@ -5,6 +5,7 @@ import {
   HiOutlineFolderOpen,
   HiOutlineDuplicate,
   HiOutlineTrash,
+  HiOutlineDownload,
 } from "react-icons/hi";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useCtx } from "@/hooks/context/useCtx";
@@ -12,6 +13,7 @@ import type { NodeType } from "@/types";
 import { useCtxPayload } from "@/hooks/context/useCtxPayload";
 import { useSelectedNodes } from "@/hooks/stores/useSelectedNodes";
 import { useCtxClickOutside } from "@/hooks/context/useCtxClickOutside";
+import { downloadNode } from "@/api/NodeAPI";
 
 export default function NodeContextMenu() {
   const {
@@ -83,6 +85,13 @@ export default function NodeContextMenu() {
         >
           {payload?.selectedNode && (
             <div className="flex flex-col px-1 gap-0.5">
+              <button
+                onClick={() => downloadNode(payload.selectedNode.id)}
+                className="flex items-center w-full px-3 py-1 overflow-hidden text-sm font-semibold leading-6 text-left text-night-text hover:bg-night-border/50 hover:text-white transition-colors rounded-md hover:cursor-pointer"
+              >
+                <HiOutlineDownload className="mr-2 text-lg" />
+                Download
+              </button>
               <button
                 onClick={() => handleAction("renameNode")}
                 className="flex items-center w-full px-3 py-1 overflow-hidden text-sm font-semibold leading-6 text-left text-night-text hover:bg-night-border/50 hover:text-white transition-colors rounded-md hover:cursor-pointer"

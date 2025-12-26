@@ -2,17 +2,19 @@ import { useAppStore } from "@/stores/useAppStore";
 
 export function useUpload() {
   const {
-    isUploading,
-    progress,
-    status,
-    controller,
-    setProgress,
-    setController,
-    start,
-    cancel,
-    finish,
-    fail,
-    reset,
+    upload: {
+      isUploading,
+      progress,
+      status,
+      controller,
+      setProgress,
+      setController,
+      start,
+      cancel,
+      finish,
+      fail,
+      reset,
+    },
   } = useAppStore();
 
   return {

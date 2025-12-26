@@ -13,8 +13,10 @@ import {
   HiOutlineFolderOpen,
   HiOutlineDuplicate,
   HiOutlineTrash,
+  HiOutlineDownload,
 } from "react-icons/hi";
 import { useNavigate } from "react-router-dom";
+import { downloadNode } from "@/api/NodeAPI";
 
 type NodeActionsProps = {
   node: NodeType;
@@ -23,14 +25,10 @@ type NodeActionsProps = {
 export default function NodeActions({ node }: Readonly<NodeActionsProps>) {
   // Navegación para abrir los modales correspondientes
   const navigate = useNavigate();
-  const openRenameModal = () =>
-    navigate(location.pathname + `?renameNode=${node.id}`);
-  const openMoveModal = () =>
-    navigate(location.pathname + `?moveNode=${node.id}`);
-  const openCopyModal = () =>
-    navigate(location.pathname + `?copyNode=${node.id}`);
-  const openDeleteModal = () =>
-    navigate(location.pathname + `?deleteNode=${node.id}`);
+
+  const handleAction = (param: string) => {
+    navigate(`${location.pathname}?${param}=${node.id}`);
+  };
 
   return (
     <Menu as="div" className="relative">
@@ -54,7 +52,16 @@ export default function NodeActions({ node }: Readonly<NodeActionsProps>) {
         >
           <MenuItem>
             <button
-              onClick={openRenameModal}
+              onClick={() => downloadNode(node.id)}
+              className="flex items-center w-full px-3 py-1 overflow-hidden text-sm font-semibold leading-6 text-left text-night-text hover:bg-night-border/50 hover:text-white transition-colors rounded-md hover:cursor-pointer"
+            >
+              <HiOutlineDownload className="mr-3 text-lg" />
+              <span className="tracking-wider">Download</span>
+            </button>
+          </MenuItem>
+          <MenuItem>
+            <button
+              onClick={() => handleAction("renameNode")}
               className="flex items-center w-full px-3 py-1 overflow-hidden text-sm font-semibold leading-6 text-left text-night-text hover:bg-night-border/50 hover:text-white transition-colors rounded-md hover:cursor-pointer"
             >
               <HiOutlinePencil className="mr-3 text-lg" />
@@ -63,7 +70,7 @@ export default function NodeActions({ node }: Readonly<NodeActionsProps>) {
           </MenuItem>
           <MenuItem>
             <button
-              onClick={openMoveModal}
+              onClick={() => handleAction("moveNode")}
               className="flex items-center w-full px-3 py-1 overflow-hidden text-sm font-semibold leading-6 text-left text-night-text hover:bg-night-border/50 hover:text-white transition-colors rounded-md hover:cursor-pointer"
             >
               <HiOutlineFolderOpen className="mr-3 text-lg" />
@@ -72,7 +79,7 @@ export default function NodeActions({ node }: Readonly<NodeActionsProps>) {
           </MenuItem>
           <MenuItem>
             <button
-              onClick={openCopyModal}
+              onClick={() => handleAction("copyNode")}
               className="flex items-center w-full px-3 py-1 overflow-hidden text-sm font-semibold leading-6 text-left text-night-text hover:bg-night-border/50 hover:text-white transition-colors rounded-md hover:cursor-pointer"
             >
               <HiOutlineDuplicate className="mr-3 text-lg" />
@@ -82,7 +89,7 @@ export default function NodeActions({ node }: Readonly<NodeActionsProps>) {
           <div className="my-2 border-t border-night-border/30" />
           <MenuItem>
             <button
-              onClick={openDeleteModal}
+              onClick={() => handleAction("deleteNode")}
               className="flex items-center w-full px-3 py-1 overflow-hidden text-sm font-semibold leading-6 text-left text-red-400 hover:bg-night-border/50 hover:text-red-300 transition-colors rounded-md hover:cursor-pointer"
             >
               <HiOutlineTrash className="mr-3 text-lg" />

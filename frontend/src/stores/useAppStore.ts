@@ -1,7 +1,6 @@
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 import { createNodeSlice, type NodeSliceType } from "./nodeSlice";
-import { createUploadSlice, type UploadSliceType } from "./uploadSlice";
 import {
   createUploadStaging,
   type UploadStagingType,
@@ -16,23 +15,24 @@ import {
   createContextMenuSlice,
   type ContextMenuState,
 } from "./contextMenuSlice";
+import { createUploadSlice, type UploadSliceType } from "./uploadSlice";
 
 export const useAppStore = create<
   NodeSliceType &
-    UploadSliceType &
     UploadStagingType &
     ListSliceType &
     ExplorerSliceType &
     BreadcrumbSliceType &
-    ContextMenuState
+    ContextMenuState &
+    UploadSliceType
 >()(
   devtools((...args) => ({
     ...createNodeSlice(...args),
-    ...createUploadSlice(...args),
     ...createUploadStaging(...args),
     ...createListSlice(...args),
     ...createExplorerSlice(...args),
     ...createBreadcrumbSlice(...args),
     ...createContextMenuSlice(...args),
+    ...createUploadSlice(...args),
   }))
 );

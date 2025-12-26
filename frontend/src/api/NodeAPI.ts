@@ -22,6 +22,9 @@ export type NodeAPIType = {
   uploadFiles: {
     files: FileWithPath[];
   };
+  downloadFiles: {
+    nodeIds: NodeType["id"][];
+  };
 };
 
 /**
@@ -319,4 +322,14 @@ export async function moveNode(
       throw new Error(err.response.data.error.message);
     } else throw err;
   }
+}
+
+/**
+ * @description Descargar un nodo
+ * @param nodeId ID del nodo a descargar
+ */
+export function downloadNode(nodeId: NodeType["id"]) {
+  const url = `${api.defaults.baseURL}/nodes/download/${nodeId}`;
+  globalThis.location.href = url; // La mejor forma en vd es del mismo navegador nativo
+  // con XHR seria un tema pq descarga en memoria y no es lo ideal para archivos grandes
 }
