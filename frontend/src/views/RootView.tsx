@@ -37,7 +37,7 @@ export default function DirectoryView() {
             >
               <HiArrowLeft className="w-4 h-4 text-night-text" />
             </button>
-            <div className="flex items-center gap-1 text-xl font-bold leading-none rounded-full bg-night-surface/60 backdrop-blur-md border border-night-border/40 px-3 py-1 overflow-hidden">
+            <div className="flex items-center gap-1 text-xl font-bold leading-none rounded-lg bg-night-surface/60 backdrop-blur-md border border-night-border/40 px-3 py-1 overflow-hidden">
               <span className="px-2 py-1 rounded-md bg-night-surface/60 text-night-text font-semibold cursor-default select-text">
                 My Files
               </span>

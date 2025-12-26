@@ -12,8 +12,8 @@ export default function DirectorySkeleton({
       <div className="flex items-center justify-between h-14 px-4 shrink-0 mb-4">
         <div className="flex items-center gap-4">
           <Skeleton width={24} height={24} className="rounded-md" />
-          <div className="flex items-center gap-1 text-xl font-bold leading-none rounded-full bg-night-surface/60 backdrop-blur-md border border-night-border/40 px-3 py-1 overflow-hidden">
-            <Skeleton width={100} height={24} className="rounded-md" />
+          <div className="flex items-center gap-1 text-xl font-bold leading-none rounded-lg bg-night-surface/60 backdrop-blur-md border border-night-border/40 px-3 py-1 overflow-hidden">
+            <Skeleton width={100} height={24} className="rounded-lg" />
           </div>
         </div>
 

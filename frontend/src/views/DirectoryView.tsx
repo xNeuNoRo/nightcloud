@@ -85,7 +85,7 @@ export default function DirectoryView() {
           >
             <HiArrowLeft className="w-4 h-4 text-night-text" />
           </button>
-          <div className="flex items-center gap-1 text-xl font-bold leading-none rounded-full bg-night-surface/60 backdrop-blur-md border border-night-border/40 px-3 py-1 overflow-hidden">
+          <div className="flex items-center gap-1 text-xl font-bold leading-none rounded-lg bg-night-surface/60 backdrop-blur-md border border-night-border/40 px-3 py-1 overflow-hidden">
             {breadcrumbs.map((n, i) => {
               const showEllipsis = hasEllipsis && i === 2; // si es el segundo elemento y hay elipsis
               if (showEllipsis) {
