@@ -44,7 +44,10 @@ export class NodeValidators {
       .withMessage("El valor tiene que ser true o false"),
   ];
   static readonly nodeSearchValidator = [
-    ...this.nodeParentIdValidator,
+    query("parentId")
+      .optional({ nullable: true })
+      .isUUID(4)
+      .withMessage("Identificador de nodo padre inválido"),
     query("q")
       .isString()
       .trim()

@@ -43,18 +43,16 @@ export class NodeController {
     res.success(nodes?.map((n) => toNodeDTO(n)) ?? [], 201);
   };
 
-  static readonly searchNode = async (
-    req: Request<unknown, unknown, { parentId: string | null }>,
-    res: Response,
-  ) => {
-    const { parentId } = req.body;
-    const { q, limit } = req.query as unknown as {
+  static readonly searchNode = async (req: Request, res: Response) => {
+    const { q, limit, parentId } = req.query as unknown as {
       q: string;
       limit?: number;
+      parentId: string | null;
     };
 
     try {
       const nodes = await NodeService.searchNodesByName(parentId, q, limit);
+      console.log(nodes);
       res.success(nodes.map((n) => toNodeSearchDTO(n)));
     } catch (err) {
       console.error(err);

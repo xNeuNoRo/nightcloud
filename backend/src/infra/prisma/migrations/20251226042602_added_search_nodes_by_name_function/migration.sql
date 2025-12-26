@@ -8,12 +8,12 @@ CREATE OR REPLACE FUNCTION search_nodes(
 )
 RETURNS TABLE (
   id uuid,
-  parent_id uuid,
+  "parentId" uuid,
   name text,
   size bigint,
   mime text,
-  is_dir boolean,
-  updated_at timestamptz
+  "isDir" boolean,
+  "updatedAt" timestamptz
 )
 LANGUAGE sql
 STABLE
