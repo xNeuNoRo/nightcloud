@@ -51,7 +51,7 @@ export default function DirectoryView() {
   }
 
   if (children.loading || ancestors.loading) {
-    return <DirectorySkeleton filesCount={10} />;
+    return <DirectorySkeleton filesCount={5} />;
   }
 
   if (children.error || ancestors.error || !children.data || !ancestors.data) {
