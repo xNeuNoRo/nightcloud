@@ -1,4 +1,4 @@
-import { body, param } from "express-validator";
+import { body, param, query } from "express-validator";
 
 /**
  * Validadores para las rutas relacionadas con nodos (archivos y carpetas)
@@ -42,5 +42,20 @@ export class NodeValidators {
       .withMessage("Se debe especificar si es un archivo o una carpeta")
       .isBoolean()
       .withMessage("El valor tiene que ser true o false"),
+  ];
+  static readonly nodeSearchValidator = [
+    query("parentId")
+      .optional({ nullable: true })
+      .isUUID(4)
+      .withMessage("Identificador de nodo padre inválido"),
+    query("q")
+      .isString()
+      .trim()
+      .notEmpty()
+      .withMessage("El parámetro de búsqueda es inválido"),
+    query("limit")
+      .optional()
+      .isInt({ min: 1, max: 100 })
+      .withMessage("El límite debe ser un número entre 1 y 100"),
   ];
 }

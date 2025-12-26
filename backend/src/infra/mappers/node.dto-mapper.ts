@@ -1,7 +1,12 @@
 import type { Node } from "@/domain/nodes/node";
-import type { AncestorDTO, DescendantDTO, NodeDTO } from "@/dtos/node.dto";
+import type {
+  AncestorDTO,
+  DescendantDTO,
+  NodeDTO,
+  NodeSearchDTO,
+} from "@/dtos/node.dto";
 
-import type { AncestorRow } from "../prisma/types";
+import type { AncestorRow, NodeSearchResult } from "../prisma/types";
 
 type NodePicked = Pick<
   Node,
@@ -64,3 +69,18 @@ export const toAncestorDTO = (n: AncestorPicked): AncestorDTO => ({
  */
 export const toDescendantDTO = (n: DescendantPicked): DescendantDTO =>
   toAncestorDTO(n);
+
+/**
+ * @description Mapea un resultado de búsqueda de nodo a un NodeSearchDTO.
+ * @param n Resultado de búsqueda de nodo a mapear
+ * @returns NodeSearchDTO mapeado
+ */
+export const toNodeSearchDTO = (n: NodeSearchResult): NodeSearchDTO => ({
+  id: n.id,
+  parentId: n.parentId,
+  name: n.name,
+  size: n.size.toString(), // Convertir bigint a string por temas de incompatibilidad con JSON
+  mime: n.mime,
+  isDir: n.isDir,
+  updatedAt: n.updatedAt,
+});

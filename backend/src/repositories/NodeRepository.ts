@@ -120,6 +120,27 @@ export class NodeRepository {
   }
 
   /**
+   * @description Busca nodos por su nombre utilizando la extension de búsqueda
+   * @param parentId padre desde donde buscar (null para root)
+   * @param nameQuery cadena de búsqueda
+   * @param limit límite máximo de resultados a retornar
+   * @returns Lista de nodos que coinciden con la búsqueda
+   */
+  static async search(
+    parentId: Node["parentId"],
+    nameQuery: string,
+    limit?: number,
+  ) {
+    const res = await prisma.search({
+      parentId,
+      nameQuery,
+      limit,
+    });
+
+    return res;
+  }
+
+  /**
    * @description Suma el tamaño de todos los nodos en la base de datos
    * @returns Suma total del tamaño de los nodos
    */

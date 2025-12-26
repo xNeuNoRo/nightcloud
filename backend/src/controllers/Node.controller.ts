@@ -4,6 +4,7 @@ import {
   toAncestorDTO,
   toDescendantDTO,
   toNodeDTO,
+  toNodeSearchDTO,
 } from "@/infra/mappers/node.dto-mapper";
 import { DownloadService } from "@/services/download/Download.service";
 import { NodeService } from "@/services/nodes/Node.service";
@@ -36,9 +37,26 @@ export class NodeController {
     res.success(toNodeDTO(node), 201);
   };
 
+  // Subir nodos (archivos/carpetas)
   static readonly uploadNodes = (req: Request, res: Response) => {
     const nodes = req.nodes;
     res.success(nodes?.map((n) => toNodeDTO(n)) ?? [], 201);
+  };
+
+  static readonly searchNode = async (req: Request, res: Response) => {
+    const { q, limit, parentId } = req.query as unknown as {
+      q: string;
+      limit?: number;
+      parentId: string | null;
+    };
+
+    try {
+      const nodes = await NodeService.searchNodesByName(parentId, q, limit);
+      res.success(nodes.map((n) => toNodeSearchDTO(n)));
+    } catch (err) {
+      console.error(err);
+      throw new AppError("INTERNAL", "Error al buscar nodos");
+    }
   };
 
   // Obtener todos los nodos desde la raiz
