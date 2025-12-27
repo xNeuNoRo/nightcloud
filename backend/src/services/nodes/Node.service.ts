@@ -445,7 +445,7 @@ export class NodeService {
     if (node.isDir) {
       await NodeService.deleteDirectory(node);
     } else {
-      await NodeService.deleteNode(node);
+      await NodeService.deleteFileNode(node);
     }
   }
 
@@ -498,22 +498,29 @@ export class NodeService {
         await this.cloud.delete(path);
       }
 
-      return await this.prisma.$transaction(async (tx) => {
-        for (const node of nodes) {
-          // Si tiene padre, actualizar el tamaño de todos los ancestros que haya
-          if (node.parentId) {
-            const parent = await this.repo.findByIdTx(tx, node.parentId);
+      return await this.prisma.$transaction(
+        async (tx) => {
+          for (const node of nodes) {
+            // Si tiene padre, actualizar el tamaño de todos los ancestros que haya
+            if (node.parentId) {
+              const parent = await this.repo.findByIdTx(tx, node.parentId);
 
-            if (parent) {
-              // Actualizar el tamaño de todos los ancestros
-              await this.decrementNodeSizeByIdTx(tx, node.parentId, node.size);
+              if (parent) {
+                // Actualizar el tamaño de todos los ancestros
+                await this.decrementNodeSizeByIdTx(
+                  tx,
+                  node.parentId,
+                  node.size,
+                );
+              }
             }
-          }
 
-          // Eliminar el registro del nodo en la base de datos
-          await this.repo.deleteByIdTx(tx, node.id);
-        }
-      });
+            // Eliminar el registro del nodo en la base de datos
+            await this.repo.deleteByIdTx(tx, node.id);
+          }
+        },
+        { maxWait: 5000, timeout: 60000 }, // 60 segundos de timeout por si hay muchos nodos
+      );
     } catch (err) {
       if (err instanceof AppError) throw err;
       else throw new AppError("INTERNAL", "Error al eliminar los nodos");

@@ -134,98 +134,108 @@ export class NodeTreeService {
     },
     cb?: (tx: PrismaTxClient, descendants: DescendantRow[]) => Promise<void>,
   ): Promise<NodeLite[]> {
-    return await this.prisma.$transaction(async (tx) => {
-      // Obtener todos los descendientes de TODOS los nodos a copiar
-      const allDescendants = await this.repo.getAllNodeDescendantsBulkTx(
-        tx,
-        nodes.map((n) => n.id),
-      );
-
-      // Asegurarse de que no se está copiando ningun nodo dentro de sí mismo
-      if (allDescendants.some((n) => n.id === parentId)) {
-        throw new AppError(
-          "BAD_REQUEST",
-          `No se puede ${options?.mode === "move" ? "mover" : "copiar"} un directorio dentro de sí mismo`,
-        );
-      }
-
-      // Obtener los nodos padre raíz de cada árbol de descendientes
-      const rootNodes = allDescendants.filter((n) => n.depth === 0);
-      const copiedRoots: CopyDirRootResult[] = [];
-
-      // Copiar cada árbol de nodos de directorio uno por uno
-      for (const rootNode of rootNodes) {
-        // Primero le resolvemos una identidad única al nodo root, dentro del parentId dado
-        const { nodeName, nodeHash } = await this.identity.resolveTx(
+    return await this.prisma.$transaction(
+      async (tx) => {
+        // Obtener todos los descendientes de TODOS los nodos a copiar
+        const allDescendants = await this.repo.getAllNodeDescendantsBulkTx(
           tx,
-          fromDescendantRow(rootNode),
-          parentId,
+          nodes.map((n) => n.id),
         );
 
-        // Luego creamos el nodo root copiado en la base de datos
-        const copiedDir = await this.repo.createTx(tx, {
-          name: nodeName,
-          parent: parentId ? { connect: { id: parentId } } : undefined,
-          hash: nodeHash,
-          size: rootNode.size,
-          mime: rootNode.mime,
-          isDir: rootNode.isDir,
-        });
+        // Asegurarse de que no se está copiando ningun nodo dentro de sí mismo
+        if (allDescendants.some((n) => n.id === parentId)) {
+          throw new AppError(
+            "BAD_REQUEST",
+            `No se puede ${options?.mode === "move" ? "mover" : "copiar"} un directorio dentro de sí mismo`,
+          );
+        }
 
-        // Si tiene padre, propagar el tamaño de todos los ancestros que haya
-        if (copiedDir.parentId) {
+        // Obtener los nodos padre raíz de cada árbol de descendientes
+        const rootNodes = allDescendants.filter((n) => n.depth === 0);
+        const copiedRoots: CopyDirRootResult[] = [];
+
+        // Copiar cada árbol de nodos de directorio uno por uno
+        for (const rootNode of rootNodes) {
+          // Primero le resolvemos una identidad única al nodo root, dentro del parentId dado
+          const { nodeName, nodeHash } = await this.identity.resolveTx(
+            tx,
+            fromDescendantRow(rootNode),
+            parentId,
+          );
+
+          // Luego creamos el nodo root copiado en la base de datos
+          const copiedDir = await this.repo.createTx(tx, {
+            name: nodeName,
+            parent: parentId ? { connect: { id: parentId } } : undefined,
+            hash: nodeHash,
+            size: rootNode.size,
+            mime: rootNode.mime,
+            isDir: rootNode.isDir,
+          });
+
+          // Finalmente guardamos su información para copiar su árbol entero luego
+          copiedRoots.push({
+            oldId: rootNode.id,
+            newNode: copiedDir,
+          });
+        }
+
+        // SI hay un parentId, propagar el tamaño total de todos los nodos copiados a sus ancestros
+        if (parentId) {
+          // Calculamos el tamaño total a propagar a los ancestros
+          const totalSizeToPropagate = copiedRoots.reduce(
+            (acc, cr) => acc + cr.newNode.size,
+            0n,
+          );
+
+          // Finalmente propagamos el tamaño a los ancestros
           await this.repo.propagateSizeToAncestorsTx(
             tx,
-            copiedDir.parentId,
-            copiedDir.size,
+            parentId,
+            totalSizeToPropagate,
             "increment",
           );
         }
 
-        // Finalmente guardamos su información para copiar su árbol entero luego
-        copiedRoots.push({
-          oldId: rootNode.id,
-          newNode: copiedDir,
-        });
-      }
+        // Ahora procesaremos cada árbol de descendientes primero de las carpetas
+        const directories = allDescendants.filter(
+          (n) => n.isDir && n.depth > 0,
+        ); // Excluimos las raices
 
-      // Ahora procesaremos cada árbol de descendientes primero de las carpetas
-      const directories = allDescendants.filter((n) => n.isDir && n.depth > 0); // Excluimos las raices
+        const newRootIds: ParentMapping[] = copiedRoots.map((cr) => ({
+          oldId: cr.oldId,
+          newId: cr.newNode.id,
+        }));
 
-      const newRootIds: ParentMapping[] = copiedRoots.map((cr) => ({
-        oldId: cr.oldId,
-        newId: cr.newNode.id,
-      }));
+        // Copiamos la estructura de directorios primero
+        const { dirMap, nodesCreated } = await this.copyNodeDirTree(
+          tx,
+          directories,
+          newRootIds,
+        );
 
-      // Copiamos la estructura de directorios primero
-      const { dirMap, nodesCreated } = await this.copyNodeDirTree(
-        tx,
-        directories,
-        newRootIds,
-      );
+        // Luego procesamos todos los archivos
+        const files = allDescendants.filter((n) => !n.isDir);
 
-      // Luego procesamos todos los archivos
-      const files = allDescendants.filter((n) => !n.isDir);
-      console.log(`Total file nodes to copy: ${files.length}`);
-      console.log(files);
+        // Copiar los archivos dentro de la estructura creada
+        const copiedNodes = await this.copyNodeFileTree(
+          tx,
+          files,
+          dirMap,
+          options?.mode,
+        );
 
-      // Copiar los archivos dentro de la estructura creada
-      const copiedNodes = await this.copyNodeFileTree(
-        tx,
-        files,
-        dirMap,
-        options?.mode,
-      );
+        // Callback opcional después de copiar los nodos
+        if (cb) await cb(tx, allDescendants);
 
-      // Callback opcional después de copiar los nodos
-      if (cb) await cb(tx, allDescendants);
-
-      return [
-        ...nodesCreated,
-        ...copiedNodes,
-        ...copiedRoots.map((r) => r.newNode),
-      ];
-    });
+        return [
+          ...nodesCreated,
+          ...copiedNodes,
+          ...copiedRoots.map((r) => r.newNode),
+        ];
+      },
+      { maxWait: 5000, timeout: 90000 }, // 90 segundos de timeout por si hay muchos nodos
+    );
   }
 
   /**
@@ -379,9 +389,6 @@ export class NodeTreeService {
       // Mapear el nodo hijo
       const childNode = fromDescendantRow(file);
       const parent = dirMap.get(childNode.parentId!)!;
-      console.log(
-        `Copying child node: ${childNode.name} under parent: ${parent.id}`,
-      );
 
       // Resolver el nuevo nombre y hash para el nodo hijo
       const { nodeName, nodeHash } = await this.identity.resolveTx(
@@ -389,12 +396,6 @@ export class NodeTreeService {
         childNode,
         parent.id,
       );
-      console.log(
-        `Child node resolved name: ${nodeName} and hash: ${nodeHash}`,
-      );
-
-      console.log(`Copying child node: ${childNode.name} to ${nodeName}`);
-      console.log(`Child node hash: ${childNode.hash} to ${nodeHash}`);
 
       const src = path.resolve(cloudRoot, childNode.hash); // Ruta actual del nodo
       const dest = path.resolve(cloudRoot, nodeHash); // Nueva ruta del nodo copiado
@@ -402,7 +403,6 @@ export class NodeTreeService {
       // Transacción para crear o actualizar (mover) el nodo en la base de datos según el modo
       if (mode === "move") {
         // Mover el nodo en lugar de copiarlo
-        console.log(`Moving file node: ${nodeName}`);
         const movedFileNode = await this.repo.updateIdentityAndParentIdByIdTx(
           tx,
           childNode.id,
@@ -413,7 +413,6 @@ export class NodeTreeService {
         // Mover el archivo en el almacenamiento en la nube
         try {
           await this.cloud.move(src, dest); // Mover el archivo en la nube
-          console.log(`Moved file node: ${movedFileNode.name}`);
         } catch (err) {
           console.error(`Error moving file in cloud storage:`, err);
           // Revertir la actualización en la base de datos si falla el movimiento en la nube
@@ -551,65 +550,81 @@ export class NodeTreeService {
     parentId: FileNode["parentId"],
   ) {
     // Transacción para "mover" los nodos en la base de datos
-    return await this.prisma.$transaction(async (tx) => {
-      const movedNodes: Node[] = [];
+    return await this.prisma.$transaction(
+      async (tx) => {
+        const movedNodes: Node[] = [];
 
-      // Iterar sobre todos los nodos a mover
-      for (const node of nodes) {
-        // Asegurarse de que la extension se mantenga igual si es
-        const { nodeName, nodeHash } = await this.identity.resolveTx(
-          tx,
-          node,
-          parentId,
-        );
+        // Iterar sobre todos los nodos a mover
+        for (const node of nodes) {
+          // Asegurarse de que la extension se mantenga igual si es
+          const { nodeName, nodeHash } = await this.identity.resolveTx(
+            tx,
+            node,
+            parentId,
+          );
 
-        // Obtener la ruta raiz de la nube
-        const cloudRoot = await this.cloud.getCloudRootPath();
+          // Obtener la ruta raiz de la nube
+          const cloudRoot = await this.cloud.getCloudRootPath();
 
-        // Obtenemos la carpeta root
-        const src = path.resolve(cloudRoot, node.hash); // Ruta actual del nodo
-        const dest = path.resolve(cloudRoot, nodeHash); // Nueva ruta del nodo a mover
+          // Obtenemos la carpeta root
+          const src = path.resolve(cloudRoot, node.hash); // Ruta actual del nodo
+          const dest = path.resolve(cloudRoot, nodeHash); // Nueva ruta del nodo a mover
 
-        // Preparamos un resultado para devolver al frontend, ignorando el hash
-        const res = await this.repo.updateIdentityAndParentIdByIdTx(
-          tx,
-          node.id,
-          { newName: nodeName, newHash: nodeHash },
-          parentId,
-        );
+          // Preparamos un resultado para devolver al frontend, ignorando el hash
+          const res = await this.repo.updateIdentityAndParentIdByIdTx(
+            tx,
+            node.id,
+            { newName: nodeName, newHash: nodeHash },
+            parentId,
+          );
 
-        // Si el nuevo padre no es null (root) y es diferente al actual, actualizar los tamaños de los ancestros
-        if (parentId !== node.parentId) {
-          // Decrementar el tamaño de los ancestros del padre antiguo si no es null (root)
-          if (node.parentId) {
-            await this.repo.propagateSizeToAncestorsTx(
+          // Si el nuevo padre no es null (root) y es diferente al actual, actualizar los tamaños de los ancestros
+          if (parentId !== node.parentId) {
+            // Decrementar el tamaño de los ancestros del padre antiguo si no es null (root)
+            if (node.parentId) {
+              await this.repo.propagateSizeToAncestorsTx(
+                tx,
+                node.parentId,
+                node.size,
+                "decrement",
+              );
+            }
+
+            // Incrementar el tamaño de los ancestros del nuevo padre si no es null (root)
+            if (parentId) {
+              await this.repo.propagateSizeToAncestorsTx(
+                tx,
+                parentId,
+                node.size,
+                "increment",
+              );
+            }
+          }
+
+          try {
+            // Despues de actualizar la base de datos, para mantener la consistencia,
+            // Mover el archivo en el almacenamiento en la nube
+            await this.cloud.move(src, dest);
+          } catch (err) {
+            console.error(`Error moving file in cloud storage:`, err);
+            // Si hay un error al mover el archivo en la nube, revertir en la bd y en la nube
+            await this.cloud.move(dest, src).catch(() => {});
+            await this.repo.updateIdentityAndParentIdByIdTx(
               tx,
+              node.id,
+              { newName: node.name, newHash: node.hash },
               node.parentId,
-              node.size,
-              "decrement",
             );
+            throw err;
           }
 
-          // Incrementar el tamaño de los ancestros del nuevo padre si no es null (root)
-          if (parentId) {
-            await this.repo.propagateSizeToAncestorsTx(
-              tx,
-              parentId,
-              node.size,
-              "increment",
-            );
-          }
+          movedNodes.push(res);
         }
 
-        // Despues de actualizar la base de datos, para mantener la consistencia,
-        // Mover el archivo en el almacenamiento en la nube
-        await this.cloud.move(src, dest);
-
-        movedNodes.push(res);
-      }
-
-      return movedNodes;
-    });
+        return movedNodes;
+      },
+      { maxWait: 5000, timeout: 90000 }, // 90 segundos de timeout por si hay muchos nodos
+    );
   }
 
   /**
@@ -627,6 +642,9 @@ export class NodeTreeService {
     // Si es un archivo y hay un nuevo nombre, asegurarse de que la extension del archivo se mantiene
     if (newName) newName = NodeUtils.ensureNodeExt(newName, node);
 
+    // Obtener la ruta raiz de la nube
+    const cloudRoot = await CloudStorageService.getCloudRootPath();
+
     // Transaccion para "copiar" el nodo en la base de datos
     return await this.prisma.$transaction(async (tx) => {
       // Asegurarse de que la extension se mantenga igual si es
@@ -638,9 +656,6 @@ export class NodeTreeService {
           newName,
         },
       );
-
-      // Obtener la ruta raiz de la nube
-      const cloudRoot = await CloudStorageService.getCloudRootPath();
 
       // Construimos las rutas absoluta de origen y destino del archivo en la nube
       const src = path.resolve(cloudRoot, node.hash); // Ruta actual del nodo
@@ -695,56 +710,59 @@ export class NodeTreeService {
     const cloudRoot = await CloudStorageService.getCloudRootPath();
 
     // Transaccion para "copiar" el nodo en la base de datos
-    return await this.prisma.$transaction(async (tx) => {
-      const copiedNodes: Node[] = [];
-      for (const node of nodes) {
-        const { nodeName, nodeHash } = await this.identity.resolveTx(
-          tx,
-          node,
-          parentId,
-        );
+    return await this.prisma.$transaction(
+      async (tx) => {
+        const copiedNodes: Node[] = [];
+        for (const node of nodes) {
+          const { nodeName, nodeHash } = await this.identity.resolveTx(
+            tx,
+            node,
+            parentId,
+          );
 
-        // Construimos las rutas absoluta de origen y destino del archivo en la nube
-        const src = path.resolve(cloudRoot, node.hash); // Ruta actual del nodo
-        const dest = path.resolve(cloudRoot, nodeHash); // Nueva ruta del nodo copiado
+          // Construimos las rutas absoluta de origen y destino del archivo en la nube
+          const src = path.resolve(cloudRoot, node.hash); // Ruta actual del nodo
+          const dest = path.resolve(cloudRoot, nodeHash); // Nueva ruta del nodo copiado
 
-        // Copiar el archivo en el almacenamiento en la nube
-        await CloudStorageService.copy(src, dest);
+          // Copiar el archivo en el almacenamiento en la nube
+          await CloudStorageService.copy(src, dest);
 
-        try {
-          // Preparamos un resultado para devolver al frontend, ignorando el hash
-          const res = await this.repo.createTx(tx, {
-            name: nodeName,
-            parent: parentId ? { connect: { id: parentId } } : undefined,
-            hash: nodeHash,
-            size: node.size,
-            mime: node.mime,
-            isDir: node.isDir,
-          });
+          try {
+            // Preparamos un resultado para devolver al frontend, ignorando el hash
+            const res = await this.repo.createTx(tx, {
+              name: nodeName,
+              parent: parentId ? { connect: { id: parentId } } : undefined,
+              hash: nodeHash,
+              size: node.size,
+              mime: node.mime,
+              isDir: node.isDir,
+            });
 
-          // Si tiene padre, actualizar el tamaño de todos los ancestros que haya
-          if (parentId) {
-            await this.repo.propagateSizeToAncestorsTx(
-              tx,
-              parentId,
-              node.size,
-              "increment",
-            );
+            // Si tiene padre, actualizar el tamaño de todos los ancestros que haya
+            if (parentId) {
+              await this.repo.propagateSizeToAncestorsTx(
+                tx,
+                parentId,
+                node.size,
+                "increment",
+              );
+            }
+
+            copiedNodes.push(res);
+          } catch (err) {
+            console.log(err);
+
+            // Si hay un error al crear el nodo en la base de datos, eliminar el archivo copiado
+            // para evitar archivos "inexistentes" en el almacenamiento
+            await CloudStorageService.delete(dest).catch(() => {});
+            throw new AppError("COPY_NODE_ERROR");
           }
-
-          copiedNodes.push(res);
-        } catch (err) {
-          console.log(err);
-
-          // Si hay un error al crear el nodo en la base de datos, eliminar el archivo copiado
-          // para evitar archivos "inexistentes" en el almacenamiento
-          await CloudStorageService.delete(dest).catch(() => {});
-          throw new AppError("COPY_NODE_ERROR");
         }
-      }
 
-      // Retornamos los nodos copiados
-      return copiedNodes;
-    });
+        // Retornamos los nodos copiados
+        return copiedNodes;
+      },
+      { maxWait: 5000, timeout: 90000 }, // 90 segundos de timeout por si hay muchos nodos
+    );
   }
 }

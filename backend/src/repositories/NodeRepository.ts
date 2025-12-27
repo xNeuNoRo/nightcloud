@@ -649,7 +649,7 @@ export class NodeRepository {
   }
 
   /**
-   * @description Obtiene todos los descendientes de multiples nod
+   * @description Obtiene todos los descendientes de multiples nodos dentro de una transaccion
    * @param tx Transaccion de Prisma
    * @param rootNodeIds IDs de los nodos raíz desde los cuales comenzar a buscar descendientes
    * @returns Lista de descendientes

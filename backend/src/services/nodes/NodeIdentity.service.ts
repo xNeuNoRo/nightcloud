@@ -14,7 +14,7 @@ import { isDirectoryNode } from "@/infra/guards/node";
 import { isUploadedFile } from "@/infra/guards/uploaded-file";
 import { NodeRepository } from "@/repositories/NodeRepository";
 import type { PrismaTxClient } from "@/types/prisma";
-import { NodeUtils } from "@/utils";
+import { AppError, NodeUtils } from "@/utils";
 
 import { CloudStorageService } from "../cloud/CloudStorage.service";
 
@@ -53,11 +53,7 @@ export class NodeIdentityService {
       // Generamos el hash del nodo basado en su identidad unica
       let nodeHash: string;
       if (isDirectoryNode(node)) {
-        console.log(
-          `Generating directory hash for: ${nodeName} with parentId: ${parentId}`,
-        );
         nodeHash = NodeUtils.genDirectoryHash(nodeName, parentId);
-        console.log(`Generated directory hash: ${nodeHash}`);
       } else {
         nodeHash = await NodeUtils.genFileHash(
           nodePath,
@@ -104,7 +100,7 @@ export class NodeIdentityService {
       return { nodeName, nodeHash };
     } catch (err) {
       console.log(err);
-      return { nodeName: "", nodeHash: "" };
+      throw new AppError("INTERNAL");
     }
   }
 
@@ -139,11 +135,7 @@ export class NodeIdentityService {
       // Generamos el hash del nodo basado en su identidad unica
       let nodeHash: string;
       if (isDirectoryNode(node)) {
-        console.log(
-          `Generating directory hash for: ${nodeName} with parentId: ${parentId}`,
-        );
         nodeHash = NodeUtils.genDirectoryHash(nodeName, parentId);
-        console.log(`Generated directory hash: ${nodeHash}`);
       } else {
         nodeHash = await NodeUtils.genFileHash(
           nodePath,
@@ -192,7 +184,7 @@ export class NodeIdentityService {
       return { nodeName, nodeHash };
     } catch (err) {
       console.log(err);
-      return { nodeName: "", nodeHash: "" };
+      throw new AppError("INTERNAL");
     }
   }
 

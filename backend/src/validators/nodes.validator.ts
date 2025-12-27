@@ -9,8 +9,8 @@ export class NodeValidators {
   ];
   static readonly nodeIdsValidator = [
     body("nodeIds")
-      .isArray({ min: 1 })
-      .withMessage("Se debe proporcionar un array de id de nodos"),
+      .isArray({ min: 1, max: 100 })
+      .withMessage("Se debe proporcionar un array de id de nodos válidos"),
     body("nodeIds.*")
       .isUUID(4)
       .withMessage("Cada nodeId debe ser un UUID válido"),

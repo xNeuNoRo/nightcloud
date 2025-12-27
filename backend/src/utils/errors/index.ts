@@ -15,7 +15,7 @@ export const ERRORS = {
   },
   NODES_NOT_FOUND: {
     http: 404,
-    msg: "Uno o mas de los nodos especificado no fue encontrado",
+    msg: "Uno o mas de los nodos especificados no fue encontrado",
   },
   COPY_NODE_ERROR: {
     http: 500,
