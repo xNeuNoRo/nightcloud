@@ -15,7 +15,17 @@ export default function UploadDropzone() {
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop: (files, fileRejections) => {
       if (fileRejections.length > 0) {
-        toast.error("Some files are not supported");
+        if (fileRejections[0].errors[0].code === "too-many-files") {
+          return toast.error(
+            `You can upload up to ${uploadLimit} files at once`
+          );
+        }
+
+        if (fileRejections[0].errors[0].code === "file-invalid-type") {
+          return toast.error("Some files have an invalid file type");
+        }
+
+        return toast.error("Some files were rejected");
       }
 
       // Añadir los archivos al staging
