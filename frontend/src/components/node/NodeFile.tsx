@@ -5,7 +5,7 @@ import getHumanFileSize from "@/utils/files/getHumanFileSize";
 import { getCategoryFromMime } from "@/utils/files/getCategoryFromExtAndMime";
 import { FileCategoryIcons } from "@/data/fileCategoryIcons";
 import formatDate from "@/utils/formatDate";
-import NodeActions from "./NodeActions";
+import NodeActions from "./actions/NodeActions";
 import { useCtx } from "@/hooks/context/useCtx";
 import { useSelectedNodes } from "@/hooks/stores/useSelectedNodes";
 import { useDraggable } from "@dnd-kit/core";

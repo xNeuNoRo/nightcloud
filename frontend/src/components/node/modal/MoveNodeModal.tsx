@@ -10,18 +10,20 @@ import type { NodeMoveFormData } from "@/types";
 import { useForm } from "react-hook-form";
 import { useExplorer } from "@/hooks/explorer/useExplorer";
 import { useEffect } from "react";
+import { buildSuccessToast } from "@/utils/build/buildSuccessToast";
 
 export default function MoveNodeModal() {
   const location = useLocation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const queryParams = new URLSearchParams(location.search);
-  const nodeId = queryParams.get("moveNode");
-  const isOpen = !!nodeId;
+  const action = queryParams.get("action");
+  const scope = queryParams.get("scope");
+  const nodeId = queryParams.get("targetId");
+  const isOpen = action === "move" && scope === "single" && !!nodeId;
   const parentId = location.pathname.split("/").pop() || null; // Obtener el parentId de la URL
   const { selectedFolderId } = useExplorer();
-  const { node } =
-    useNode(nodeId || undefined, "node");
+  const { node } = useNode(nodeId || undefined, "node");
 
   const initialValues: NodeMoveFormData = {
     name: "",
@@ -49,21 +51,14 @@ export default function MoveNodeModal() {
     mutationFn: (data: NodeMoveFormData) =>
       moveNode(nodeId!, selectedFolderId ?? null, data.name ?? node.data!.name),
     onSuccess: (data) => {
-      // mensaje de éxito
-      const nodesAffected = Array.isArray(data) ? data.length : 1;
-      const successOperations = node.data?.isDir
-        ? `${nodesAffected} Folder(s)`
-        : `${nodesAffected} File(s)`;
-
       // Invalidar la caché para refrescar los datos
       queryClient.invalidateQueries({
         queryKey: ["nodes", parentId ?? "root"],
       });
       queryClient.invalidateQueries({ queryKey: ["cloudStats"] });
 
-      toast.success(`${successOperations} moved successfully`, {
-        autoClose: 1000,
-      });
+      // Mostrar toast de éxito
+      buildSuccessToast("move", data);
       closeModal();
 
       reset();

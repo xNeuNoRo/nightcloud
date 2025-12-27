@@ -26,8 +26,10 @@ export default function NodeActions({ node }: Readonly<NodeActionsProps>) {
   // Navegación para abrir los modales correspondientes
   const navigate = useNavigate();
 
-  const handleAction = (param: string) => {
-    navigate(`${location.pathname}?${param}=${node.id}`);
+  const handleAction = (action: string) => {
+    navigate(
+      `${location.pathname}?action=${action}&scope=single&targetId=${node.id}`
+    );
   };
 
   return (
@@ -61,7 +63,7 @@ export default function NodeActions({ node }: Readonly<NodeActionsProps>) {
           </MenuItem>
           <MenuItem>
             <button
-              onClick={() => handleAction("renameNode")}
+              onClick={() => handleAction("rename")}
               className="flex items-center w-full px-3 py-1 overflow-hidden text-sm font-semibold leading-6 text-left text-night-text hover:bg-night-border/50 hover:text-white transition-colors rounded-md hover:cursor-pointer"
             >
               <HiOutlinePencil className="mr-3 text-lg" />
@@ -70,7 +72,7 @@ export default function NodeActions({ node }: Readonly<NodeActionsProps>) {
           </MenuItem>
           <MenuItem>
             <button
-              onClick={() => handleAction("moveNode")}
+              onClick={() => handleAction("move")}
               className="flex items-center w-full px-3 py-1 overflow-hidden text-sm font-semibold leading-6 text-left text-night-text hover:bg-night-border/50 hover:text-white transition-colors rounded-md hover:cursor-pointer"
             >
               <HiOutlineFolderOpen className="mr-3 text-lg" />
@@ -79,7 +81,7 @@ export default function NodeActions({ node }: Readonly<NodeActionsProps>) {
           </MenuItem>
           <MenuItem>
             <button
-              onClick={() => handleAction("copyNode")}
+              onClick={() => handleAction("copy")}
               className="flex items-center w-full px-3 py-1 overflow-hidden text-sm font-semibold leading-6 text-left text-night-text hover:bg-night-border/50 hover:text-white transition-colors rounded-md hover:cursor-pointer"
             >
               <HiOutlineDuplicate className="mr-3 text-lg" />
@@ -89,7 +91,7 @@ export default function NodeActions({ node }: Readonly<NodeActionsProps>) {
           <div className="my-2 border-t border-night-border/30" />
           <MenuItem>
             <button
-              onClick={() => handleAction("deleteNode")}
+              onClick={() => handleAction("delete")}
               className="flex items-center w-full px-3 py-1 overflow-hidden text-sm font-semibold leading-6 text-left text-red-400 hover:bg-night-border/50 hover:text-red-300 transition-colors rounded-md hover:cursor-pointer"
             >
               <HiOutlineTrash className="mr-3 text-lg" />

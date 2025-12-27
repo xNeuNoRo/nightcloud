@@ -22,6 +22,8 @@ import { useMoveNodeOnDrop } from "@/utils/useMoveNodeOnDrop";
 export default function AppLayout() {
   const location = useLocation();
   const params = useParams();
+  const queryParams = new URLSearchParams(location.search);
+  const scope = queryParams.get("scope");
   const { setSelectedNodes } = useSelectedNodes();
   const { openCtx } = useCtx();
   const isRootOrDirView =
@@ -37,8 +39,11 @@ export default function AppLayout() {
 
   // Limpiar los nodos seleccionados al cambiar de ruta
   useEffect(() => {
-    setSelectedNodes([]);
-  }, [params, setSelectedNodes]);
+    if (scope === "bulk") return;
+    setTimeout(() => {
+      setSelectedNodes([]);
+    }, 300);
+  }, [params, setSelectedNodes, scope]);
 
   // Configurar sensores para el drag and drop
   const sensors = useSensors(

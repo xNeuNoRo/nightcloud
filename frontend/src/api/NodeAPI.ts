@@ -4,11 +4,12 @@ import {
   ancestorsSchema,
   descendantsSchema,
   nodeSchema,
-  nodesOrNodeSchema,
+  nodesOrNodeLiteSchema,
   nodesSchema,
   type AncestorType,
   type DescendantType,
   type NodeFolderFormData,
+  type NodeLiteType,
   type NodeRenameFormData,
   type NodeType,
   type UploadProgress,
@@ -266,19 +267,19 @@ export async function deleteNode(nodeId: NodeType["id"]) {
  * @param nodeId ID del nodo a copiar
  * @param targetParentId ID del nodo padre destino
  * @param newName Nuevo nombre para el nodo copiado (opcional)
- * @returns {Promise<NodeType | NodeType[]>} Nodo copiado o lista de nodos copiados
+ * @returns
  */
 export async function copyNode(
   nodeId: NodeType["id"],
   targetParentId: NodeType["id"] | null,
   newName?: string
-): Promise<NodeType | NodeType[]> {
+): Promise<NodeLiteType | NodeLiteType[]> {
   try {
     const { data } = await api.post(`/nodes/${nodeId}/copy`, {
       parentId: targetParentId,
       newName,
     });
-    const apiRes = nodesOrNodeSchema.safeParse(validateApiRes(data).data);
+    const apiRes = nodesOrNodeLiteSchema.safeParse(validateApiRes(data).data);
 
     if (apiRes.success) {
       return apiRes.data;
@@ -303,13 +304,13 @@ export async function moveNode(
   nodeId: NodeType["id"],
   targetParentId: NodeType["id"] | null,
   newName?: string
-): Promise<NodeType | NodeType[]> {
+): Promise<NodeLiteType | NodeLiteType[]> {
   try {
     const { data } = await api.post(`/nodes/${nodeId}/move`, {
       parentId: targetParentId,
       newName,
     });
-    const apiRes = nodesOrNodeSchema.safeParse(validateApiRes(data).data);
+    const apiRes = nodesOrNodeLiteSchema.safeParse(validateApiRes(data).data);
 
     if (apiRes.success) {
       console.log(apiRes.data);

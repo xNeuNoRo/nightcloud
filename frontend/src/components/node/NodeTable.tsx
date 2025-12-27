@@ -10,7 +10,7 @@ import { DragOverlay } from "@dnd-kit/core";
 import { snapCenterToCursor } from "@dnd-kit/modifiers";
 import ActiveNode from "./ActiveNode";
 
-// TODO: Adaptar el backend para los favoritos, fecha de creacion y modificacion.
+// TODO: Adaptar el backend para los favoritos
 
 type NodeTableProps = {
   nodes: NodeType[];
@@ -84,7 +84,9 @@ export default function NodeTable({ nodes }: Readonly<NodeTableProps>) {
                 <NodeFile key={node.id} node={node} />
               );
             })}
-            <DragOverlay dropAnimation={null} modifiers={[snapCenterToCursor]}> {/* ese modifier centra el dragoverlay al cursor */}
+            <DragOverlay dropAnimation={null} modifiers={[snapCenterToCursor]}>
+              {" "}
+              {/* ese modifier centra el dragoverlay al cursor */}
               <ActiveNode nodes={sortedNodes} />
             </DragOverlay>
           </>

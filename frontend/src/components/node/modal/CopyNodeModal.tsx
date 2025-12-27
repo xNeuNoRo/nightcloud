@@ -10,14 +10,17 @@ import type { NodeCopyFormData } from "@/types";
 import { useForm } from "react-hook-form";
 import { useExplorer } from "@/hooks/explorer/useExplorer";
 import { useEffect } from "react";
+import { buildSuccessToast } from "@/utils/build/buildSuccessToast";
 
 export default function CopyNodeModal() {
   const location = useLocation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const queryParams = new URLSearchParams(location.search);
-  const nodeId = queryParams.get("copyNode");
-  const isOpen = !!nodeId;
+  const action = queryParams.get("action");
+  const scope = queryParams.get("scope");
+  const nodeId = queryParams.get("targetId");
+  const isOpen = action === "copy" && scope === "single" && !!nodeId;
   const parentId = location.pathname.split("/").pop() || null; // Obtener el parentId de la URL
   const { selectedFolderId } = useExplorer();
   const { node } = useNode(nodeId || undefined, "node");
@@ -48,21 +51,14 @@ export default function CopyNodeModal() {
     mutationFn: (data: NodeCopyFormData) =>
       copyNode(nodeId!, selectedFolderId ?? null, data.name ?? node.data!.name),
     onSuccess: (data) => {
-      // mensaje de éxito
-      const nodesAffected = Array.isArray(data) ? data.length : 1;
-      const successOperations = node.data?.isDir
-        ? `${nodesAffected} Folder(s)`
-        : `${nodesAffected} File(s)`;
-
       // Invalidar la caché para refrescar los datos
       queryClient.invalidateQueries({
         queryKey: ["nodes", parentId ?? "root"],
       });
       queryClient.invalidateQueries({ queryKey: ["cloudStats"] });
 
-      toast.success(`${successOperations} copied successfully`, {
-        autoClose: 1000,
-      });
+      // Mostrar toast de éxito
+      buildSuccessToast("copy", data);
 
       closeModal();
       reset();

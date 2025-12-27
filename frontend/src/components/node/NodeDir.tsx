@@ -6,7 +6,7 @@ import getHumanFileSize from "@/utils/files/getHumanFileSize";
 import { Link } from "react-router-dom";
 import formatDate from "@/utils/formatDate";
 import classNames from "@/utils/classNames";
-import NodeActions from "./NodeActions";
+import NodeActions from "./actions/NodeActions";
 import { useCtx } from "@/hooks/context/useCtx";
 import { useSelectedNodes } from "@/hooks/stores/useSelectedNodes";
 import { useDraggable, useDroppable } from "@dnd-kit/core";

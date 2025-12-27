@@ -24,7 +24,7 @@ export default function NodeAreaContextMenu() {
 
   const handleCreateFolder = () => {
     closeCtx();
-    navigate(location.pathname + "?createFolder=true");
+    navigate(location.pathname + "?action=create-folder");
   };
 
   return (

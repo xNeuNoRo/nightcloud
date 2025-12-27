@@ -13,7 +13,7 @@ export default function CreateFolderModal() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const queryParams = new URLSearchParams(location.search);
-  const isOpen = queryParams.get("createFolder") === "true";
+  const isOpen = queryParams.get("action") === "create-folder";
   const closeModal = () => navigate(location.pathname, { replace: true }); // Limpia los query params
   const parentId = location.pathname.split("/").pop() || null; // Obtener el parentId de la URL
 

@@ -10,14 +10,13 @@ export default function DeleteNodeModal() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const queryParams = new URLSearchParams(location.search);
-  const nodeId = queryParams.get("deleteNode");
-  const isOpen = !!nodeId;
+  const action = queryParams.get("action");
+  const scope = queryParams.get("scope");
+  const nodeId = queryParams.get("targetId");
+  const isOpen = action === "delete" && scope === "single" && !!nodeId;
   const closeModal = () => navigate(location.pathname, { replace: true }); // Limpia los query params
   const parentId = location.pathname.split("/").pop() || null; // Obtener el parentId de la URL
-  const { node } = useNode(
-    nodeId || undefined,
-    "node"
-  );
+  const { node } = useNode(nodeId || undefined, "node");
 
   const { mutate } = useMutation({
     mutationFn: () => deleteNode(nodeId!),

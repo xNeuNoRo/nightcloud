@@ -14,12 +14,19 @@ import { HiArrowLeft, HiChevronRight } from "react-icons/hi";
 import MoveNodeModal from "@/components/node/modal/MoveNodeModal";
 import DirectorySkeleton from "../components/skeletons/DirectorySkeleton";
 import ErrorState from "@/components/ErrorState";
+import { useSelectedNodes } from "@/hooks/stores/useSelectedNodes";
+import BulkCopyNodeModal from "@/components/node/modal/BulkCopyNodeModal";
+import NodeBulkActions from "@/components/node/actions/NodeBulkActions";
+import BulkMoveNodeModal from "@/components/node/modal/BulkMoveNodeModal";
+import BulkDeleteNodeModal from "@/components/node/modal/BulkDeleteNodeModal";
+import BulkDownloadNodeModal from "@/components/node/modal/BulkDownloadNodeModal";
 
 export default function DirectoryView() {
   const location = useLocation();
   const { nodeId } = useParams();
   const navigate = useNavigate();
-  const openModal = () => navigate(location.pathname + "?createFolder=true");
+  const { selectedNodes } = useSelectedNodes();
+  const openModal = () => navigate(location.pathname + "?action=create-folder");
 
   const { children, ancestors } = useNode(nodeId, "children+ancestors");
 
@@ -115,8 +122,10 @@ export default function DirectoryView() {
         </div>
 
         <div className="flex items-center gap-3">
+          <NodeBulkActions />
           <button
-            className="flex items-center gap-3 bg-night-primary hover:bg-night-primary-hover hover:cursor-pointer transition duration-200 rounded-lg py-2 px-4 text-night-text font-semibold"
+            className="flex items-center gap-3 bg-night-primary hover:bg-night-primary-hover hover:cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed transition duration-200 rounded-lg py-2 px-4 text-night-text font-semibold"
+            disabled={selectedNodes.length > 0}
             onClick={openModal}
           >
             <FaFolderPlus size={18} />
@@ -136,6 +145,10 @@ export default function DirectoryView() {
       <DeleteNodeModal />
       <CopyNodeModal />
       <MoveNodeModal />
+      <BulkCopyNodeModal />
+      <BulkMoveNodeModal />
+      <BulkDeleteNodeModal />
+      <BulkDownloadNodeModal />
     </>
   );
 }

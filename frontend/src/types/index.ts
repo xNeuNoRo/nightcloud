@@ -49,6 +49,15 @@ export const descendantSchema = ancestorSchema;
 // Schema para una lista de descendientes
 export const descendantsSchema = z.array(descendantSchema);
 
+// Schema para un nodo lite (sin timestamps)
+export const nodeLiteSchema = ancestorSchema.omit({ depth: true });
+
+// Schema para una lista de nodos lite
+export const nodesLiteSchema = z.array(nodeLiteSchema);
+
+// Schema que puede ser un nodo lite o una lista de nodos lite
+export const nodesOrNodeLiteSchema = z.union([nodesLiteSchema, nodeLiteSchema]);
+
 // Schema para un nodo completo
 export const nodeSchema = ancestorSchema
   .extend({
@@ -84,6 +93,7 @@ export const cloudStatsSchema = z.object({
 
 export type ApiResponseType = z.infer<typeof apiResponseSchema>;
 export type NodeType = z.infer<typeof nodeSchema>;
+export type NodeLiteType = z.infer<typeof nodeLiteSchema>;
 export type AncestorType = z.infer<typeof ancestorSchema>;
 export type DescendantType = z.infer<typeof descendantSchema>;
 export type CloudStatsType = z.infer<typeof cloudStatsSchema>;
