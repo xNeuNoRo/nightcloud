@@ -155,12 +155,6 @@ export class NodeController {
     }
   };
 
-  // Descargar un nodo
-  static readonly downloadNode = async (req: Request, res: Response) => {
-    const node = req.node!;
-    await DownloadService.downloadNode(node, res);
-  };
-
   // Eliminar varios nodos
   static readonly bulkDeleteNodes = async (
     req: Request<unknown, unknown, { nodeIds: string[] }>,
@@ -176,6 +170,21 @@ export class NodeController {
       if (err instanceof AppError) throw err;
       else throw new AppError("INTERNAL", "Error al eliminar los nodos");
     }
+  };
+
+  // Descargar un nodo
+  static readonly downloadNode = async (req: Request, res: Response) => {
+    const node = req.node!;
+    await DownloadService.downloadNode(node, res);
+  };
+
+  // Descargar varios nodos
+  static readonly bulkDownloadNodes = async (
+    req: Request<unknown, unknown, { nodeIds: string[] }>,
+    res: Response,
+  ) => {
+    const nodes = req.nodes!;
+    await DownloadService.downloadNodesBulk(nodes, res);
   };
 
   // Renombrar un nodo

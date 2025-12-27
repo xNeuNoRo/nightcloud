@@ -12,6 +12,11 @@ import buildRelativeNodePath from "@/utils/nodes/buildRelativePath";
 export class DownloadService {
   private static readonly repo = NodeRepository;
 
+  /**
+   * @description Descarga un nodo (archivo o directorio).
+   * @param node Nodo a descargar
+   * @param res Respuesta HTTP
+   */
   static readonly downloadNode = async (
     node: FileNode | DirectoryNode,
     res: Response,
@@ -23,6 +28,11 @@ export class DownloadService {
     }
   };
 
+  /**
+   * @description Descarga un nodo archivo.
+   * @param node Nodo archivo a descargar
+   * @param res Respuesta HTTP
+   */
   static readonly downloadFileNode = async (node: FileNode, res: Response) => {
     // Get the node path
     const nodePath = CloudStorageService.getFilePath(node);
@@ -54,6 +64,11 @@ export class DownloadService {
     });
   };
 
+  /**
+   * @description Descarga un nodo directorio como un archivo ZIP.
+   * @param rootNode Nodo directorio raíz a descargar
+   * @param res Respuesta HTTP
+   */
   static readonly downloadDirectoryNode = async (
     rootNode: DirectoryNode,
     res: Response,
@@ -92,6 +107,69 @@ export class DownloadService {
     } catch (err) {
       console.error("Error en downloadDirectory:", err);
       throw err;
+    }
+  };
+
+  /**
+   * @description Descarga múltiples nodos (archivos o directorios) como un archivo ZIP.
+   * @param nodes Nodos a descargar
+   * @param res Respuesta HTTP
+   */
+  static readonly downloadNodesBulk = async (
+    nodes: (FileNode | DirectoryNode)[],
+    res: Response,
+  ) => {
+    if (nodes.length === 1) {
+      // Si solo hay un nodo, descargarlo directamente
+      await this.downloadNode(nodes[0], res);
+    } else {
+      // Si hay múltiples nodos, crear un ZIP con todos ellos
+      const zipName = "download.zip"; // Nombre genérico para el ZIP
+
+      // Obtener los archivos
+      const files = nodes.filter((n) => !n.isDir);
+      // Obtener los directorios
+      const directories = nodes.filter((n) => n.isDir);
+
+      // Obtener todos los descendientes de los directorios seleccionados
+      const descendants = await this.repo.getAllNodeDescendantsBulk(
+        directories.map((d) => d.id),
+      );
+
+      // Hacemos un map que nos ayudará en la construcción de rutas
+      const descendantMap = new Map<string, DescendantRow>(
+        descendants.map((n) => [n.id, n]),
+      );
+
+      // Función generadora para las entradas del ZIP
+      // Mientras el zipStream lo vaya pidiendo, le vamos entregando las entradas
+      const entries = (function* () {
+        // Primero agregamos los archivos sueltos sin carpeta
+        for (const file of files) {
+          yield toZipEntry(file, file.name);
+        }
+
+        // Luego agregamos los contenidos de los directorios
+        // descendants tambien incluye los directorios raiz seleccionados
+        for (const descendant of descendants) {
+          yield toZipEntry(
+            descendant,
+            buildRelativeNodePath(
+              descendantMap,
+              descendant.rootId,
+              descendant.id,
+            ),
+          );
+        }
+      })();
+
+      // Crear el stream del ZIP
+      await zipStreamDirectory({
+        res,
+        zipName,
+        entries,
+        options: { level: 3 },
+      });
     }
   };
 }

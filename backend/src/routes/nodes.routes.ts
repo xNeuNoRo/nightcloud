@@ -48,6 +48,15 @@ router.get("/", NodeController.getNodesFromRoot);
 // Operaciones bulk
 // -----------------
 
+// Descargar varios nodos
+router.post(
+  "/bulk/download",
+  NodeValidators.nodeIdsValidator,
+  validateRequest,
+  nodesExistBulk,
+  NodeController.bulkDownloadNodes,
+);
+
 // Copiar varios nodos
 router.post(
   "/bulk/copy",

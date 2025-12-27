@@ -1,4 +1,5 @@
-import type { Node } from "@/domain/nodes/node";
+import type { FileNode, FileNodeLite } from "@/domain/nodes/node";
+import type { AncestorRow, DescendantRow } from "@/infra/prisma/types";
 
 /**
  * @description Interfaz para el almacenamiento en la nube.
@@ -24,5 +25,7 @@ export interface CloudStorage {
    * @description Verifica si una ruta existe en el sistema de archivos.
    * @param file ruta a verificar
    */
-  getFilePath(file: Node): string;
+  getFilePath(
+    file: FileNodeLite | FileNode | AncestorRow | DescendantRow,
+  ): string;
 }

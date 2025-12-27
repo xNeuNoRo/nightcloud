@@ -529,9 +529,9 @@ export class NodeService {
     try {
       // Eliminar los archivos creados en el sistema de nodos
       const tmpPaths = uploadedFiles.map((f) => f.path);
-      const nodePaths = createdNodes.map((n) =>
-        CloudStorageService.getFilePath(n),
-      );
+      const nodePaths = createdNodes
+        .filter((n) => !n.isDir)
+        .map((n) => CloudStorageService.getFilePath(n));
       await CloudStorageService.deleteFiles([...tmpPaths, ...nodePaths]);
 
       // Eliminar los nodos ya creados en la base de datos
