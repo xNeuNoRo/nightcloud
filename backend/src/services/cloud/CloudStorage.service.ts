@@ -1,4 +1,4 @@
-import type { Node } from "@/domain/nodes/node";
+import type { FileNode, FileNodeLite } from "@/domain/nodes/node";
 import { LocalCloudStorage } from "@/infra/cloud/LocalCloudStorage";
 import type { AncestorRow, DescendantRow } from "@/infra/prisma/types";
 import { NodeRepository } from "@/repositories/NodeRepository";
@@ -64,7 +64,9 @@ export class CloudStorageService {
    * @param file Nodo del cual obtener la ruta
    * @returns Ruta completa del archivo en el almacenamiento en la nube
    */
-  static getFilePath(file: Node | AncestorRow | DescendantRow) {
+  static getFilePath(
+    file: FileNodeLite | FileNode | AncestorRow | DescendantRow,
+  ) {
     return this.storage.getFilePath(file);
   }
 

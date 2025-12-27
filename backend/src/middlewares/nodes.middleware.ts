@@ -1,7 +1,9 @@
 import type { Request, Response, NextFunction } from "express";
 import { MulterError } from "multer";
 
+import { DB } from "@/config/db";
 import type { Node } from "@/domain/nodes/node";
+import { isUploadManifest } from "@/infra/guards/uploaded-file";
 import { fromMulterFile } from "@/infra/upload/multer-file";
 import { multerUpload } from "@/infra/upload/multer.upload";
 import { CloudStorageService } from "@/services/cloud/CloudStorage.service";
@@ -76,7 +78,11 @@ export const nodeUpload = (req: Request, res: Response, next: NextFunction) => {
  * @param next NextFunction
  */
 export const nodeProcess = async (
-  req: Request<unknown, unknown, { parentId?: string | null }>,
+  req: Request<
+    unknown,
+    unknown,
+    { parentId?: string | null; manifest?: unknown }
+  >,
   _res: Response,
   next: NextFunction,
 ) => {
@@ -105,27 +111,69 @@ export const nodeProcess = async (
     const { parentId } = req.body;
     const results: Node[] = [];
 
-    // Procesar cada archivo subido
-    for (const file of uploadedFiles) {
-      // Si la subida fue abortada, salir del ciclo
-      if (aborted) break;
-
-      console.log(
-        `Node uploaded: ${file.filename} (${file.size.toString()} bytes)`,
-      );
-
-      // Procesar el nodo subido
-      const node = await NodeService.process(file, parentId ?? null);
-
-      // Si la subida fue abortada, eliminar el nodo creado
-      if (aborted) {
-        await NodeService.rollback([node], [file]); // Revertir el nodo creado
-        break;
+    // Procesar el manifiesto si es válido
+    let manifest = null;
+    // Si el manifiesto es un string, intentar parsearlo
+    if (typeof req.body.manifest === "string") {
+      try {
+        const parsed = JSON.parse(req.body.manifest); // Parsear el JSON
+        // Si el manifiesto parseado es válido, usarlo
+        if (isUploadManifest(parsed)) {
+          manifest = parsed;
+        }
+      } catch (err) {
+        console.log(err);
+        // Si el parseo falla, tirar error de formato invalido
+        throw new AppError("INVALID_MANIFEST_FORMAT");
       }
-
-      // Almacenamos el resultado
-      results.push(node);
     }
+
+    // Si hay manifiesto, verificar que la cantidad de manifiestos coincida con los archivos subidos
+    if (manifest && manifest.length !== uploadedFiles.length) {
+      throw new AppError("MANIFEST_MISMATCH_ERROR");
+    }
+
+    // ESTO SOLO APLICARA SI HAY MANIFIESTO
+    // Cacheamos los directorios ya creados o encontrados para evitar consultas repetidas
+    const dirCache = new Map<string, Node>();
+
+    // Cliente de prisma para la transacción
+    const prisma = DB.getClient();
+
+    await prisma.$transaction(async (tx) => {
+      // Procesar cada archivo subido
+      for (let i = 0; i < uploadedFiles.length; i++) {
+        // Si la subida fue abortada, tirar error para salir de la transacción y el ciclo
+        if (aborted) throw new AppError("UPLOAD_ABORTED");
+
+        // Obtener el archivo y su entrada en el manifiesto (si existe)
+        const file = uploadedFiles[i];
+        const fileManifest = manifest ? manifest[i] : null;
+
+        console.log(
+          `Node uploaded: ${file.filename} (${file.size.toString()} bytes)`,
+        );
+
+        // Procesar el nodo subido
+        const node = fileManifest
+          ? await NodeService.processWithManifestTx(
+              tx,
+              file,
+              parentId ?? null,
+              fileManifest,
+              dirCache,
+            )
+          : await NodeService.processTx(tx, file, parentId ?? null);
+
+        // Si la subida fue abortada, tirar error para salir de la transacción y el ciclo
+        if (aborted) {
+          throw new AppError("UPLOAD_ABORTED");
+        }
+
+        // Almacenamos el resultado
+        results.push(node);
+      }
+    });
 
     // Si la subida fue abortada, revertir los nodos creados, tanto en DB como en almacenamiento
     if (aborted) {
@@ -160,6 +208,42 @@ export const nodeExists = async (
 
     // Adjuntar el nodo a la request para uso posterior
     req.node = node!;
+
+    next();
+  } catch (err) {
+    next(toAppError(err));
+  }
+};
+
+/**
+ * @remarks Utilizado mas que nada en operaciones bulk (mover, copiar, borrar multiples nodos)
+ * @description Middleware para verificar si varios nodos existen en la base de datos
+ * @param req Request
+ * @param _res Response
+ * @param next NextFunction
+ */
+export const nodesExistBulk = async (
+  req: Request<{}, unknown, { nodeIds: string[] }>, // Se espera un body con nodeIds
+  _res: Response,
+  next: NextFunction,
+) => {
+  try {
+    // Obtener los nodeIds del body
+    const { nodeIds } = req.body;
+
+    // Buscar los nodos en la base de datos
+    const nodes = await NodeService.getNodesDetailsBulk(nodeIds);
+
+    // Verificar que todos los nodos hayan sido encontrados
+    const foundNodeIds = new Set(nodes.map((n) => n.id));
+    const notFoundNodeIds = nodeIds.filter((id) => !foundNodeIds.has(id));
+
+    if (notFoundNodeIds.length > 0) {
+      throw new AppError("NODES_NOT_FOUND");
+    }
+
+    // Adjuntar los nodos a la request para uso posterior
+    req.nodes = nodes;
 
     next();
   } catch (err) {

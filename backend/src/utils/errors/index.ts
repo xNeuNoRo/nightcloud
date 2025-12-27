@@ -13,4 +13,24 @@ export const ERRORS = {
     http: 400,
     msg: "El nodo especificado no es un directorio",
   },
+  NODES_NOT_FOUND: {
+    http: 404,
+    msg: "Uno o mas de los nodos especificados no fue encontrado",
+  },
+  COPY_NODE_ERROR: {
+    http: 500,
+    msg: "Error al copiar el nodo especificado",
+  },
+  INVALID_MANIFEST_FORMAT: {
+    http: 400,
+    msg: "El formato del manifiesto de subida es invalido",
+  },
+  MANIFEST_MISMATCH_ERROR: {
+    http: 400,
+    msg: "Ha ocurrido un error con la subida de archivos, intentalo de nuevo",
+  },
+  UPLOAD_ABORTED: {
+    http: 499,
+    msg: "La subida de archivos fue cancelada",
+  },
 } as const;

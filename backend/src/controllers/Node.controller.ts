@@ -4,6 +4,8 @@ import {
   toAncestorDTO,
   toDescendantDTO,
   toNodeDTO,
+  toNodeLiteDTO,
+  toNodeSearchDTO,
 } from "@/infra/mappers/node.dto-mapper";
 import { DownloadService } from "@/services/download/Download.service";
 import { NodeService } from "@/services/nodes/Node.service";
@@ -36,9 +38,26 @@ export class NodeController {
     res.success(toNodeDTO(node), 201);
   };
 
+  // Subir nodos (archivos/carpetas)
   static readonly uploadNodes = (req: Request, res: Response) => {
     const nodes = req.nodes;
     res.success(nodes?.map((n) => toNodeDTO(n)) ?? [], 201);
+  };
+
+  static readonly searchNode = async (req: Request, res: Response) => {
+    const { q, limit, parentId } = req.query as unknown as {
+      q: string;
+      limit?: number;
+      parentId: string | null;
+    };
+
+    try {
+      const nodes = await NodeService.searchNodesByName(parentId, q, limit);
+      res.success(nodes.map((n) => toNodeSearchDTO(n)));
+    } catch (err) {
+      console.error(err);
+      throw new AppError("INTERNAL", "Error al buscar nodos");
+    }
   };
 
   // Obtener todos los nodos desde la raiz
@@ -128,12 +147,7 @@ export class NodeController {
     const node = req.node!;
 
     try {
-      if (node.isDir) {
-        await NodeService.deleteDirectory(node);
-      } else {
-        await NodeService.deleteNode(node); // NOSONAR
-      }
-
+      await NodeService.deleteNode(node);
       res.success(undefined, 204);
     } catch (err) {
       if (err instanceof AppError) throw err;
@@ -141,15 +155,36 @@ export class NodeController {
     }
   };
 
+  // Eliminar varios nodos
+  static readonly bulkDeleteNodes = async (
+    req: Request<unknown, unknown, { nodeIds: string[] }>,
+    res: Response,
+  ) => {
+    const nodes = req.nodes!;
+
+    try {
+      await NodeService.bulkDeleteNodes(nodes);
+      res.success(undefined, 204);
+    } catch (err) {
+      console.error(err);
+      if (err instanceof AppError) throw err;
+      else throw new AppError("INTERNAL", "Error al eliminar los nodos");
+    }
+  };
+
   // Descargar un nodo
   static readonly downloadNode = async (req: Request, res: Response) => {
     const node = req.node!;
+    await DownloadService.downloadNode(node, res);
+  };
 
-    if (node.isDir) {
-      await DownloadService.downloadDirectoryNode(node, res);
-    } else {
-      await DownloadService.downloadFileNode(node, res);
-    }
+  // Descargar varios nodos
+  static readonly bulkDownloadNodes = async (
+    req: Request<unknown, unknown, { nodeIds: string[] }>,
+    res: Response,
+  ) => {
+    const nodes = req.nodes!;
+    await DownloadService.downloadNodesBulk(nodes, res);
   };
 
   // Renombrar un nodo
@@ -192,8 +227,8 @@ export class NodeController {
       // Mapear a DTO y enviar la respuesta
       res.success(
         Array.isArray(result)
-          ? result.map((n) => toNodeDTO(n))
-          : toNodeDTO(result),
+          ? result.map((n) => toNodeLiteDTO(n))
+          : toNodeLiteDTO(result),
       );
     } catch (err) {
       console.log(err);
@@ -203,6 +238,33 @@ export class NodeController {
           "INTERNAL",
           `No se pudo copiar el ${node.isDir ? "directorio" : "archivo"}`,
         );
+    }
+  };
+
+  // Copiar varios nodos
+  static readonly bulkCopyNodes = async (
+    req: Request<
+      unknown,
+      unknown,
+      { parentId?: string | null; nodeIds: string[] }
+    >,
+    res: Response,
+  ) => {
+    const { parentId } = req.body;
+    const nodes = req.nodes!;
+
+    try {
+      const copiedNodes = await NodeService.bulkCopyNodes(
+        nodes,
+        parentId ?? null,
+      );
+
+      res.success(copiedNodes.map((n) => toNodeLiteDTO(n)));
+    } catch (err) {
+      console.error(err);
+      if (err instanceof AppError) throw err;
+      else
+        throw new AppError("INTERNAL", "No se pudieron copiar uno o más nodos");
     }
   };
 
@@ -229,8 +291,8 @@ export class NodeController {
       // Mapear a DTO y enviar la respuesta
       res.success(
         Array.isArray(result)
-          ? result.map((n) => toNodeDTO(n))
-          : toNodeDTO(result),
+          ? result.map((n) => toNodeLiteDTO(n))
+          : toNodeLiteDTO(result),
       );
     } catch (err) {
       console.error(err);
@@ -240,6 +302,33 @@ export class NodeController {
           "INTERNAL",
           `No se pudo mover el ${node.isDir ? "directorio" : "archivo"}`,
         );
+    }
+  };
+
+  // Mover varios nodos
+  static readonly bulkMoveNodes = async (
+    req: Request<
+      unknown,
+      unknown,
+      { parentId?: string | null; nodeIds: string[] }
+    >,
+    res: Response,
+  ) => {
+    const { parentId } = req.body;
+    const nodes = req.nodes!;
+
+    try {
+      const movedNodes = await NodeService.bulkMoveNodes(
+        nodes,
+        parentId ?? null,
+      );
+
+      res.success(movedNodes.map((n) => toNodeLiteDTO(n)));
+    } catch (err) {
+      console.error(err);
+      if (err instanceof AppError) throw err;
+      else
+        throw new AppError("INTERNAL", "No se pudieron mover uno o más nodos");
     }
   };
 }
