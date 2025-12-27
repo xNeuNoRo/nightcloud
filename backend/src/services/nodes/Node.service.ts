@@ -1,5 +1,5 @@
 import { DB } from "@/config/db";
-import type { Node } from "@/domain/nodes/node";
+import type { Node, NodeLite } from "@/domain/nodes/node";
 import type { UploadedFile } from "@/domain/uploads/uploaded-file";
 import { isDirectoryNode } from "@/infra/guards/node";
 import type { Prisma } from "@/infra/prisma/generated/client";
@@ -93,6 +93,25 @@ export class NodeService {
         throw new AppError(
           "INTERNAL",
           `Error al obtener los detalles del nodo`,
+        );
+    }
+  }
+
+  /**
+   * @description Obtiene los detalles de múltiples nodos por sus IDs.
+   * @param nodeIds Array de IDs de los nodos a obtener
+   * @returns Array de nodos con sus detalles
+   */
+  static async getNodesDetailsBulk(nodeIds: Node["id"][]): Promise<Node[]> {
+    try {
+      const nodes = await this.repo.findManyByIds(nodeIds);
+      return nodes;
+    } catch (err) {
+      if (err instanceof AppError) throw err;
+      else
+        throw new AppError(
+          "INTERNAL",
+          `Error al obtener los detalles de los nodos`,
         );
     }
   }
@@ -285,13 +304,12 @@ export class NodeService {
     node: Node,
     parentId: string | null,
     newName?: string,
-  ): Promise<Node | Node[]> {
+  ): Promise<NodeLite | NodeLite[]> {
     try {
       // Copiar el nuevo nodo de forma física y añadir un nueva fila a la base de datos
       if (isDirectoryNode(node)) {
         return await NodeTreeService.copyNodeDir(node, parentId, {
           newName,
-          concurrency: 5,
         });
       } else {
         return await NodeTreeService.attachNodeFile(node, parentId, newName);
@@ -303,6 +321,42 @@ export class NodeService {
       } else {
         throw new AppError("INTERNAL", "Error al copiar el nodo");
       }
+    }
+  }
+
+  /**
+   * @description Copia varios nodos (archivos y directorios) a una nueva ubicación.
+   * @param nodes Nodos a copiar
+   * @param parentId ID del nodo padre donde se ubicará las copias
+   * @returns Nodos copiados
+   */
+  static async bulkCopyNodes(
+    nodes: Node[],
+    parentId: Node["parentId"],
+  ): Promise<NodeLite[]> {
+    try {
+      const copiedNodes: NodeLite[] = [];
+      const directories = nodes.filter((n) => n.isDir);
+      const files = nodes.filter((n) => !n.isDir);
+
+      if (directories.length > 0) {
+        copiedNodes.push(
+          ...(await NodeTreeService.bulkCopyNodeDirs(directories, parentId)),
+        );
+      }
+
+      if (files.length > 0) {
+        copiedNodes.push(
+          ...(await NodeTreeService.bulkAttachNodeFiles(files, parentId)),
+        );
+      }
+
+      return copiedNodes;
+    } catch (err) {
+      console.error(err);
+      if (err instanceof AppError) throw err;
+      else
+        throw new AppError("INTERNAL", "No se pudieron copiar uno o más nodos");
     }
   }
 
@@ -328,7 +382,6 @@ export class NodeService {
       if (isDirectoryNode(node)) {
         return await NodeTreeService.moveNodeDir(node, parentId, {
           newName,
-          concurrency: 5,
         });
       } else {
         return await NodeTreeService.moveNodeFile(node, parentId, newName);
@@ -340,6 +393,42 @@ export class NodeService {
       } else {
         throw new AppError("INTERNAL", "Error al mover el nodo");
       }
+    }
+  }
+
+  /**
+   * @description Mueve varios nodos (archivos y directorios) a una nueva ubicación.
+   * @param nodes Nodos a mover
+   * @param parentId ID del nodo padre donde se ubicará los nodos movidos
+   * @returns Nodos movidos
+   */
+  static async bulkMoveNodes(
+    nodes: Node[],
+    parentId: Node["parentId"],
+  ): Promise<NodeLite[]> {
+    try {
+      const movedNodes: NodeLite[] = [];
+      const directories = nodes.filter((n) => n.isDir);
+      const files = nodes.filter((n) => !n.isDir);
+
+      if (directories.length > 0) {
+        movedNodes.push(
+          ...(await NodeTreeService.bulkMoveNodeDirs(directories, parentId)),
+        );
+      }
+
+      if (files.length > 0) {
+        movedNodes.push(
+          ...(await NodeTreeService.bulkMoveNodeFiles(files, parentId)),
+        );
+      }
+
+      return movedNodes;
+    } catch (err) {
+      console.error(err);
+      if (err instanceof AppError) throw err;
+      else
+        throw new AppError("INTERNAL", "No se pudieron mover uno o más nodos");
     }
   }
 

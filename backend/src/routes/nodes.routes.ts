@@ -7,6 +7,7 @@ import {
   nodeExists,
   validateRequest,
 } from "@/middlewares";
+import { nodesExistBulk } from "@/middlewares/nodes.middleware";
 import { NodeValidators } from "@/validators";
 
 /**
@@ -42,6 +43,41 @@ router.post(
 
 // Obtener nodos desde la raíz de la nube (/cloud)
 router.get("/", NodeController.getNodesFromRoot);
+
+// -----------------
+// Operaciones bulk
+// -----------------
+
+// Copiar varios nodos
+router.post(
+  "/bulk/copy",
+  NodeValidators.nodeBulkCopyValidator,
+  validateRequest,
+  nodesExistBulk,
+  NodeController.bulkCopyNodes,
+);
+
+// Mover varios nodos
+router.post(
+  "/bulk/move",
+  NodeValidators.nodeBulkMoveValidator,
+  validateRequest,
+  nodesExistBulk,
+  NodeController.bulkMoveNodes,
+);
+
+// // Borrar varios nodos
+// router.delete(
+//   "/bulk/delete",
+//   NodeValidators.nodeBulkDeleteValidator,
+//   validateRequest,
+//   nodesExistBulk,
+//   NodeController.bulkDeleteNodes,
+// );
+
+// -----------------
+// Operaciones single
+// -----------------
 
 // Descargar nodo por ID
 router.get(

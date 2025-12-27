@@ -3,6 +3,7 @@ import type {
   AncestorDTO,
   DescendantDTO,
   NodeDTO,
+  NodeLiteDTO,
   NodeSearchDTO,
 } from "@/dtos/node.dto";
 
@@ -18,6 +19,11 @@ type NodePicked = Pick<
   | "isDir"
   | "createdAt"
   | "updatedAt"
+>;
+
+type NodeLitePicked = Pick<
+  Node,
+  "id" | "parentId" | "name" | "size" | "mime" | "isDir"
 >;
 
 type AncestorPicked = Pick<
@@ -83,4 +89,18 @@ export const toNodeSearchDTO = (n: NodeSearchResult): NodeSearchDTO => ({
   mime: n.mime,
   isDir: n.isDir,
   updatedAt: n.updatedAt,
+});
+
+/**
+ * @description Mapea un nodo de dominio a un NodeLiteDTO.
+ * @param n Nodo de dominio a mapear
+ * @returns NodeLiteDTO mapeado
+ */
+export const toNodeLiteDTO = (n: NodeLitePicked): NodeLiteDTO => ({
+  id: n.id,
+  parentId: n.parentId,
+  name: n.name,
+  size: n.size.toString(), // Convertir bigint a string por temas de incompatibilidad con JSON
+  mime: n.mime,
+  isDir: n.isDir,
 });

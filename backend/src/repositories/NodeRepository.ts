@@ -245,6 +245,20 @@ export class NodeRepository {
   }
 
   /**
+   * @description Encuentra multiples nodos por sus IDs
+   * @param ids Lista de IDs de nodos a buscar
+   * @returns Lista de nodos encontrados
+   */
+  static async findManyByIds(ids: Node["id"][]) {
+    const res = await prisma.node.findMany({
+      where: {
+        id: { in: ids },
+      },
+    });
+    return res.map(fromPrismaNode);
+  }
+
+  /**
    * @description Encuentra un nodo por su ID dentro de una transaccion
    * @param tx Transaccion de Prisma
    * @param id ID del nodo a buscar

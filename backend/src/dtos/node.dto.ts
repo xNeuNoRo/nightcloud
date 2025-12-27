@@ -10,6 +10,16 @@ export interface NodeDTO {
   updatedAt: Date;
 }
 
+// Data Transfer Object lite de un nodo (sin timestamps)
+export interface NodeLiteDTO {
+  id: string;
+  parentId: string | null;
+  name: string;
+  size: string;
+  mime: string;
+  isDir: boolean;
+}
+
 // Data Transfer Object de un ancestro de nodo
 export interface AncestorDTO {
   id: string;
