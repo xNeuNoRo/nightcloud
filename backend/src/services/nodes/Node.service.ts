@@ -1,5 +1,10 @@
 import { DB } from "@/config/db";
-import type { Node, NodeLite } from "@/domain/nodes/node";
+import type {
+  DirectoryNode,
+  FileNode,
+  Node,
+  NodeLite,
+} from "@/domain/nodes/node";
 import type { UploadedFile } from "@/domain/uploads/uploaded-file";
 import { isDirectoryNode } from "@/infra/guards/node";
 import type { Prisma } from "@/infra/prisma/generated/client";
@@ -433,13 +438,28 @@ export class NodeService {
   }
 
   /**
-   * @description Elimina un nodo.
+   * @description Elimina un nodo (archivo o directorio).
    * @param node Nodo a eliminar
    */
   static async deleteNode(node: Node) {
+    if (node.isDir) {
+      await NodeService.deleteDirectory(node);
+    } else {
+      await NodeService.deleteNode(node);
+    }
+  }
+
+  /**
+   * @description Elimina un nodo.
+   * @param node Nodo a eliminar
+   */
+  static async deleteFileNode(node: FileNode) {
+    // Obtener la ruta del nodo
+    const nodePath = this.cloud.getFilePath(node);
+
     try {
-      // Obtener la ruta del nodo
-      const nodePath = this.cloud.getFilePath(node);
+      // Eliminar el nodo del sistema de nodos
+      await this.cloud.delete(nodePath);
 
       // Usar transacción para eliminar el nodo y actualizar tamaños
       await this.prisma.$transaction(async (tx) => {
@@ -456,12 +476,47 @@ export class NodeService {
         // Eliminar el registro del nodo en la base de datos
         await this.repo.deleteByIdTx(tx, node.id);
       });
-
-      // Eliminar el nodo del sistema de nodos
-      await this.cloud.delete(nodePath);
     } catch (err) {
       if (err instanceof AppError) throw err;
       else throw new AppError("INTERNAL", "Error al eliminar el nodo");
+    }
+  }
+
+  /**
+   * @description Elimina varios nodos.
+   * @param nodes Nodos a eliminar
+   * @returns Promise<void>
+   */
+  static async bulkDeleteFileNodes(nodes: FileNode[]) {
+    // Obtener las rutas de los nodos
+    const nodePaths = nodes.map((n) => this.cloud.getFilePath(n));
+
+    try {
+      // Primer borrar fisico por si lanza error atraparlo antes de tocar la base de datos
+      // Eliminar los archivos del sistema de nodos
+      for (const path of nodePaths) {
+        await this.cloud.delete(path);
+      }
+
+      return await this.prisma.$transaction(async (tx) => {
+        for (const node of nodes) {
+          // Si tiene padre, actualizar el tamaño de todos los ancestros que haya
+          if (node.parentId) {
+            const parent = await this.repo.findByIdTx(tx, node.parentId);
+
+            if (parent) {
+              // Actualizar el tamaño de todos los ancestros
+              await this.decrementNodeSizeByIdTx(tx, node.parentId, node.size);
+            }
+          }
+
+          // Eliminar el registro del nodo en la base de datos
+          await this.repo.deleteByIdTx(tx, node.id);
+        }
+      });
+    } catch (err) {
+      if (err instanceof AppError) throw err;
+      else throw new AppError("INTERNAL", "Error al eliminar los nodos");
     }
   }
 
@@ -493,22 +548,26 @@ export class NodeService {
    * @description Elimina un nodo de tipo directorio y todos sus nodos descendientes.
    * @param node Nodo de tipo directorio a eliminar junto con todos sus descendientes.
    */
-  static async deleteDirectory(node: Node) {
+  static async deleteDirectory(node: DirectoryNode) {
     try {
-      if (!node.isDir) {
-        throw new AppError("NODE_IS_NOT_DIRECTORY");
-      }
-
       // Obtenemos los descendientes de la carpeta (incluyéndola)
       const descendants = await this.repo.getAllNodeDescendants(node.id);
 
       // Si la carpeta está vacía (no contiene archivos ni subdirectorios).
-      if (descendants.length == 0) {
+      if (descendants.length == 1 && descendants[0].id === node.id) {
         await this.prisma.$transaction(async (tx) => {
           // Eliminar el registro del nodo en la base de datos
           await this.repo.deleteByIdTx(tx, node.id);
         });
         return;
+      }
+
+      // Eliminar los archivos de la nube
+      // Ahora iterando para evitar borrar todos en caso de error en uno solo
+      for (const d of descendants) {
+        if (!d.isDir) {
+          await this.cloud.delete(this.cloud.getFilePath(d));
+        }
       }
 
       // Usar transacción para actualizar los tamaños
@@ -529,19 +588,48 @@ export class NodeService {
           descendants.map((descendant) => descendant.id),
         );
       });
-
-      // Obtenemos las rutas de los archivos descendientes
-      const nodePaths = descendants
-        .filter((descendant) => !descendant.isDir)
-        .map((descendant) => this.cloud.getFilePath(descendant));
-
-      if (nodePaths) {
-        // Eliminamos los archivos
-        await this.cloud.deleteFiles(nodePaths);
-      }
     } catch (err) {
       if (err instanceof AppError) throw err;
       else throw new AppError("INTERNAL", "Error al eliminar el nodo");
+    }
+  }
+
+  /**
+   * @description Elimina varios nodos de tipo directorio y todos sus nodos descendientes.
+   * @param nodes Nodos de tipo directorio a eliminar junto con todos sus descendientes.
+   */
+  static async bulkDeleteDirectories(nodes: DirectoryNode[]) {
+    try {
+      // Fuera mas optimizado de otra forma pero esto iterando asi mantenemos la consistencia
+      // Y evitamos problemas a futuro ya que el borrado es una accion muy destructiva
+      // Es mejor tener control total sobre cada eliminacion
+
+      // Iterar sobre todos los nodos a eliminar
+      for (const node of nodes) {
+        await this.deleteDirectory(node);
+      }
+    } catch (err) {
+      if (err instanceof AppError) throw err;
+      else throw new AppError("INTERNAL", "Error al eliminar los nodos");
+    }
+  }
+
+  /**
+   * @description Elimina varios nodos (archivos y directorios).
+   * @param nodes Nodos a eliminar
+   */
+  static async bulkDeleteNodes(nodes: Node[]) {
+    const fileNodes = nodes.filter((n) => !n.isDir);
+    const dirNodes = nodes.filter((n) => n.isDir);
+
+    // Eliminar archivos primero
+    if (fileNodes.length > 0) {
+      await this.bulkDeleteFileNodes(fileNodes);
+    }
+
+    // Luego eliminar directorios
+    if (dirNodes.length > 0) {
+      await this.bulkDeleteDirectories(dirNodes);
     }
   }
 

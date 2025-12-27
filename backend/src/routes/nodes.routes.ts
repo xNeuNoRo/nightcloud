@@ -66,14 +66,14 @@ router.post(
   NodeController.bulkMoveNodes,
 );
 
-// // Borrar varios nodos
-// router.delete(
-//   "/bulk/delete",
-//   NodeValidators.nodeBulkDeleteValidator,
-//   validateRequest,
-//   nodesExistBulk,
-//   NodeController.bulkDeleteNodes,
-// );
+// Borrar varios nodos
+router.post(
+  "/bulk/delete",
+  NodeValidators.nodeBulkDeleteValidator,
+  validateRequest,
+  nodesExistBulk,
+  NodeController.bulkDeleteNodes,
+);
 
 // -----------------
 // Operaciones single

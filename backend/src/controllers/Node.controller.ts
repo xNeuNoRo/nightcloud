@@ -147,12 +147,7 @@ export class NodeController {
     const node = req.node!;
 
     try {
-      if (node.isDir) {
-        await NodeService.deleteDirectory(node);
-      } else {
-        await NodeService.deleteNode(node); // NOSONAR
-      }
-
+      await NodeService.deleteNode(node);
       res.success(undefined, 204);
     } catch (err) {
       if (err instanceof AppError) throw err;
@@ -168,6 +163,23 @@ export class NodeController {
       await DownloadService.downloadDirectoryNode(node, res);
     } else {
       await DownloadService.downloadFileNode(node, res);
+    }
+  };
+
+  // Eliminar varios nodos
+  static readonly bulkDeleteNodes = async (
+    req: Request<unknown, unknown, { nodeIds: string[] }>,
+    res: Response,
+  ) => {
+    const nodes = req.nodes!;
+
+    try {
+      await NodeService.bulkDeleteNodes(nodes);
+      res.success(undefined, 204);
+    } catch (err) {
+      console.error(err);
+      if (err instanceof AppError) throw err;
+      else throw new AppError("INTERNAL", "Error al eliminar los nodos");
     }
   };
 
