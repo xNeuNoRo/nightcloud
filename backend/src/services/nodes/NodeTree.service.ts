@@ -783,6 +783,8 @@ export class NodeTreeService {
   ) {
     // Parsear la ruta del manifiesto
     const { parts, isDirectory } = parseManifestPath(manifest.path);
+    // Tipo mime para directorios
+    const mime = "inode/directory";
 
     // Determinar las partes de la ruta a procesar
     // Si es un directorio, procesamos todas las partes
@@ -828,7 +830,8 @@ export class NodeTreeService {
               : undefined,
             hash: nodeHash,
             size: 0n,
-            mime: "inode/directory",
+            isDir: true,
+            mime,
           });
         }
 
