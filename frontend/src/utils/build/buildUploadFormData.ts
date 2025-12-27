@@ -10,8 +10,11 @@ export function buildUploadFormData(
   // Crear el manifiesto de archivos
   const manifest = files.map((file) => ({
     name: file.name,
-    path: file.path || file.name,
-    size: file.size,
+    path: (file.path || file.webkitRelativePath || file.name).replaceAll(
+      "\\",
+      "/"
+    ),
+    size: file.size.toString(), // Convertir size a string por compatibilidad
     mimeType: file.type,
   }));
 
