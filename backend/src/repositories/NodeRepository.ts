@@ -376,6 +376,30 @@ export class NodeRepository {
   }
 
   /**
+   * @description Busca un nodo por su nombre y parentId
+   * @param tx Transaccion de Prisma
+   * @param name Nombre del nodo
+   * @param parentId ID del nodo padre
+   * @returns Nodo encontrado o null
+   */
+  static async findByNameAndParentIdTx(
+    tx: PrismaTxClient,
+    name: string, // Nombre del nodo a buscar
+    parentId: string | null,
+  ): Promise<Node | null> {
+    const res = await tx.node.findFirst({
+      where: {
+        name: {
+          equals: name,
+          mode: "insensitive",
+        },
+        parentId,
+      },
+    });
+    return res ? fromPrismaNode(res) : null;
+  }
+
+  /**
    * @remarks Si, se que utiliza una consulta raw y podria hacerse una extension de prisma, pero mientras no escale,
    * lo dejo asi para no complicar mas el codigo.
    * @description Busca nombres de nodos que entren en conflicto con una expresion regular dada.
