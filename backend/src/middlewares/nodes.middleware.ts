@@ -250,3 +250,32 @@ export const nodesExistBulk = async (
     next(toAppError(err));
   }
 };
+
+/**
+ * @remarks Sirve para parsear mas que nada los nodeIds del endpoint de download bulk
+ * @description Middleware para parsear un array de nodeIds desde un string JSON en el body
+ * @param req Request
+ * @param _res Response
+ * @param next NextFunction
+ */
+export const nodeParseBulkIds = (
+  req: Request<{}, unknown, { nodeIds: string[] }>,
+  _res: Response,
+  next: NextFunction,
+) => {
+  try {
+    // Asegurarse de que nodeIds sea un string primero q nada
+    if (typeof req.body?.nodeIds === "string") {
+      // Intentar parsear el string como JSON
+      try {
+        req.body.nodeIds = JSON.parse(req.body.nodeIds);
+      } catch {
+        // dejar que el validator falle si no se puede parsear
+      }
+    }
+    next();
+  } catch (err) {
+    console.log(err);
+    next(toAppError(err));
+  }
+};

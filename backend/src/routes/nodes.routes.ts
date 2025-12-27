@@ -7,7 +7,10 @@ import {
   nodeExists,
   validateRequest,
 } from "@/middlewares";
-import { nodesExistBulk } from "@/middlewares/nodes.middleware";
+import {
+  nodeParseBulkIds,
+  nodesExistBulk,
+} from "@/middlewares/nodes.middleware";
 import { NodeValidators } from "@/validators";
 
 /**
@@ -51,6 +54,7 @@ router.get("/", NodeController.getNodesFromRoot);
 // Descargar varios nodos
 router.post(
   "/bulk/download",
+  nodeParseBulkIds,
   NodeValidators.nodeIdsValidator,
   validateRequest,
   nodesExistBulk,
