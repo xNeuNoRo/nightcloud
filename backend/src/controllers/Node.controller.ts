@@ -158,12 +158,7 @@ export class NodeController {
   // Descargar un nodo
   static readonly downloadNode = async (req: Request, res: Response) => {
     const node = req.node!;
-
-    if (node.isDir) {
-      await DownloadService.downloadDirectoryNode(node, res);
-    } else {
-      await DownloadService.downloadFileNode(node, res);
-    }
+    await DownloadService.downloadNode(node, res);
   };
 
   // Eliminar varios nodos

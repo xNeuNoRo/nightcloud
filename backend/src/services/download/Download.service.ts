@@ -12,6 +12,17 @@ import buildRelativeNodePath from "@/utils/nodes/buildRelativePath";
 export class DownloadService {
   private static readonly repo = NodeRepository;
 
+  static readonly downloadNode = async (
+    node: FileNode | DirectoryNode,
+    res: Response,
+  ) => {
+    if (node.isDir) {
+      await this.downloadDirectoryNode(node, res);
+    } else {
+      await this.downloadFileNode(node, res);
+    }
+  };
+
   static readonly downloadFileNode = async (node: FileNode, res: Response) => {
     // Get the node path
     const nodePath = CloudStorageService.getFilePath(node);
