@@ -6,7 +6,9 @@ import { fromDescendantRow } from "@/infra/mappers/node.mapper";
 import type { DescendantRow } from "@/infra/prisma/types";
 import { NodeRepository } from "@/repositories/NodeRepository";
 import type { PrismaTxClient } from "@/types/prisma";
+import type { UploadManifestEntry } from "@/types/upload";
 import { AppError, NodeUtils } from "@/utils";
+import parseManifestPath from "@/utils/nodes/parseManifestPath";
 
 import { NodeIdentityService } from "./NodeIdentity.service";
 import { CloudStorageService } from "../cloud/CloudStorage.service";
@@ -764,5 +766,81 @@ export class NodeTreeService {
       },
       { maxWait: 5000, timeout: 90000 }, // 90 segundos de timeout por si hay muchos nodos
     );
+  }
+
+  /**
+   * @description Asegura que la ruta de directorios para un manifiesto de subida exista, creando los directorios necesarios en la base de datos
+   * @param tx Transacción de Prisma
+   * @param parentId ID del nodo padre donde se ubicará la ruta del manifiesto
+   * @param manifest Entrada del manifiesto de subida
+   * @returns ID del último directorio creado o encontrado
+   */
+  static async ensureManifestPathTree(
+    tx: PrismaTxClient,
+    parentId: Node["id"] | null,
+    manifest: UploadManifestEntry,
+    dirCache: Map<string, Node | null>,
+  ) {
+    // Parsear la ruta del manifiesto
+    const { parts, isDirectory } = parseManifestPath(manifest.path);
+
+    // Determinar las partes de la ruta a procesar
+    // Si es un directorio, procesamos todas las partes
+    // Si es un archivo, procesamos todas menos la última (el nombre del archivo)
+    const dirNames = isDirectory ? parts : parts.slice(0, -1);
+
+    // Empezamos desde el parentId dado
+    let currentParentId = parentId;
+
+    // Iteramos sobre cada parte de la ruta para asegurarnos de que los directorios existen
+    for (const dirName of dirNames) {
+      // Verificar si ya tenemos este directorio en cache
+      const cacheKey = `${currentParentId ?? "root"}:${dirName}`; // Clave unica por parentId + dirName
+      // Buscar en cache
+      let dir: Node | null | undefined = dirCache.get(cacheKey);
+
+      // Si no está en cache, buscarlo en la base de datos
+      if (dir === undefined) {
+        dir = await this.repo.findByNameAndParentIdTx(
+          tx,
+          dirName,
+          currentParentId,
+        );
+
+        // Si no existe, lo creamos
+        if (!dir) {
+          // Resolver nombre y hash unicos
+          const nodeName = await this.identity.resolveNameTx(
+            tx,
+            currentParentId,
+            dirName,
+          );
+          const nodeHash = NodeUtils.genDirectoryHash(
+            nodeName,
+            currentParentId,
+          );
+
+          // Crear el directorio en la base de datos
+          dir = await this.repo.createTx(tx, {
+            name: nodeName,
+            parent: currentParentId
+              ? { connect: { id: currentParentId } }
+              : undefined,
+            hash: nodeHash,
+            size: 0n,
+            mime: "inode/directory",
+          });
+        }
+
+        // Almacenar en cache
+        dirCache.set(cacheKey, dir);
+      }
+
+      // Actualizar el currentParentId para la siguiente iteración
+      currentParentId = dir?.id ?? null;
+    }
+
+    // Retornar el ID del último directorio creado o encontrado
+    return currentParentId;
   }
 }

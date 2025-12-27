@@ -11,6 +11,7 @@ import type { Prisma } from "@/infra/prisma/generated/client";
 import type { AncestorRow, DescendantRow } from "@/infra/prisma/types";
 import { NodeRepository } from "@/repositories/NodeRepository";
 import type { PrismaTxClient } from "@/types/prisma";
+import type { UploadManifestEntry } from "@/types/upload";
 import { AppError, NodeUtils } from "@/utils";
 
 import { NodeIdentityService } from "./NodeIdentity.service";
@@ -29,43 +30,103 @@ export class NodeService {
   private static readonly prisma = DB.getClient();
 
   /**
-   * @description Procesa un nodo subido y lo almacena en la nube y la base de datos.
-   * @param file nodo subido via Multer
-   * @param parentId ID del nodo padre donde se almacenara el nodo
-   * @returns Node creado en la base de datos
+   * @description Procesa un archivo subido, resolviendo su identidad y persistiendo el nodo.
+   * @param tx PrismaTxClient
+   * @param file UploadedFile
+   * @param parentId ID del nodo padre donde se ubicará el nodo
+   * @returns Nodo procesado
    */
-  static async process(file: UploadedFile, parentId: string | null) {
+  static async processTx(
+    tx: PrismaTxClient,
+    file: UploadedFile,
+    parentId: Node["id"] | null,
+  ) {
     try {
-      return await this.prisma.$transaction(async (tx) => {
-        // Resolver nombre y hash unicos
-        const { nodeName, nodeHash } = await this.identity.resolveTx(
-          tx,
-          file,
-          parentId,
-        );
+      // Resolver nombre y hash unicos
+      const { nodeName, nodeHash } = await this.identity.resolveTx(
+        tx,
+        file,
+        parentId,
+      );
 
-        console.log(`Processing node: ${nodeName}`);
+      console.log(`Processing node: ${nodeName}`);
 
-        // Persistir el nodo en la base de datos
-        const node = await this.persistence.persistTx(
-          tx,
-          file,
-          parentId,
-          nodeName,
-          nodeHash,
-        );
+      // Persistir el nodo en la base de datos
+      const node = await this.persistence.persistTx(
+        tx,
+        file,
+        parentId,
+        nodeName,
+        nodeHash,
+      );
 
-        // Actualizar el tamaño del nodo padre si es una carpeta
-        if (parentId) {
-          const parentNode = await this.repo.findByIdTx(tx, parentId);
-          if (parentNode) {
-            await this.incrementNodeSizeByIdTx(tx, parentId, file.size);
-          }
+      // Actualizar el tamaño del nodo padre si es una carpeta
+      if (parentId) {
+        const parentNode = await this.repo.findByIdTx(tx, parentId);
+        if (parentNode) {
+          await this.incrementNodeSizeByIdTx(tx, parentId, file.size);
         }
+      }
 
-        console.log(`Node processed: ${nodeName} as ${nodeHash}`);
-        return node;
-      });
+      console.log(`Node processed: ${nodeName} as ${nodeHash}`);
+      return node;
+    } catch (err) {
+      console.error(err);
+      await this.cloud.delete(file.path); // Limpiar archivo temporal en caso de error
+      throw new AppError("INTERNAL", "Error al procesar el nodo");
+    }
+  }
+
+  /**
+   * @description Procesa un archivo subido usando una entrada de manifiesto para la ruta.
+   * @param tx PrismaTxClient
+   * @param file UploadedFile
+   * @param parentId ID del nodo padre donde se ubicará el nodo
+   * @param manifestEntry Entrada del manifiesto para el archivo
+   * @param dirCache Cache de directorios ya procesados
+   * @returns Nodo procesado
+   */
+  static async processWithManifestTx(
+    tx: PrismaTxClient,
+    file: UploadedFile,
+    parentId: string | null,
+    manifestEntry: UploadManifestEntry,
+    dirCache: Map<string, Node | null>,
+  ) {
+    try {
+      // Asegurar que la ruta de directorios del manifiesto exista
+      const newParentId = await NodeTreeService.ensureManifestPathTree(
+        tx,
+        parentId,
+        manifestEntry,
+        dirCache,
+      );
+
+      // Resolver nombre y hash unicos para el archivo
+      const { nodeName, nodeHash } = await this.identity.resolveTx(
+        tx,
+        file,
+        newParentId,
+      );
+
+      console.log(`Processing node: ${nodeName}`);
+
+      // Persistir el nodo en la base de datos
+      const node = await this.persistence.persistTx(
+        tx,
+        file,
+        parentId,
+        nodeName,
+        nodeHash,
+      );
+
+      // Actualizar el tamaño del nodo padre si es una carpeta
+      if (newParentId) {
+        await this.incrementNodeSizeByIdTx(tx, newParentId, file.size);
+      }
+
+      console.log(`Node processed: ${nodeName} as ${nodeHash}`);
+      return node;
     } catch (err) {
       console.error(err);
       await this.cloud.delete(file.path); // Limpiar archivo temporal en caso de error

@@ -210,4 +210,30 @@ export class NodeIdentityService {
 
     return getNextName(targetName, existingNames);
   }
+
+  /**
+   * @description Resuelve un nombre único para un nodo dentro de su carpeta
+   * @param tx Transacción Prisma
+   * @param parentId ParentId del nodo a resolver
+   * @param name Nombre original del nodo a resolver
+   * @param newName Nuevo nombre propuesto (opcional)
+   * @returns string Nombre único resuelto
+   */
+  static async resolveNameTx(
+    tx: PrismaTxClient,
+    parentId: Node["parentId"],
+    name: Node["name"],
+    newName?: string,
+  ): Promise<string> {
+    const targetName = newName ?? name;
+    const regexPattern = buildConflictRegex(targetName);
+
+    const existingNames = await this.repo.findConflictingNamesTx(
+      tx,
+      parentId,
+      regexPattern,
+    );
+
+    return getNextName(targetName, existingNames);
+  }
 }
