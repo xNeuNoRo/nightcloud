@@ -779,7 +779,7 @@ export class NodeTreeService {
     tx: PrismaTxClient,
     parentId: Node["id"] | null,
     manifest: UploadManifestEntry,
-    dirCache: Map<string, Node | null>,
+    dirCache: Map<string, Node>,
   ) {
     // Parsear la ruta del manifiesto
     const { parts, isDirectory } = parseManifestPath(manifest.path);
@@ -837,7 +837,7 @@ export class NodeTreeService {
       }
 
       // Actualizar el currentParentId para la siguiente iteración
-      currentParentId = dir?.id ?? null;
+      currentParentId = dir.id ?? null;
     }
 
     // Retornar el ID del último directorio creado o encontrado

@@ -8,7 +8,6 @@ import { fromMulterFile } from "@/infra/upload/multer-file";
 import { multerUpload } from "@/infra/upload/multer.upload";
 import { CloudStorageService } from "@/services/cloud/CloudStorage.service";
 import { NodeService } from "@/services/nodes/Node.service";
-import type { UploadManifestEntry } from "@/types/upload";
 import { AppError, toAppError } from "@/utils";
 
 /**
@@ -113,13 +112,19 @@ export const nodeProcess = async (
     const results: Node[] = [];
 
     // Procesar el manifiesto si es válido
-    let manifest: UploadManifestEntry[] | null = null;
+    let manifest = null;
     // Si el manifiesto es un string, intentar parsearlo
     if (typeof req.body.manifest === "string") {
-      const parsed = JSON.parse(req.body.manifest); // Parsear el JSON
-      // Si el manifiesto parseado es válido, usarlo
-      if (isUploadManifest(parsed)) {
-        manifest = parsed;
+      try {
+        const parsed = JSON.parse(req.body.manifest); // Parsear el JSON
+        // Si el manifiesto parseado es válido, usarlo
+        if (isUploadManifest(parsed)) {
+          manifest = parsed;
+        }
+      } catch (err) {
+        console.log(err);
+        // Si el parseo falla, tirar error de formato invalido
+        throw new AppError("INVALID_MANIFEST_FORMAT");
       }
     }
 
@@ -160,10 +165,8 @@ export const nodeProcess = async (
             )
           : await NodeService.processTx(tx, file, parentId ?? null);
 
-        // Si la subida fue abortada, eliminar el nodo creado
+        // Si la subida fue abortada, tirar error para salir de la transacción y el ciclo
         if (aborted) {
-          await NodeService.rollback([node], [file]); // Revertir el nodo creado
-          // Lanzar error para salir del ciclo y la transacción
           throw new AppError("UPLOAD_ABORTED");
         }
 

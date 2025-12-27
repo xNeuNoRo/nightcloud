@@ -71,8 +71,7 @@ export class NodeService {
       console.log(`Node processed: ${nodeName} as ${nodeHash}`);
       return node;
     } catch (err) {
-      console.error(err);
-      await this.cloud.delete(file.path); // Limpiar archivo temporal en caso de error
+      console.log(err);
       throw new AppError("INTERNAL", "Error al procesar el nodo");
     }
   }
@@ -91,7 +90,7 @@ export class NodeService {
     file: UploadedFile,
     parentId: string | null,
     manifestEntry: UploadManifestEntry,
-    dirCache: Map<string, Node | null>,
+    dirCache: Map<string, Node>,
   ) {
     try {
       // Asegurar que la ruta de directorios del manifiesto exista
@@ -115,7 +114,7 @@ export class NodeService {
       const node = await this.persistence.persistTx(
         tx,
         file,
-        parentId,
+        newParentId,
         nodeName,
         nodeHash,
       );

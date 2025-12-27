@@ -21,6 +21,10 @@ export const ERRORS = {
     http: 500,
     msg: "Error al copiar el nodo especificado",
   },
+  INVALID_MANIFEST_FORMAT: {
+    http: 400,
+    msg: "El formato del manifiesto de subida es invalido",
+  },
   MANIFEST_MISMATCH_ERROR: {
     http: 400,
     msg: "Ha ocurrido un error con la subida de archivos, intentalo de nuevo",
