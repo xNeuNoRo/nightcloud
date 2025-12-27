@@ -8,6 +8,7 @@ export type AncestorRow = {
   mime: string;
   isDir: boolean;
   depth: number;
+  rootId: string; // Nuevo campo para identificar el nodo raíz
 };
 
 // Type que representa una fila en la tabla de descendientes de nodos (funcion get_descendants SQL)
@@ -20,6 +21,7 @@ export type DescendantRow = {
   mime: string;
   isDir: boolean;
   depth: number;
+  rootId: string; // Nuevo campo para identificar el nodo raíz
 };
 
 // Type que representa el resultado de una búsqueda de nodos por nombre

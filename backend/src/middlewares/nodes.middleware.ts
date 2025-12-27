@@ -166,3 +166,39 @@ export const nodeExists = async (
     next(toAppError(err));
   }
 };
+
+/**
+ * @remarks Utilizado mas que nada en operaciones bulk (mover, copiar, borrar multiples nodos)
+ * @description Middleware para verificar si varios nodos existen en la base de datos
+ * @param req Request
+ * @param _res Response
+ * @param next NextFunction
+ */
+export const nodesExistBulk = async (
+  req: Request<{}, unknown, { nodeIds: string[] }>, // Se espera un body con nodeIds
+  _res: Response,
+  next: NextFunction,
+) => {
+  try {
+    // Obtener los nodeIds del body
+    const { nodeIds } = req.body;
+
+    // Buscar los nodos en la base de datos
+    const nodes = await NodeService.getNodesDetailsBulk(nodeIds);
+
+    // Verificar que todos los nodos hayan sido encontrados
+    const foundNodeIds = new Set(nodes.map((n) => n.id));
+    const notFoundNodeIds = nodeIds.filter((id) => !foundNodeIds.has(id));
+
+    if (notFoundNodeIds.length > 0) {
+      throw new AppError("NODES_NOT_FOUND");
+    }
+
+    // Adjuntar los nodos a la request para uso posterior
+    req.nodes = nodes;
+
+    next();
+  } catch (err) {
+    next(toAppError(err));
+  }
+};

@@ -2,10 +2,10 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { fsSize } from "systeminformation";
 
+import type { FileNode, FileNodeLite } from "@/domain/nodes/node";
 import type { CloudStorage } from "@/services/cloud/CloudStorage";
 import { AppError, pathExists } from "@/utils";
 
-import type { Node } from "../prisma/generated/client";
 import type { AncestorRow, DescendantRow } from "../prisma/types";
 
 /**
@@ -166,7 +166,7 @@ export class LocalCloudStorage implements CloudStorage {
    * @param node Nodo del cual se desea obtener la ruta completa del archivo
    * @returns string ruta completa del archivo en el sistema de archivos
    */
-  getFilePath(file: Node | AncestorRow | DescendantRow) {
+  getFilePath(file: FileNodeLite | FileNode | AncestorRow | DescendantRow) {
     console.log(
       `Getting node file path for node: ${file.id}, isDir: ${file.isDir}`,
     );

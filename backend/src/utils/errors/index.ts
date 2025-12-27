@@ -13,4 +13,12 @@ export const ERRORS = {
     http: 400,
     msg: "El nodo especificado no es un directorio",
   },
+  NODES_NOT_FOUND: {
+    http: 404,
+    msg: "Uno o mas de los nodos especificados no fue encontrado",
+  },
+  COPY_NODE_ERROR: {
+    http: 500,
+    msg: "Error al copiar el nodo especificado",
+  },
 } as const;

@@ -7,6 +7,14 @@ export class NodeValidators {
   static readonly nodeIdValidator = [
     param("nodeId").isUUID(4).withMessage("Identificador de nodo inválido"),
   ];
+  static readonly nodeIdsValidator = [
+    body("nodeIds")
+      .isArray({ min: 1, max: 100 })
+      .withMessage("Se debe proporcionar un array de id de nodos válidos"),
+    body("nodeIds.*")
+      .isUUID(4)
+      .withMessage("Cada nodeId debe ser un UUID válido"),
+  ];
   static readonly nodeParentIdValidator = [
     body("parentId")
       .optional({ nullable: true })
@@ -58,4 +66,10 @@ export class NodeValidators {
       .isInt({ min: 1, max: 100 })
       .withMessage("El límite debe ser un número entre 1 y 100"),
   ];
+  static readonly nodeBulkCopyValidator = [
+    ...this.nodeParentIdValidator,
+    ...this.nodeIdsValidator,
+  ];
+  static readonly nodeBulkMoveValidator = this.nodeBulkCopyValidator; // Mismo esquema de validación
+  static readonly nodeBulkDeleteValidator = [...this.nodeIdsValidator];
 }
